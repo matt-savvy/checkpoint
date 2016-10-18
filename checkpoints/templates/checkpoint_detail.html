@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li><a href="/checkpoints/">Checkpoints</a></li>
+  <li class="active">{{object}}</li>
+</ol>
+<div class="page-header">
+  <h1>Checkpoint Detail <small>NACCC 2016</small></h1>
+</div>
+
+<p><a href="/checkpoints/update/{{object.id}}/" class="btn btn-default">Edit Checkpoint</a> <a href="/checkpoints/delete/{{object.id}}/" class="btn btn-default">Delete Checkpoint</a>
+
+</p>
+<div>
+    <dl>
+      <dt>Checkpoint Number</dt>
+      <dd>{{object.checkpoint_number}}</dd>
+      <dt>Checkpoint Name</dt>
+      <dd>{{object.checkpoint_name}}</dd>
+    </dl>   
+</div> 
+
+
+
+{% endblock %}

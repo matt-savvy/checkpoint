@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li class="active">Races</li>
+</ol>
+<div class="page-header">
+  <h1>Races <small>NACCC 2016</small></h1>
+</div>
+
+<p><a href="/races/create/" class="btn btn-success">Add New Race</a></p>
+
+<div class="table-responsive">
+<table class="table table-striped">
+  <tr>
+      <th>Race Name</th>
+      <th>Race Date</th>
+      <th>Mass Start</th>
+  </tr>
+      {% for race in races %}
+          <tr>
+              <td><a href="/races/details/{{race.id}}/">{{race.race_name}}</td>
+              <td>{{race.race_date}}</td>
+              <td>{{race.mass_start|yesno}}</td>
+           </tr>
+      {% empty %}
+      <tr>
+          <td colspan="7">No Races yet. <a href = "/races/create/">Make one!</a></td>
+       </tr>
+      {% endfor %}
+</table>
+</div>
+
+{% endblock %}

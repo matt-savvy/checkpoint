@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li class="active">Authorized Checkpoints</li>
+</ol>
+<div class="page-header">
+  <h1>Authorized Checkpoints <small>NACCC 2016</small></h1>
+</div>
+
+<div class="table-responsive">
+<table class="table table-striped">
+  <tr>
+      <th>>Username</th>
+      <th>Checkpoints</th>
+  </tr>
+      {% for user in users %}
+          <tr>
+              <td><a href="/authorizedcheckpoints/update/{{user.pk}}">{{user.username}}</td></td>
+              <td>
+                  <ul>
+                  {% for checkpoint in user.authorized_checkpoints.all %}
+                      <li>{{checkpoint}}</li>
+                  {% endfor %}
+                  </ul>
+              </td>
+
+           </tr>
+      {% empty %}
+      {% endfor %}
+</table>
+</div>
+
+{% endblock %}

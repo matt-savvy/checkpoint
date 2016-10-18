@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block container %}
+{% load widget_tweaks %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li><a href="/raceentries/">Race Entries</a></li>
+  <li><a href="/raceentries/race/{{race.id}}">Manage {{race}} entries</a></li>
+  <li class="active">Advance Racers</li>
+</ol>
+<div class="page-header">
+  <h1>Advance From Race <small>NACCC 2016</small></h1>
+</div>
+<div>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <input id="id_race_id" name="race_id" type="hidden" value="{{race.id}}">
+        <div class="form-group">
+            <label for="{{form.advance_from.name}}">{{form.advance_from.label}}</label>
+            {{form.advance_from.errors}}
+            {{form.advance_from|add_class:"form-control"}}
+         </div>
+         <div class="form-group">
+             <label for="{{form.advance_using.name}}">{{form.advance_using.label}}</label>
+             {{form.advance_using.errors}}
+             {{form.advance_using|add_class:"form-control"}}
+          </div>
+          <div class="form-group">
+              <label for="{{form.number_to_advance.name}}">{{form.number_to_advance.label}}</label>
+              {{form.number_to_advance.errors}}
+              {{form.number_to_advance|add_class:"form-control"}}
+           </div>
+           <button class="btn btn-default">Advance Racers</button>
+    </form>
+
+{% endblock %}

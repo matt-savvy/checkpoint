@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li class="active">{{race.race_name}} Control</li>
+</ol>
+<div class="page-header">
+  <h1>{{race.race_name}} Control <small>NACCC 2016</small></h1>
+</div>
+
+<ul class="nav nav-tabs">
+  <li class="active"><a href="#racerinfo" data-toggle="tab" id="racerinfo-tab">Racer Info</a></li>
+  {% if race.race_type == 1 %}
+  <li><a id="start-tab" href="#start" data-toggle="tab">Start</a></li>
+  <li><a id="finish-tab" href="#finish" data-toggle="tab">Finish</a></li>
+  {% else %}
+  <li><a id="status-tab" href="#status" data-toggle="tab">Race Status</a></li>
+  <li><a id="mass-start-tab" href="#mass-start" data-toggle="tab">Mass Start/Finish</a></li>
+  {% endif %}
+  <li><a id="dq-tab" href="#dq" data-toggle="tab">DQ</a></li>
+  <li><a id="dnf-tab" href="#dnf" data-toggle="tab">DNF</a></li>
+  <li><a id="run-entry-tab" href="#run-entry" data-toggle="tab">Run Entry</a></li>
+  <li><a id="award-tab" href="#award" data-toggle="tab">Award</a></li>
+  <li><a id="deduct-tab" href="#deduct" data-toggle="tab">Deduct</a></li>
+  <li><a id="current-tab" href="#current" data-toggle="tab">Current Racers</a></li>
+  <li><a id="not-tab" href="#not" data-toggle="tab">Not Raced</a></li>
+  <li><a id="standings-tab" href="#standings" data-toggle="tab">Standings</a></li>
+</ul>
+<div class="tab-content">
+  <div class="tab-pane active" id="racerinfo">...</div>
+  
+  <div class="tab-pane" id="start">...</div>
+  <div class="tab-pane" id="finish">...</div>
+  <div class="tab-pane" id="dq">...</div>
+  <div class="tab-pane" id="dnf">...</div>
+  <div class="tab-pane" id="run-entry">...</div>
+  <div class="tab-pane" id="award">...</div>
+  <div class="tab-pane" id="deduct">...</div>
+  <div class="tab-pane" id="current">...</div>
+  <div class="tab-pane" id="not">Not</div>
+  <div class="tab-pane" id="standings">...</div>
+  <div class="tab-pane" id="status">XXX</div>
+  <div class="tab-pane" id="mass-start">Mass Start</div>
+</div>
+
+<div class="modal fade" data-backdrop="static" id='fullscreen-load'><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title">Processing...</h4></div><div class="modal-body"><div class="progress progress-striped active"><div class="progress-bar"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div></div></div></div><!-- /.modal-content --></div><!-- /.modal-dialog --></div>
+
+<script type="text/html" id="racer-info-template">
+    <h3><%= raceEntry.racer.racer_number %> <%= raceEntry.racer.display_name %></h3>
+    <p><%= raceEntry.racer.gender %> <em><%= raceEntry.racer.city %>, <%= raceEntry.racer.country %></em></p>
+    <p class="text-muted"><em><%= raceEntry.racer.category_as_string %></em></p>
+    <h4><strong><%= raceEntry.entry_status_as_string %></strong></h4>
+</script>
+
+<script type="text/html" id="racer-404-template">
+    <h1 class="text-danger">Error.</h1>
+    <h3>No racer with racer number <%= input %> was found. Please try again.</h3>
+</script>
+
+<script type="text/html" id="mini-racer-info-template">
+        <h4 class="media-heading"><%= raceEntry.racer.display_name %></h4>
+        <p><%= raceEntry.racer.gender %> <em><%= raceEntry.racer.city %>, <%= raceEntry.racer.country %></em></p>
+        <p><span class="text-muted"><em><%= raceEntry.racer.category_as_string %></em></span><strong> <%= raceEntry.entry_status_as_string %></strong></p>
+</script>
+
+<script type="text/html" id="mini-racer-404-template">
+    <div class="media">
+      <a class="pull-left" href="#">
+        <img class="media-object mini-photo" src="{{STATIC_URL}}img/prohibited.png" alt="...">
+      </a>
+      <div class="media-body">
+        <h4 class="media-heading text-danger">No Racer Found</h4>
+        <p>No racer was found with racer number <%= input %>. Pleae try again.</p>
+      </div>
+    </div>
+</script>
+
+<script type="text/html" id="checkpoint-template">
+    <div class="media">
+      <a class="pull-left" href="#">
+        <img class="media-object mini-photo" src="<%= checkpoint.stamp %>" alt="...">
+      </a>
+      <div class="media-body">
+        <h4 class="media-heading text-danger"><%= pick_or_drop %></h4>
+        <p><%= checkpoint.checkpoint_name %></p>
+      </div>
+    </div>
+</script>
+
+<script type="text/html" id="job-template">
+    <h4>Job <%= job.job_id %></h4>
+    <%= pick %>
+    <%= drop %>
+</script>
+
+{% endblock %}
+{% block javascript_imports %}
+<script type="text/javascript">
+var raceId = {{race.id}};
+</script>
+<script src="{% static "js/hotkeys.js" %}"></script>
+<script src="{% static "js/control.js" %}"></script>
+
+{% endblock %}

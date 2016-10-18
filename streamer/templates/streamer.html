@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block container %}
+{% load widget_tweaks %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li class="active">Streamer</li>
+</ol>
+<div class="page-header">
+  <h1>Stream Race Data <small>NACCC 2016</small></h1>
+</div>
+<div>
+      <div class="form-group">
+        <label for="race">Race</label>
+        <select class='form-control' id="race-select">
+        {% for race in races %}
+            <option value="{{race.id}}">{{race.race_name}}</option>
+        {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="race">Endpoint</label>
+        <input type="text" class="form-control" id="endpoint-field" placeholder="Endpoint">
+      </div>
+      <button type="button" class="btn btn-default" id="post-results-button" data-loading-text="Posting..">Post to Endpoint</button>
+      <p><input type="checkbox" id="auto-post"> Auto Post Stream every <input type="number" value="60" style="width:50px;" id="seconds"> seconds.</p>
+      <hr>
+      <div class="form-group">
+        <label for="race">Console</label>
+        <textarea id="console" class="form-control" rows="10" style='font-family:"Courier New", Courier, monospace;'></textarea>
+      </div>
+       <button type="button" class="btn btn-default" id="clear-console-button">Clear Console</button>
+      <hr>
+      <div class="form-group">
+        <label for="race">Result JSON</label>
+        <textarea id="posted-json" class="form-control" rows="10" style='font-family:"Courier New", Courier, monospace;'></textarea>
+      </div>
+      
+      
+</div>
+{% endblock %}
+{% block javascript_imports %}
+
+<script type="text/javascript">
+$(document).ready(function() {
+    var updateTimer;
+    var seconds = parseInt($('#seconds').val());
+    $('#posted-json').hide();
+    var csrftoken = getCookie('csrftoken');
+    
+    $('#post-results-button').click(function() {
+        var btn = $(this);
+        btn.button('loading');
+        postStream(function() {
+            btn.button('reset');
+        });
+    });
+    
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    function postStream(completion) {
+        var request = Object();
+        request.race = $('#race-select').val();
+        request.endpoint = $('#endpoint-field').val();
+        var json = JSON.stringify(request);
+        $.ajax({
+            url: '/ajax/postresultstream/',
+            type: 'POST',
+            contentType: 'application/json',
+            data: json,
+            beforeSend: function (request) {
+                request.setRequestHeader("X-CSRFToken", csrftoken);
+            },
+            success: function(data, textStatus, xhr) {
+                $('#posted-json').val(xhr.responseText);
+                $('#posted-json').fadeIn();
+                
+                var now = new Date();
+                var log = $('#console').val() + "\n" + pad(now.getHours(), 2) + ":" + pad(now.getMinutes(), 2) + ":" + pad(now.getSeconds(), 2) + " Posted to " + request.endpoint;
+                
+                $('#console').val(log);
+                completion();
+            
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                var now = new Date();
+                var log = $('#console').val() + "\n" + pad(now.getHours(), 2) + ":" + pad(now.getMinutes(), 2) + ":" + pad(now.getSeconds(), 2) + " Error posting " + request.endpoint;
+                completion();
+            }
+        });
+    }
+    
+    $("#auto-post").change(function() {
+        if(this.checked) {
+            updateTimer();
+        }
+        else {
+            clearInterval(updateTimer);
+        }
+    });
+    
+    $('#seconds').change(function() {
+        seconds = parseInt($('#seconds').val());
+    });
+    
+    function updateTimer() {
+        clearInterval(updateTimer);
+        updateTimer = setInterval(function(){ postStream() }, seconds * 1000);
+    }
+    
+    $('#clear-console-button').click(function() {
+        $('#console').val("");
+    });
+    
+    //Stolen from SO #2998822
+    function pad(num, size) {
+        var s = num+"";
+        while (s.length < size) s = "0" + s;
+        return s;
+    }
+});
+
+</script>
+{% endblock %}

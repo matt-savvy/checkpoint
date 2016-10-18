@@ -1,0 +1,13 @@
+<div class="row">
+    {% if current_race.current_race.pk != race.pk %}
+        <h1 class="text-danger">You must first set this race as the active race using the Race Status tab before starting/finishing racers.</h1>
+    {% else %}
+        {% if current_race.racers_started %}
+            <h1>{{current_race.race_name}} Mass Finish</h1>
+            <p><button type="button" class="btn btn-primary btn-lg" id="mass-start-button">Mass Finish Racers</button></p>
+        {% else %}
+            <h1>{{current_race.race_name}} Mass Start</h1>
+            <p><button type="button" class="btn btn-primary btn-lg" id="mass-start-button">Mass Start Racers</button></p>
+        {% endif %}
+    {% endif %}
+</div>

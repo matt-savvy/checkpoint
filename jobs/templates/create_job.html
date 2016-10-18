@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li><a href="/jobs/">Job</a></li>
+  <li class="active">Create New Job</li>
+</ol>
+<div class="page-header">
+  <h1>Add Job <small>NACCC 2016</small></h1>
+</div>
+
+<form action="" method="post">{% csrf_token %}
+    {% for field in form %}
+        <div class="form-group">
+            <label for="{{field.name}}">{{field.label}}</label>
+            {{field.errors}}
+            {{field|add_class:"form-control"}}
+         </div>
+        
+    {% endfor %}
+    <input type="submit" value="Save Job" class="btn btn-success"/>
+    <input class="btn btn-success" type="submit" name="save-another" value="Save and Create Another Job" />
+</form>
+
+{% endblock %}

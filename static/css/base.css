@@ -1,0 +1,26 @@
+body {
+  padding-top: 70px;
+  padding-bottom: 30px;
+}
+
+.theme-dropdown .dropdown-menu {
+  position: static;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.theme-showcase > p > .btn {
+  margin: 5px 0;
+}
+
+.ticket-entry-input {
+    width: 75%;
+    height:55px;
+    line-height: 55px;    
+    font-size:48px;
+}
+
+.mini-photo {
+    width:64px;
+    height:64px;
+}

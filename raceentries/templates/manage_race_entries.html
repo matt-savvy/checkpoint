@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li><a href="/raceentries/">Race Entries</a></li>
+  <li class="active">Manage {{race}} entries</li>
+</ol>
+<div class="page-header">
+  <h1>Race Entries <small>NACCC 2016</small></h1>
+</div>
+<div>
+    <p>
+        <a href="/raceentries/advance/{{race.id}}/" class="btn btn-default">Advance From Race Results</a>
+    </p>
+</div>
+<div class="row">
+  <div class="col-md-6">
+      <form method="POST" action="/raceentries/enter/">
+      {% csrf_token %}
+      <input type="hidden" name="race-id" value="{{race.id}}">
+      <h3 class="text-danger">Not Entered in {{race}}</h3>
+      <div class="table-responsive">
+      <table class="table table-striped">
+        <tr>
+            <th><input type="checkbox" id="select-all-not-entered"></th>
+            <th>Racer Number</th>
+            <th>Last Name</th>
+            <th>First Name</th>
+            <th>Gender</th>
+        </tr>
+        {% for racer in not_in_race %}
+        <tr>
+            <td><input type="checkbox" name="enter-in-race[]" value="{{racer.id}}" class='not-in-race-checkboxes'></td>
+            <td>{{racer.racer_number}}</td>
+            <td>{{racer.last_name}}</td>
+            <td>{{racer.first_name}}</td>
+            <td>{{racer.gender}}</td>
+        </tr> 
+        {% empty %}
+        <tr>
+            <td colspan="6">All Racers in Race</td>
+        </tr>
+        {% endfor %}
+      </table>
+      <button type="submit" class="btn btn-default btn-success" name="enter-racers">Enter Racer(s) in Race</button>
+      </form>
+      </div>
+  </div>
+  <div class="col-md-6">
+      <form method="POST" action="/raceentries/enter/" id="remove-form">
+      {% csrf_token %}
+      <input type="hidden" name="race-id" value="{{race.id}}">
+      <h3 class="text-success">Entered in {{race}}</h3>
+          <div class="table-responsive">
+          <table class="table table-striped">
+            <tr>
+                <th><input type="checkbox" id="select-all-entered"></th>
+                <th>Racer Number</th>
+                <th>Last Name</th>
+                <th>First Name</th>
+                <th>Gender</th>
+            </tr>
+            {% for entry in race_entries %}
+            <tr>
+                <td><input type="checkbox" name="remove-from-race[]" value="{{entry.id}}" class='entered-in-race-checkboxes'></td>
+                <td>{{entry.racer.racer_number}}</td>
+                <td>{{entry.racer.last_name}}</td>
+                <td>{{entry.racer.first_name}}</td>
+                <td>{{entry.racer.gender}}</td>
+            </tr> 
+            {% empty %}
+            <tr>
+                <td colspan="6">All Racers in Race</td>
+            </tr>
+            {% endfor %}
+          </table>
+          <button type="submit" class="btn btn-default btn-danger" name="remove-racers">Remove Racer(s) in Race</button>
+      </form>
+          </div>
+      </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block javascript_imports %}
+<script type="text/javascript">
+$(document).ready(function() {
+    
+    $('#remove-form').submit(function() {
+        var check = confirm("Are you sure you want to remove these racers from the race? If you remove a racer who has already been started in the event; that information will be lost forever");
+        if (check) {
+            return true;
+        }
+        return false;
+    })
+    
+    function updateNotInRaceCheckboxes(checked) {
+        $('.not-in-race-checkboxes').each(function() {
+            this.checked = checked; 
+        });
+    }
+    
+    function updateEnteredInRaceCheckboxes(checked) {
+        $('.entered-in-race-checkboxes').each(function() {
+            this.checked = checked; 
+        });
+    }
+    
+    $('#select-all-not-entered').click(function() {
+        updateNotInRaceCheckboxes(this.checked);
+    });
+    
+    $('#select-all-entered').click(function() {
+        updateEnteredInRaceCheckboxes(this.checked);
+    });
+});
+</script>
+
+{% endblock %}

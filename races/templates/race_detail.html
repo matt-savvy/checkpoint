@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li><a href="/races/">Races</a></li>
+  <li class="active">{{object}}</li>
+</ol>
+<div class="page-header">
+  <h1>Race Detail <small>NACCC 2016</small></h1>
+</div>
+
+<p><a href="/races/update/{{object.id}}/" class="btn btn-default">Edit Race</a> <a href="/races/delete/{{object.id}}/" class="btn btn-default">Delete Race</a>
+
+</p>
+<div>
+    <dl>
+      <dt>Race Name</dt>
+      <dd>{{object.race_name}}</dd>
+      <dt>Race Date</dt>
+      <dd>{{object.race_date}}</dd>
+      <dt>Mass Start?</dt>
+      <dd>{{object.mass_start|yesno}}</dd>
+    </dl>   
+</div> 
+
+
+
+{% endblock %}

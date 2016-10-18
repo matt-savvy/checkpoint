@@ -1,0 +1,126 @@
+{% load staticfiles %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Doug Suriano">
+    <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
+
+    <title>NACCC 2016</title>
+
+    <!-- Bootstrap core CSS -->
+    {# <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"> #}
+    <!-- Bootstrap theme -->
+    {# <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"> #}
+    <link href="{% static "css/bootstrap.css" %}" rel="stylesheet">
+    <!-- Custom styles for this template -->
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body role="document">
+
+    <div class="container theme-showcase" role="main">
+        <p><img src="{% static "img/cmwclogo.png" %}"></p>
+        <h1>{{race.race_name}} Results</h1>
+        <table class="table table-bordered">
+          <tr>
+              <th>Place</th>
+              <th>Racer Name</th>
+              <th>Racer Number</th>
+              <th>Gender</th>
+              <th>City</th>
+              <th>Team</th>
+              <th>Earnings</th>
+             </tr>
+             {% for entry in race_entries %}
+                 {% if show_cut %}
+                 {% if entry.place == cut_line %}
+             </table>
+             <h2>{{cut_remark}}</h2>
+             <table class="table table-bordered">
+                       <tr>
+                           <th>Place</th>
+                           <th>Racer Name</th>
+                           <th>Racer Number</th>
+                           <th>Gender</th>
+                           <th>City</th>
+                           <th>Team</th>
+                           <th>Earnings</th>
+                          </tr>
+                 {% endif %}
+                 
+                 {% endif %}
+                 {% for the_racer in entry.racers %}
+                     <tr>
+                         <td>{{entry.place}}</td>
+                         <td>{{the_racer.racer.display_name}}</td>
+                         <td>{{the_racer.racer.racer_number}}</td>
+                         <td>{{the_racer.racer.gender}}</td>
+                         <td>{{the_racer.racer.city}}</td>
+                         <td>{{the_racer.racer.team}}</td>
+                         <td>${{the_racer.grand_total}}</td>
+                     </tr>
+                 {% endfor %}
+             {% endfor %}
+        </table>
+        
+        {% if show_dq %}
+        <h3> Disqualified Racers</h3>
+        <table class="table table-bordered">
+          <tr>
+              <th>Racer Number</th>
+              <th>Racer Name</th>
+              <th>Reason</th>
+          </tr>
+          {% for racer in dq_racers %}
+              <tr>
+                  <th class="text-muted"><em>{{racer.racer.racer_number}}</em></th>
+                  <th class="text-muted"><em>{{racer.racer.display_name}}</em></th>
+                  <th class="text-muted"><em>{{racer.dq_reason}}</em></th>
+              </tr>
+          {% endfor %}
+          </table>
+              
+        {% endif %}
+        {% if show_dnf %}
+        <h3>Racers that did not finish (DNF)</h3>
+        <table class="table table-bordered">
+          <tr>
+              <th>Racer Number</th>
+              <th>Racer Name</th>
+          </tr>
+          {% for racer in dnf_racers %}
+              <tr>
+                  <th class="text-muted"><em>{{racer.racer.racer_number}}</em></th>
+                  <th class="text-muted"><em>{{racer.racer.display_name}}</em></th>
+              </tr>
+          {% endfor %}
+          </table>
+              
+        {% endif %}
+        
+    </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="{% static "js/jquery.js" %}"></script>
+    <script src="{% static "js/bootstrap.js" %}"></script>
+    <script src="{% static "js/underscore.js" %}"></script>
+    {% block javascript_imports %}
+    {% endblock %}
+  </body>
+</html>

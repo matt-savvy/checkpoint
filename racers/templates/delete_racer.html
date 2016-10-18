@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block container %}
+<div class="jumbotron">
+  <div class="container">
+    <form action="" method="post">{% csrf_token %}
+        <h2>Are you sure you want to delete {{ object.display_name }}?</h2>
+        <input class="btn btn-danger" type="submit" value="Delete {{object.display_name}}" />
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+

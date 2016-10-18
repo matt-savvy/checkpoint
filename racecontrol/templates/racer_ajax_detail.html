@@ -1,0 +1,65 @@
+{% if found_racer %}
+<h2>{{race_entry.racer.racer_number}} {{race_entry.racer.display_name}}</h2>
+<h3>{{race_entry.entry_status_as_string}}</h3>
+<dl class="dl-horizontal">
+  <dt>Start Time</dt>
+  <dd>{{start_time}}</dd>
+  <dt>Due Back</dt>
+  <dd>{{due_back_time}}</dd>
+  <dt>{{time_status}}</dt>
+  <dd>{{race_entry.current_elapsed_time}}</dd>
+</dl>
+
+<table class="table">
+<tr>
+    <th>Drop Code</th>
+    <th>Job #</th>
+    <th>Pick</th>
+    <th>Drop</th>
+    <th>Earnings</th>
+    <th>Status</th>
+    <th>Determination</th>
+</tr>
+{% for run in runs %}
+    <tr>
+        <td>{{run.pk}}</td>
+        <td>{{run.job.job_id}}</td>
+        <td>{{run.job.pick_checkpoint}}</td>
+        <td>{{run.job.drop_checkpoint}}</td>
+        <td>${{run.points_awarded}}/${{run.job.points}}</td>
+        <td>{{run.status_as_string}}</td>
+        <td>{{run.determination_as_string}}</td>
+{% empty %}
+<tr>
+    <td colspan="5">No Runs Entered in yet</td>
+</tr>
+{% endfor %}
+</table>
+
+      <table class="table">
+        <tr>
+            <th># of Jobs</th>
+            <th>Points Earned</th>
+            <th>Deductions</th>
+            <th>Awarded Points</th>
+            <th>Grand Total</th>
+            </tr>
+            <tr>
+                <td><h3>{{race_entry.number_of_runs_completed}}</h3></td>
+                <td><h3>${{race_entry.points_earned}}</h3></td>
+                <td><h3 class="text-danger">${{race_entry.deductions}}</h3></td>
+                <td><h3 class="text-success">${{race_entry.supplementary_points}}</h3></td>
+                <td><h1><strong>${{race_entry.grand_total}}</strong></h1></td>
+                </tr>
+      </table>
+
+<div class="form-group">
+    <label>Racer Notes</label>
+    <textarea class="form-control" rows="3" id="racer_notes">{{race_entry.scratch_pad}}</textarea>
+  </div>
+  <button type="button" class="btn btn-default" id="update-racer-notes" racer-number="{{race_entry.racer.racer_number}}">Update Notes</button>
+
+{% else %}
+<h2>No Racer Found</h2>
+
+{% endif %}

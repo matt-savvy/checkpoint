@@ -1,0 +1,115 @@
+{% load staticfiles %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <meta name="description" content="">
+    <meta name="author" content="Doug Suriano">
+    <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
+
+    <title>NACCC 2016</title>
+
+    <!-- Bootstrap core CSS -->
+    {# <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"> #}
+    <!-- Bootstrap theme -->
+    {# <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"> #}
+    <link href="{% static "css/bootstrap.css" %}" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="{% static "css/base.css" %}" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body role="document">
+    <div class="container theme-showcase" role="main">
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+          <div class="container">
+            <a class="navbar-brand">{{checkpoint.checkpoint_name}}</a>
+          </div>
+        </nav>
+        
+        
+        <div class='row state-section' id="racer-number-section">
+            <div class="alert alert-success alert-dismissible" role="alert" style="display:none" id="drop-success">Job successfully marked as dropped!</div>
+            <div class="form-group">
+                <label for="racer-number">Racer Number</label>
+                <p class="text-danger" id="racer-error"></p>
+                <input type="number" class="form-control" id="racer-number" placeholder="Racer #">
+            </div>
+            <button type="button" class="btn btn-success" id="lookup-racer-button" data-loading-text="Loading...">Lookup Racer</button>
+        </div>
+        <div class='row state-section' id="pick-or-drop-section">
+            <h3 class="text-center" id='racer-name'></h3>
+            <p class="text-center"><button type="button" id="pick-button" class="btn btn-success btn-lg" style="width:80%;">Pick Up</button></p>
+            <p class="text-center"><button type="button" id="drop-button" class="btn btn-success btn-lg" style="width:80%;">Drop Off</button></p>
+            <hr>
+            <p class="text-center"><button type="button" id="wrong-racer-button" class="btn btn-danger btn-sm">Wrong Racer</button></p>
+        </div>
+        <div class='row state-section' id="job-number-section">
+            <div class="panel panel-danger" id="pick-error">
+              <div class="panel-heading">
+                <h3 class="panel-title" id="pick-error-title"></h3>
+              </div>
+              <div class="panel-body" id="pick-error-description">
+                Panel content
+              </div>
+            </div>
+            <div class="form-group">
+                <label for="job-number">Job #</label>
+                <input type="number" class="form-control" id="job-number" placeholder="Job Number" autocomplete='off'>
+            </div>
+            <button type="button" class="btn btn-success btn-lg" data-loading-text="Loading..." id="job-number-button">Pick Job</button>
+            <hr>
+            <p class="text-center"><button type="button" id="not-picking-button" class="btn btn-danger btn-sm">Not Picking</button></p>
+        </div>
+        <div class='row state-section' id="confirm-section">
+            <h3 class="text-center">Drop Confirm Code</h3>
+            <h1 class="text-center" id="confirm-code"><strong>123456</strong></h1>
+            <hr>
+            <p class="text-center"><button type="button" class="btn btn-success btn-lg" id="next-racer">Next Racer</button></p>
+        </div>
+        <div class='row state-section' id="drop-id-section">
+            <div class="panel panel-danger" id="drop-error">
+              <div class="panel-heading">
+                <h3 class="panel-title" id="drop-error-title"></h3>
+              </div>
+              <div class="panel-body" id="drop-error-description">
+                Panel content
+              </div>
+            </div>
+            <div class="form-group">
+                <label for="drop-confirm-number">Drop Confirm Code #</label>
+                <input type="number" class="form-control" id="drop-confirm-number" placeholder="Drop Confirm #">
+            </div>
+            <button type="button" class="btn btn-success btn-lg" id="drop-confirm-button" data-loading-text="Loading...">Drop Job</button>
+            <hr>
+            <p class="text-center"><button type="button" id="not-dropping-button" class="btn btn-danger btn-sm">Not Dropping</button></p>
+        </div>
+    </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="{% static "js/jquery.js" %}"></script>
+    <script src="{% static "js/bootstrap.js" %}"></script>
+    <script src="{% static "js/underscore.js" %}"></script>
+    <script src="{% static "js/checkpoint.js" %}"></script>
+    <script type="text/javascript">
+    var checkpoint = {{checkpoint.pk}};
+    </script>
+    {% block javascript_imports %}
+    {% endblock %}
+  </body>
+</html>

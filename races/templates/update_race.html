@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li><a href="/races/">Races</a></li>
+  <li><a href="/races/details/{{object.id}}/">{{object}}</a></li>
+  <li class="active">Edit {{object}}</li>
+</ol>
+<div class="page-header">
+  <h1>Edit {{object}} <small>NACCC 2016</small></h1>
+</div>
+
+<form action="" method="post">{% csrf_token %}
+    {% for field in form %}
+        <div class="form-group">
+            {% if field.errors %}
+            <strong>{{field.errors}}</strong>
+            {% endif %}
+            <label for="{{field.name}}">{{field.label}}</label>
+            {{field|add_class:"form-control"}}
+         </div>
+        
+    {% endfor %}
+    <input type="submit" value="Update {{object}}" class="btn btn-default"/>
+</form>
+
+{% endblock %}

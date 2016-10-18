@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block container %}
+<div class="page-header">
+  <h1>{{racer.racer.racer_number}} {{racer.racer}} <small>2014 NACCC Commission Report</small></h1>
+</div>
+
+<div class="table-responsive">
+<table class="table table-striped">
+  <tr>
+      <th>Job #</th>
+      <th>Run #</th>
+      <th>Pick</th>
+      <th>Drop</th>
+      <th>Time Picked</th>
+      <th>Time Dropped</th>
+      <th>Time Due</th>
+      <th>Determination</th>
+      <th>Payout</th>
+  </tr>
+      {% for run in runs %}
+          {% if run.determination == 'OK' %}
+          <tr class="success">
+          {% elif run.determination == 'Late' %}
+          <tr class="warning">
+              {% else %}
+              <tr class="danger">
+          {% endif %}
+              <td>{{run.job_number}}</td>
+              <td>{{run.run_id}}</td>
+              <td>{{run.pick}}</td>
+              <td>{{run.drop}}</td>
+              <td>{{run.time_picked}}</td>
+              <td>{{run.time_dropped}}</td>
+              <td>{{run.due_time}}</td>
+              <td>{{run.determination}}</td>
+              <td>{{run.payout}}
+           </tr>
+      {% empty %}
+      <tr>
+          <td colspan="7">No Commissions</td>
+       </tr>
+      {% endfor %}
+</table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,75 @@
+{% load staticfiles %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <meta name="description" content="">
+    <meta name="author" content="Doug Suriano">
+    <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
+
+    <title>NACCC 2016</title>
+
+    <!-- Bootstrap core CSS -->
+    {# <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"> #}
+    <!-- Bootstrap theme -->
+    {# <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"> #}
+    <link href="{% static "css/bootstrap.css" %}" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="{% static "css/base.css" %}" rel="stylesheet">
+     <link href="{% static "css/bootstrap-slider.css" %}" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+        <style type="text/css" media="screen">
+        body {
+          padding-top: 10px;
+      }
+        </style>
+  </head>
+
+  <body role="document">
+    <div class="container theme-showcase" role="main">
+        
+        <p class="text-center"><img src="{% static "img/cmwclogo.png" %}"></p>
+        <h3 class="text-center">A minute by minute replay of the 2014 NACCC Finals.</h3>
+        <div class="row">
+          <div class="col-xs-4"><h1 class="text-center"><button type="button" id="back-button" class="btn btn-primary btn-lg loading">- 1 Min</button></h1></div>
+          <div class="col-xs-4"><h1 class="text-center" id="current-time">0:00</h1></div>
+          <div class="col-xs-4"><h1 class="text-center"><button type="button" id="forward-button" class="btn btn-primary btn-lg loading">+ 1 Min</button></h1></div>
+        </div>
+        <div class="row">
+            <hr>
+            <input id="slider" data-slider-id='ex1Slider' style="width:100%;" type="text" data-slider-min="0" data-slider-max="180" data-slider-step="1" data-slider-value="0"/>
+            <hr>
+        <div id="events"></div>
+        <div>
+            <p class="text-center"><small><em>2014 Doug Suriano</em></small></p>
+            </div>
+        
+    </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="{% static "js/jquery.js" %}"></script>
+    <script src="{% static "js/bootstrap.js" %}"></script>
+    <script src="{% static "js/underscore.js" %}"></script>
+    <script src="{% static "js/checkpoint.js" %}"></script>
+    <script src="{% static "js/bootstrap-slider.js" %}"></script>
+    <script src="{% static "js/playback.js" %}"></script>
+
+    {% block javascript_imports %}
+    {% endblock %}
+  </body>
+</html>

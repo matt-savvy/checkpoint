@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li><a href="/jobs/">Jobs</a></li>
+  <li><a href="/jobs/race/{{object.race.id}}/">{{object.race}} Jobs</a></li>
+  <li><a href="/jobs/details/{{object.id}}/">{{object}}</a></li>
+  <li class="active">Delete {{object}}</li>
+</ol>
+<div class="page-header">
+  <h1>Delete {{object}} <small>NACCC 2016</small></h1>
+</div>
+
+<form action="" method="post">{% csrf_token %}
+    <p>Are you sure you want to delete "{{ object }}"?</p>
+    <p>
+    <a href="/races/details/{{object.id}}/" class ="btn btn-default">Cancel</a>
+    <input type="submit" value="Yes, delete {{object}}" class="btn btn-danger"/>
+    </p>
+</form>
+
+{% endblock %}

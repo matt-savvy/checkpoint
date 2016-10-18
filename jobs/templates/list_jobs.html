@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li><a href="/jobs/">Jobs</a></li>
+  <li class="active">{{jobs.0.race}} Jobs</li>
+</ol>
+<div class="page-header">
+  <h1>{{jobs.0.race}} Jobs <small>NACCC 2016</small></h1>
+</div>
+
+<p><a href="/jobs/create/" class="btn btn-success">Add New Job</a></p>
+
+<div class="table-responsive">
+<table class="table table-striped">
+  <tr>
+      <th>Job Number</th>
+      <th>Pick Up</th>
+      <th>Drop Off</th>
+      <th>Points</th>
+      <th>Package</th>
+  </tr>
+      {% for job in jobs %}
+          <tr>
+              <td><a href="/jobs/details/{{job.id}}/">{{job.job_id}}</td>
+              <td>{{job.pick_checkpoint}}</td>
+              <td>{{job.drop_checkpoint}}</td>
+              <td>{{job.points}}</td>
+              <td>{{job.package}}</td>
+           </tr>
+      {% empty %}
+      <tr>
+          <td colspan="7">No Jobs yet. <a href = "/jovs/create/">Make one!</a></td>
+       </tr>
+      {% endfor %}
+</table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li><a href="/jobs/">Jobs</a></li>
+  <li><a href="/jobs/race/{{object.race.id}}/">{{object.race}} Jobs</a></li>
+  <li class="active">{{object}}</li>
+</ol>
+<div class="page-header">
+  <h1>Job Detail <small>NACCC 2016</small></h1>
+</div>
+
+<p><a href="/jobs/update/{{object.id}}/" class="btn btn-default">Edit Job</a> <a href="/jobs/delete/{{object.id}}/" class="btn btn-default">Delete Job</a>
+
+</p>
+<div>
+    <dl>
+      <dt>Job Id</dt>
+      <dd>{{object.job_id}}</dd>
+      <dt>Job Race</dt>
+      <dd>{{object.race}}</dd>
+      <dt>Pick Checkpoint</dt>
+      <dd>{{object.pick_checkpoint}}</dd>
+      <dt>Drop Checkpoint</dt>
+      <dd>{{object.drop_checkpoint}}</dd>
+      <dt>Points</dt>
+      <dd>{{object.points}}</dd>
+    </dl>   
+</div> 
+
+
+
+{% endblock %}

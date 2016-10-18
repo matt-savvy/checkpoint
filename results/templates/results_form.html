@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC 2016</a></li>
+  <li class="active">Results</li>
+</ol>
+<div class="page-header">
+  <h1>Results <small>NACCC 2016</small></h1>
+</div>
+
+<form action="" method="post">{% csrf_token %}
+    {% for field in form %}
+        <div class="form-group">
+            <label for="{{field.name}}">{{field.label}}</label>
+            {{field.errors}}
+            {{field|add_class:"form-control"}}
+         </div>
+        
+    {% endfor %}
+    <input type="submit" value="Generate Results" class="btn btn-default"/>
+</form>
+
+{% endblock %}

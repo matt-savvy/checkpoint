@@ -1,0 +1,48 @@
+<h2>{{race_entry.racer.display_name}}</h2>
+<table class="table table-bordered">
+        <tr>
+            <th>Job #</th>
+            <th>Pick</th>
+            <th>Drop</th>
+            <th>Pay</th>
+            <th>Actions</th>
+        </tr>
+        {% for run in runs %}
+            <tr>
+                <td>{{run.job.job_id}}</td>
+                <td>{{run.job.pick_checkpoint.checkpoint_name}}</td>
+                <td>{{run.job.drop_checkpoint.checkpoint_name}}</td>
+                <td>${{run.points_awarded}}</td>
+                <td><button type="button" class="btn btn-sm btn-danger delete-run-button" run-id="{{run.pk}}" data-loading-text="Deleting...">Delete Run</button></td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="5">
+                <form class="form-inline" role="form" id="run-form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="add-run-field" placeholder="Job #">
+                    </div>
+                        <button type="button" class="btn btn-success" id="add-run-button" data-loading-text="Adding...">Add Job</button>
+                        <strong><span class="text-danger" id="run-error-text"></span></strong>
+                        </form>
+                        </td>
+                    
+            </tr>
+      </table>
+      <hr>
+      <table class="table">
+        <tr>
+            <th># of Jobs</th>
+            <th>Points Earned</th>
+            <th>Deductions</th>
+            <th>Awarded Points</th>
+            <th>Grand Total</th>
+            </tr>
+            <tr>
+                <td><h3>{{race_entry.number_of_runs_completed}}</h3></td>
+                <td><h3>${{race_entry.points_earned}}</h3></td>
+                <td><h3 class="text-danger">${{race_entry.deductions}}</h3></td>
+                <td><h3 class="text-success">${{race_entry.supplementary_points}}</h3></td>
+                <td><h1><strong>${{race_entry.grand_total}}</strong></h1></td>
+                </tr>
+      </table>
