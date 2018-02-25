@@ -19,7 +19,6 @@ import mobilecheckpoint.views as mobile_views
 import runs.views as run_views
 import racelogs.views as log_views
 
-
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -31,10 +30,11 @@ urlpatterns = patterns('',
     #Racer URLs
     url(r'^racers/$', login_required(racer_views.RacerListView.as_view())),
     url(r'^racers/create/$', login_required(racer_views.RacerCreateView.as_view())),
+    url(r'^racers/register/$', racer_views.RacerRegisterView.as_view()),
     url(r'^racers/update/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerUpdateView.as_view())),
     url(r'^racers/details/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerDetailView.as_view())),
     url(r'^racers/delete/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerDeleteView.as_view())),
-    #Racer URLs
+    #Checkpoint URLs
     url(r'^checkpoints/$', login_required(checkpoint_views.CheckpointListView.as_view())),
     url(r'^checkpoints/create/$', login_required(checkpoint_views.CheckpointCreateView.as_view())),
     url(r'^checkpoints/update/(?P<pk>[0-9]+)/$', login_required(checkpoint_views.CheckpointUpdateView.as_view())),

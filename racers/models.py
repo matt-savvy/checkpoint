@@ -1,40 +1,41 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import RegexValidator
 
 class Racer(models.Model):
         
     GENDER_MALE                     = 'M'
     GENDER_FEMALE                   = 'F'
+    GENDER_TRANS                    = 'T'
     
     GENDER_OPTIONS = (
         (GENDER_MALE, "Male"),
-        (GENDER_FEMALE, "Female")
+        (GENDER_FEMALE, "Female"),
+        (GENDER_FEMALE, "Trans/Non Binary/Agender")
     )
     
     RACER_CATEGORY_MESSENGER        = 0
     RACER_CATEGORY_NON_MESSENGER    = 1
     RACER_CATEGORY_EX_MESSENGER     = 2
-    RACER_CATEGORY_ERIN_YOUNG       = 3
     
     RACER_CATEGORY_OPTIONS = (
-        (RACER_CATEGORY_MESSENGER, "Messenger"),
+        (RACER_CATEGORY_MESSENGER, "Working Messenger"),
         (RACER_CATEGORY_NON_MESSENGER, "Non-Messenger"),
-        (RACER_CATEGORY_EX_MESSENGER, "Ex-Messenger"),
-        (RACER_CATEGORY_ERIN_YOUNG, "Erin Young")
+        (RACER_CATEGORY_EX_MESSENGER, "Recovered Messenger")
     )
     
-    
-    
     """(Racer description)"""
-    racer_number = models.IntegerField(unique=True)
+    racer_number = models.CharField(max_length=3, unique=True, validators=[RegexValidator(r'^\d{1,10}$')])
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     nick_name = models.CharField(max_length=50, blank=True)
+    email = models.EmailField(max_length=50, blank=True)
     city = models.CharField(max_length=50, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_OPTIONS)
     category = models.IntegerField(choices=RACER_CATEGORY_OPTIONS)
     paid = models.BooleanField(default=False)
     team = models.CharField(blank=True, max_length=100)
+    company = models.CharField(blank=True, max_length=100)
 
     def __unicode__(self):
         return self.display_name

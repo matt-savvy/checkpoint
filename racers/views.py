@@ -10,7 +10,7 @@ import uuid
 import os
 from django.conf import settings
 from racers.models import Racer
-from racers.forms import RacerForm
+from racers.forms import RacerForm, RegisterForm
 from django.http import HttpResponseRedirect
 from django.contrib import messages
 from nacccusers.auth import AuthorizedRaceOfficalMixin
@@ -26,6 +26,15 @@ class RacerListView(AuthorizedRaceOfficalMixin, ListView):
 class RacerDetailView(AuthorizedRaceOfficalMixin, DetailView):
     template_name = 'racer_detail.html'
     model = Racer
+
+class RacerRegisterView(CreateView):
+    template_name = 'register_racer.html'
+    model = Racer
+    form_class = RegisterForm
+    
+    def get_success_url(self):
+        messages.success(self.request, 'You have been successfully registered.')
+        return super(RacerRegisterView, self).get_success_url()
 
 class RacerCreateView(AuthorizedRaceOfficalMixin, CreateView):
     template_name = 'create_racer.html'

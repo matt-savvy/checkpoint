@@ -1,0 +1,75 @@
+        {% load widget_tweaks %}
+        {% csrf_token %}
+		
+		<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+       
+	    <legend>Your Info</legend>
+			
+			{% if form.errors %}
+			
+				<div class="alert-danger">
+					{{ form.errors }}
+				</div>
+					
+			{% endif %}
+			
+		<div class="row">
+			
+			
+			
+          <div class="col-md-4">
+              <fieldset>
+                  
+                      <div class="form-group">
+                          <label for="first_name">First Name</label>
+                          {{ form.first_name|add_class:"form-control"}}
+                      </div>
+                      <div class="form-group">
+                          <label for="last_name">Last Name</label>
+                          {{ form.last_name|add_class:"form-control doc"|attr:"placeholder:"}}
+                      </div>
+                      <div class="form-group">
+                          <label for="email">Email</label>
+                          {{ form.email|add_class:"form-control doc"|attr:"placeholder:"}}
+                      </div>
+                      <div class="form-group">
+                          <label for="nickname">Nickname</label>
+						  <p>What everyone calls you, not what you wish they did.</p>
+                          {{ form.nick_name|add_class:"form-control doc"}}
+                      </div>
+					  <div class="form-group">
+						  <label for="city">City</label>
+						  {{ form.city|add_class:"form-control doc"}}
+					  </div>
+              </fieldset>   
+		  </div>
+		  
+          <div class="col-md-4"> 
+              <fieldset>
+				  <div class="form-group">
+					  <label for="racer_number">Racer Number</label>
+					  {{ form.racer_number|add_class:"form-control doc"}}
+				  </div>
+				  	
+                      <div class="form-group">
+                          <label for="gender">Gender</label>
+                          {{ form.gender|add_class:"form-control"}}
+                      </div>
+                      <div class="form-group">
+                          <label for="category">Race Category</label>
+						  <p>Let's be real here. If working on the road isn't your real job, then you ain't a Working Messenger. </p>
+                          {{ form.category|add_class:"form-control doc"|attr:"placeholder:"}}
+                      </div>
+                      <div class="form-group">
+                          <label for="email">Company</label>
+						  <p>If you're out here, tell us who you ride for. 
+                          {{ form.company|add_class:"form-control doc masked-phone-field"|attr:"placeholder:"}}
+                      </div>
+                      <div class="form-group">
+                          <label for="nickname">Team</label>
+                          {{ form.team|add_class:"form-control doc"}}
+                      </div>
+					  
+              </fieldset>   
+		  	</div>
+		 </div>

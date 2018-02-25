@@ -43,7 +43,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.messages.context_processors.messages"
 )
 
-DEFAULT_FROM_EMAIL = 'donotreply@twinjet.co'
+DEFAULT_FROM_EMAIL = 'do-not-reply@naccc2018.com'
 
 AUTH_USER_MODEL = 'nacccusers.NACCCUser'
 
@@ -134,7 +134,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
