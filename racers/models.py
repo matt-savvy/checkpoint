@@ -48,7 +48,7 @@ class Racer(models.Model):
         if len(self.nick_name) > 0:
             return u"{} '{}' {}".format(self.first_name, self.nick_name, self.last_name)
         return u"{} {}".format(self.first_name, self.last_name)
-        
+    
     @property
     def category_as_string(self):
         return self.RACER_CATEGORY_OPTIONS[self.category][1]

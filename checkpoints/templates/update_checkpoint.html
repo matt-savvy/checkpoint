@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% block container %}
 <ol class="breadcrumb">
-  <li><a href="/">NACCC 2016</a></li>
+  <li><a href="/">NACCC PHL NACCC</a></li>
   <li><a href="/checkpoints/">Checkpoints</a></li>
   <li><a href="/checkpoints/details/{{object.id}}/">{{object}}</a></li>
   <li class="active">Edit {{object}}</li>
 </ol>
 <div class="page-header">
-  <h1>Update {{object.checkpoint_name}} <small>NACCC 2016</small></h1>
+  <h1>Update {{object.checkpoint_name}} <small>NACCC PHL NACCC</small></h1>
 </div>
 
 <form action="" method="post">{% csrf_token %}

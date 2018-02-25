@@ -2,32 +2,23 @@
 {% block container %}
 <div class="page-header">
   <h1>Racer Detail <small>NACCC 2016</small></h1>
+  <p><a href="/racers/update/{{object.id}}/" class="btn btn-default">Edit Racer</a> <a href="/racerphoto?racer_number={{racer.racer_number}}" class="btn btn-default" role="button">Take Racer photo</a></p></p>
+  
 </div>
 
-<p><a href="/racers/update/{{object.id}}/" class="btn btn-default">Edit Racer</a> <a href="/racerphoto?racer_number={{racer.racer_number}}" class="btn btn-default" role="button">Take Racer photo</a></p></p>
+
 <div>
-    <p><img src={{racer.racer_image}}>
+    <img src={{racer.racer_image}}>
     <dl>
+		<h2> {{object.display_name}}</h2>
       <dt>Racer Number</dt>
       <dd>{{object.racer_number}}</dd>
-      <dt>First Name</dt>
-      <dd>{{object.first_name}}</dd>
-      <dt>Last Name</dt>
-      <dd>{{object.last_name}}</dd>
-      <dt>Nick Name</dt>
-      <dd>{{object.nick_name}}</dd>
-      <dt>Gender</dt>
-      <dd>{{object.nick_name}}</dd>
       <dt>Gender</dt>
       <dd>{{object.gender}}</dd>
       <dt>Category</dt>
-      <dd>{{object.category}}</dd>
+      <dd>{{object.category_as_string}}</dd>
       <dt>City</dt>
       <dd>{{object.city}}</dd>
-      <dt>Country</dt>
-      <dd>{{object.country}}</dd>
-      
-      
     </dl>   
 </div> 
 
