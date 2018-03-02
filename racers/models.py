@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
-
 class Racer(models.Model):
         
     GENDER_MALE                     = 'M'
@@ -53,3 +52,8 @@ class Racer(models.Model):
     def category_as_string(self):
         return self.RACER_CATEGORY_OPTIONS[self.category][1]
 
+from paypal.standard.models import ST_PP_COMPLETED
+from paypal.standard.ipn.signals import valid_ipn_received
+from .views import show_me_the_money
+
+valid_ipn_received.connect(show_me_the_money)

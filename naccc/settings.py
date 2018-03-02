@@ -64,6 +64,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'south',
     'paypal.standard.ipn',
+    #'paypal.standard.pdt',
     'nacccusers',
     'racers',
     'races',
@@ -86,6 +87,39 @@ INSTALLED_APPS = (
     'racelogs'
     
 )
+
+##PAYPAL_IDENTITY_TOKEN = ""
+PAYPAL_TEST = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+    'standard': {
+        'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+        'datefmt': "%d/%b/%Y %H:%M:%S"
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'WARN',
+        },
+        'paypal.standard.ipn': {
+            'handlers': ['console'],
+            'level': 'DEBUG'
+       },
+   }
+}
+
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -140,7 +174,10 @@ DATABASES['default'].update(db_from_env)
 
 SERVE_RACER_PHOTOS_FROM_S3 = False
 
+PAYPAL_RECEIVER_EMAIL = "matt@1-800-rad-dude.com"
+
 try:
     from .local_settings import *
 except:
     pass
+    

@@ -18,6 +18,7 @@ import authorizedcheckpoints.views as authorized_views
 import mobilecheckpoint.views as mobile_views
 import runs.views as run_views
 import racelogs.views as log_views
+import paypal.standard.ipn.signals
 
 admin.autodiscover()
 
@@ -30,7 +31,9 @@ urlpatterns = patterns('',
     #Racer URLs
     url(r'^racers/$', login_required(racer_views.RacerListView.as_view())),
     url(r'^racers/create/$', login_required(racer_views.RacerCreateView.as_view())),
-    url(r'^racers/register/$', racer_views.RacerRegisterView.as_view()),
+    url(r'^racers/register/$', racer_views.RacerRegisterView.as_view(), name="register-view"),
+    url(r'^racers/pay/$', racer_views.view_that_asks_for_money), 
+    url(r'^paypal/', include('paypal.standard.ipn.urls')),
     url(r'^racers/update/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerUpdateView.as_view())),
     url(r'^racers/details/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerDetailView.as_view())),
     url(r'^racers/delete/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerDeleteView.as_view())),
