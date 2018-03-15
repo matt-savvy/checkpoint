@@ -18,6 +18,7 @@
       <th>City</th>
       <th>Team</th>
       <th>Category</th>
+	  <th>Paid?</th>
       <th>Actions</th>
   </tr>
       {% for racer in racers %}
@@ -30,6 +31,7 @@
               <td>{{racer.city}}</td>
               <td>{{racer.team}}</td>
               <td>{{racer.category_as_string}}</td>
+			  <td>{% if racer.paid %}paid{% else %} NOT PAID {% endif %}</td>
               <td><a href="/racers/delete/{{racer.pk}}/" class="btn btn-default btn-xs btn-danger">Delete</a></td>
            </tr>
       {% empty %}

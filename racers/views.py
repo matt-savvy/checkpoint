@@ -31,20 +31,24 @@ class RacerListView(AuthorizedRaceOfficalMixin, ListView):
     
     def get_queryset(self):
         return Racer.objects.all().order_by('racer_number')
-    
+
 class RacerDetailView(AuthorizedRaceOfficalMixin, DetailView):
     template_name = 'racer_detail.html'
     model = Racer
 
-@csrf_exempt
+class ThankYouView(TemplateView):
+    template_name = 'thank_you.html'
+    
+    
 def view_that_asks_for_money(request):
     paypal_dict = {
-        "business": "matt@naccc2018.com",
+        "business": "philabma@gmail.com",
         "amount": "50.00",
         "item_name": "Registration",
-        "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
-        "return_url": request.build_absolute_uri(reverse('register-view')),
-        "cancel_return": request.build_absolute_uri(reverse('register-view')),
+       ## "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
+        "notify_url": "http://2cdaf2eb.ngrok.io/paypal/",
+        "return_url": request.build_absolute_uri(reverse('thank-you-view')),
+        "cancel_return": request.build_absolute_uri(reverse('thank-you-view')),
         ##custom": "premium_plan",  # Custom command to correlate to some function later (optional)
     }
 
@@ -54,15 +58,26 @@ def view_that_asks_for_money(request):
 
 @csrf_exempt
 def show_me_the_money(sender, **kwargs):
-    print sender
-    print "SHOW ME THE MONEY"
     ipn_obj = sender
+    print "confirmed"
+    print ipn_obj
     if ipn_obj.payment_status == ST_PP_COMPLETED:
-        return
-            # WARNING !
-            # Check that the receiver email is the same we previously
-            # set on the `business` field. (The user could tamper with
-            # that fields on the payment form before it goes to PayPal)
+        # WARNING !
+        # Check that the receiver email is the same we previously
+        # set on the `business` field. (The user could tamper with
+        # that fields on the payment form before it goes to PayPal)
+        if ipn_obj.receiver_email != "receiver_email@example.com":
+            # Not a valid payment
+            return
+
+        # ALSO: for the same reason, you need to check the amount
+        # received, `custom` etc. are all what you expect or what
+        # is allowed.
+        
+        ##if ipn_obj.mc_gross == price and ipn_obj.mc_currency == 'USD':
+        ##    pass
+    else:
+        pass
 
 class RacerRegisterView(CreateView):
     template_name = 'register_racer.html'
@@ -78,8 +93,7 @@ class RacerRegisterView(CreateView):
           return context
     
     def get_success_url(self):
-        messages.success(self.request, 'You have been successfully registered.')
-        return super(RacerRegisterView, self).get_success_url()
+        return self.request.build_absolute_uri(reverse('pay-view'))
 
 class RacerCreateView(AuthorizedRaceOfficalMixin, CreateView):
     template_name = 'create_racer.html'

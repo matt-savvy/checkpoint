@@ -174,7 +174,7 @@ DATABASES['default'].update(db_from_env)
 
 SERVE_RACER_PHOTOS_FROM_S3 = False
 
-PAYPAL_RECEIVER_EMAIL = "matt@1-800-rad-dude.com"
+PAYPAL_RECEIVER_EMAIL = "philabma@gmail.com"
 
 try:
     from .local_settings import *
