@@ -81,8 +81,7 @@ header.masthead {
 header.masthead .masthead-content {
   z-index: 1;
   position: relative;
-  background-color:black;
-  opacity: .8;
+  background: rgba(0, 0, 0, 0.5);
 }
 
 header.masthead .masthead-content .masthead-heading {
