@@ -27,11 +27,12 @@ urlpatterns = patterns('',
     (r'^accounts/logout/$', 'django.contrib.auth.views.logout'),
     
     url(r'^nunya/', include(admin.site.urls)),
+    url(r'^$', racer_views.RacerRegisterView.as_view(), name="register-view"),
     # url(r'^$', login_required(home_views.HomeView.as_view())),
     #Racer URLs
     url(r'^racers/$', login_required(racer_views.RacerListView.as_view())),
     url(r'^racers/create/$', login_required(racer_views.RacerCreateView.as_view())),
-    url(r'^racers/register/$', racer_views.RacerRegisterView.as_view(), name="register-view"),
+    url(r'^racers/register/$', racer_views.RacerRegisterView.as_view(), name="register-view2"),
     url(r'^racers/pay/$', racer_views.view_that_asks_for_money, name="pay-view"), 
     url(r'^racers/thanks/$', racer_views.ThankYouView.as_view(), name="thank-you-view"), 
     url(r'^paypal/', include('paypal.standard.ipn.urls')),
@@ -106,7 +107,6 @@ urlpatterns = patterns('',
     url(r'^events/(?P<minute>[0-9]+)/$', log_views.RaceEventListView.as_view()),
     url(r'^logs/(?P<racer>[0-9]+)/$', log_views.RaceLogListView.as_view()),
     url(r'^playback/$', log_views.PlaybackView.as_view()),
-    url(r'^$', log_views.PlaybackView.as_view()),
     #Results Streaming Views
     url(r'^streamer/$', login_required(streamer_views.StreamerView.as_view())),
     #Results View
