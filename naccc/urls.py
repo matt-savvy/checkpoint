@@ -32,8 +32,11 @@ urlpatterns = patterns('',
     # url(r'^$', login_required(home_views.HomeView.as_view())),
     #Racer URLs
     url(r'^racers/$', login_required(racer_views.RacerListView.as_view())),
+    
     url(r'^racers/create/$', login_required(racer_views.RacerCreateView.as_view())),
     url(r'^racers/register/$', racer_views.RacerRegisterView.as_view(), name="register-view"),
+    url(r'^racers/registered/$', racer_views.RacerListViewPublic.as_view(), name="already-registered-view"),
+    
     url(r'^racers/pay/$', racer_views.view_that_asks_for_money, name="pay-view"), 
     url(r'^racers/thanks/$', racer_views.ThankYouView.as_view(), name="thank-you-view"), 
     url(r'^paypal/', include('paypal.standard.ipn.urls')),
