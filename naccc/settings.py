@@ -24,7 +24,7 @@ SECRET_KEY = '$+(218y1qhycniwjae6n(6pib=^9&dg%l_s9arj=1ltj*5gx+n'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = False
 
 TEMPLATE_DIRS = ('templates/',)
 
@@ -90,7 +90,7 @@ INSTALLED_APPS = (
 )
 
 ##PAYPAL_IDENTITY_TOKEN = ""
-PAYPAL_TEST = False
+PAYPAL_TEST = True
 
 LOGGING = {
     'version': 1,
