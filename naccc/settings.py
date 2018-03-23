@@ -90,7 +90,7 @@ INSTALLED_APPS = (
 )
 
 ##PAYPAL_IDENTITY_TOKEN = ""
-PAYPAL_TEST = True
+PAYPAL_TEST = False
 
 LOGGING = {
     'version': 1,
