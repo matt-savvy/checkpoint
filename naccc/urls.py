@@ -28,6 +28,7 @@ urlpatterns = patterns('',
     
     url(r'^nunya/', include(admin.site.urls)),
     url(r'^$', home_views.WelcomeView.as_view(), name="welcome-view"),
+    url(r'^contact/$', home_views.ContactView.as_view(), name="contact-view"),
     # url(r'^$', login_required(home_views.HomeView.as_view())),
     #Racer URLs
     url(r'^racers/$', login_required(racer_views.RacerListView.as_view())),

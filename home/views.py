@@ -9,3 +9,6 @@ class HomeView(AuthorizedRaceOfficalMixin, TemplateView):
 
 class WelcomeView(TemplateView):
     template_name = "welcome.html"
+
+class ContactView(TemplateView):
+    template_name = "contact.html"
