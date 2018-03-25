@@ -10,7 +10,7 @@ class Racer(models.Model):
     GENDER_OPTIONS = (
         (GENDER_MALE, "Male"),
         (GENDER_FEMALE, "Female"),
-        (GENDER_FEMALE, "Trans/Non Binary/Agender")
+        (GENDER_TRANS, "Trans/Non Binary/Agender")
     )
     
     RACER_CATEGORY_MESSENGER        = 0
