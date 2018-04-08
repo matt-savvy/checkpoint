@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Racer.shirt_size'
         db.add_column(u'racers_racer', 'shirt_size',
-                      self.gf('django.db.models.fields.CharField')(default='M', max_length=1),
+                      self.gf('django.db.models.fields.CharField')(default='M', max_length=2),
                       keep_default=False)
 
         # Adding unique constraint on 'Racer', fields ['racer_number']
