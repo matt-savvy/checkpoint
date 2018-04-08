@@ -18,6 +18,7 @@
       <th>City</th>
       <th>Team</th>
       <th>Category</th>
+	  <th>Shirt Size</th>
 	  <th>Paid?</th>
       <th>Actions</th>
   </tr>
@@ -31,6 +32,7 @@
               <td>{{racer.city}}</td>
               <td>{{racer.team}}</td>
               <td>{{racer.category_as_string}}</td>
+			  <td>{{racer.shirt_size}}</td>
 			  <td>{% if racer.paid %}<span class="success">paid</span>{% else %} <span class="danger">NOT PAID</span> {% endif %}</td>
               <td>
 				  <a href="/racers/update/{{racer.pk}}/" class="btn btn-default btn-xs btn-info">Edit</a>

@@ -23,6 +23,19 @@ class Racer(models.Model):
         (RACER_CATEGORY_EX_MESSENGER, "Recovered Messenger")
     )
     
+    
+    SHIRT_SIZE_SMALL  = 'S'
+    SHIRT_SIZE_MEDIUM = 'M'
+    SHIRT_SIZE_LARGE  = 'L'
+    SHIRT_SIZE_XLARGE = 'XL'
+    
+    SHIRT_SIZE_OPTIONS = (
+        (SHIRT_SIZE_SMALL, "S"),
+        (SHIRT_SIZE_MEDIUM, "M"),
+        (SHIRT_SIZE_LARGE, "L"),
+        (SHIRT_SIZE_XLARGE, "XL")
+    )
+    
     """(Racer description)"""
     racer_number = models.CharField(max_length=3, unique=True, validators=[RegexValidator(r'^\d{1,10}$')])
     first_name = models.CharField(max_length=50)
@@ -32,6 +45,7 @@ class Racer(models.Model):
     city = models.CharField(max_length=50, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_OPTIONS)
     category = models.IntegerField(choices=RACER_CATEGORY_OPTIONS)
+    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZE_OPTIONS, default=SHIRT_SIZE_MEDIUM)
     paid = models.BooleanField(default=False)
     team = models.CharField(blank=True, max_length=100)
     company = models.CharField(blank=True, max_length=100)

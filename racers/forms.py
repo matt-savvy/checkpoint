@@ -13,7 +13,15 @@ class RegisterForm(forms.ModelForm):
     
     class Meta:
         model = Racer
-        fields = ('racer_number', 'first_name', 'last_name', 'nick_name', 'city', 'email', 'gender', 'category', 'team', 'company')
+        fields = ('racer_number', 'first_name', 'last_name', 'nick_name', 'city', 'email', 'gender', 'category', 'team', 'company', 'shirt_size')
+    
+    def clean_nick_name(self):
+            data = self.cleaned_data['nick_name']
+            if data == self.cleaned_data['first_name'] or self.cleaned_data['last_name']:
+                data = ""
+            
+            return data
+    
     
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
