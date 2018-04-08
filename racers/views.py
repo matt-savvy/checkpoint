@@ -22,6 +22,7 @@ from django.utils.decorators import method_decorator
 from paypal.standard.models import ST_PP_COMPLETED
 from paypal.standard.ipn.signals import valid_ipn_received
 from django.shortcuts import get_object_or_404
+from django.db.models import Count
 
 import pdb
 
@@ -29,6 +30,26 @@ class RacerListView(AuthorizedRaceOfficalMixin, ListView):
     model = Racer
     template_name = 'list_racers.html'
     context_object_name = 'racers'
+    
+    def get_context_data(self, **kwargs):
+        context = super(RacerListView, self).get_context_data(**kwargs)
+        #pdb.set_trace()
+        queryset = context['object_list']
+        context['total_men'] = len(queryset.filter(gender='M'))
+        context['total_women'] = len(queryset.filter(gender='F'))
+        context['total_trans'] = len(queryset.filter(gender='T'))
+        
+        context['total_mess'] = len(queryset.filter(category=0))
+        context['total_non'] = len(queryset.filter(category=1))
+        context['total_ex'] = len(queryset.filter(category=2))
+        
+        context['total_s'] = len(queryset.filter(shirt_size='S'))
+        context['total_m'] = len(queryset.filter(shirt_size='M'))
+        context['total_l'] = len(queryset.filter(shirt_size='L'))
+        context['total_xl'] = len(queryset.filter(shirt_size='XL'))
+        
+        
+        return context
     
     def get_queryset(self):
         return Racer.objects.all().order_by('racer_number')

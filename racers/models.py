@@ -45,7 +45,7 @@ class Racer(models.Model):
     city = models.CharField(max_length=50, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_OPTIONS)
     category = models.IntegerField(choices=RACER_CATEGORY_OPTIONS)
-    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZE_OPTIONS, default=SHIRT_SIZE_MEDIUM)
+    shirt_size = models.CharField(max_length=2, choices=SHIRT_SIZE_OPTIONS, default=SHIRT_SIZE_MEDIUM)
     paid = models.BooleanField(default=False)
     team = models.CharField(blank=True, max_length=100)
     company = models.CharField(blank=True, max_length=100)
