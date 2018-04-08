@@ -52,25 +52,24 @@
         </div>
       </div>
     </nav>
-	
-	
-    <div class="container theme-showcase" role="main">
-        {% if messages %}
-        {% for message in messages  %}
-            <div class="alert alert-{{message.tags}} alert-dismissable message-alert">
-              <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-              {{ message }}
-            </div>
-        {% endfor %}
-        {% endif %}
-
-    </div> <!-- /container -->
-
 
 <!-- this should go in the individual templates, right? -->
     <header class="masthead text-center text-white">
       <div class="masthead-content">
         <div class="container">
+			
+		    <div class="container theme-showcase" role="main">
+		        {% if messages %}
+		        {% for message in messages  %}
+		            <div class="alert alert-{{message.tags}} alert-dismissable message-alert">
+		              <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+		              {{ message }}
+		            </div>
+		        {% endfor %}
+		        {% endif %}
+
+		    </div> <!-- /container -->
+			
 			
             {% block container %}
         

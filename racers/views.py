@@ -7,12 +7,12 @@ from django.views.generic.edit import CreateView, UpdateView
 from util.photo import generate_small_image, generate_medium_image, generate_large_image
 from django.core.files.storage import default_storage as storage
 from django.core.files.base import ContentFile
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 import uuid
 import os
 from django.conf import settings
 from racers.models import Racer
-from racers.forms import RacerForm, RegisterForm
+from racers.forms import RacerForm, RegisterForm, ShirtForm
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from nacccusers.auth import AuthorizedRaceOfficalMixin
@@ -21,6 +21,7 @@ from paypal.standard.forms import PayPalPaymentsForm
 from django.utils.decorators import method_decorator
 from paypal.standard.models import ST_PP_COMPLETED
 from paypal.standard.ipn.signals import valid_ipn_received
+from django.shortcuts import get_object_or_404
 
 import pdb
 
@@ -135,6 +136,21 @@ class RacerUpdateView(AuthorizedRaceOfficalMixin, UpdateView):
     template_name = 'update_racer.html'
     model = Racer
 
+class RacerUpdateShirtView(UpdateView):
+    template_name = 'update_racer_shirt.html'
+    model = Racer
+    fields = ['shirt_size']
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Rider updated.')
+        return reverse_lazy('thank-you-view')
+    
+    def get_object(self):
+        racer_pk = self.request.GET.get('pk')
+        racer_number = self.request.GET.get('racer_number')
+        return get_object_or_404(Racer, pk=racer_pk, racer_number=racer_number)
+    
+    
 class RacerDeleteView(AuthorizedRaceOfficalMixin, DeleteView):
     template_name = "delete_racer.html"
     model = Racer

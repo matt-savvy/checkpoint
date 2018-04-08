@@ -5,6 +5,11 @@ from .models import Racer
 class RacerForm(forms.ModelForm):
     class Meta:
         model = Racer
+
+class ShirtForm(forms.ModelForm):
+    class Meta:
+        model = Racer
+        fields = ('shirt_size', 'nick_name')
         
 class RegisterForm(forms.ModelForm):
     available_numbers = range(1, 1000)
