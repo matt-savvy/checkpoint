@@ -23,6 +23,7 @@ import paypal.standard.ipn.signals
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    (r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
     (r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
     url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
     
