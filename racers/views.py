@@ -51,17 +51,26 @@ class ThankYouView(TemplateView):
     
     
 def view_that_asks_for_money(request):
+    try:
+        racer_number = str(request.GET['racer_number'])
+        url = request.build_absolute_uri(reverse('pay-view'))
+        cancel_url = url + "?racer_number={}".format(racer_number)
+    except:
+        racer_number = ""
+        cancel_url = request.build_absolute_uri(reverse('welcome-view'))
+    
+    item_name = "Registration for Racer {}".format(racer_number)    
     paypal_dict = {
         "business": "philabma@gmail.com",
         "amount": "50.00",
-        "item_name": "Registration",
+        "item_name": item_name,
        ## "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
         "notify_url": "http://2cdaf2eb.ngrok.io/paypal/",
         "return_url": request.build_absolute_uri(reverse('thank-you-view')),
-        "cancel_return": request.build_absolute_uri(reverse('thank-you-view')),
+        "cancel_return": cancel_url,
         ##custom": "premium_plan",  # Custom command to correlate to some function later (optional)
     }
-
+    
     form = PayPalPaymentsForm(initial=paypal_dict)
     context = {"form": form}
     return render(request, 'racer_pay.html', context)
@@ -69,7 +78,7 @@ def view_that_asks_for_money(request):
 @csrf_exempt
 def show_me_the_money(sender, **kwargs):
     ipn_obj = sender
-    print "confirmed"
+    print "show_me_the_money"
     print ipn_obj
     if ipn_obj.payment_status == ST_PP_COMPLETED:
         # WARNING !
@@ -103,7 +112,13 @@ class RacerRegisterView(CreateView):
           return context
     
     def get_success_url(self):
-        return self.request.build_absolute_uri(reverse('pay-view'))
+        url = self.request.build_absolute_uri(reverse('pay-view'))
+        try:
+            racer_number = self.object.racer_number
+            url = url + "?racer_number={}".format(str(racer_number))
+        except:
+            pass
+        return url
 
 class RacerCreateView(AuthorizedRaceOfficalMixin, CreateView):
     template_name = 'create_racer.html'

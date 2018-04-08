@@ -2,7 +2,10 @@
 {% block container %}
 <div class="page-header">
   <h1>Racer Detail <small>NACCC PHL NACCC</small></h1>
-  <p><a href="/racers/update/{{object.id}}/" class="btn btn-default">Edit Racer</a> <a href="/racerphoto?racer_number={{racer.racer_number}}" class="btn btn-default" role="button">Take Racer photo</a></p></p>
+  	<p><a href="/racers/update/{{object.id}}/" class="btn btn-default">Edit Racer</a>
+  	   <a href="/racerphoto?racer_number={{racer.racer_number}}" class="btn btn-default" role="button">Take Racer photo</a> 
+   		<a href="/racers/">Racers </a>
+	</p></p>
   
 </div>
 
@@ -21,7 +24,5 @@
       <dd>{{object.city}}</dd>
     </dl>   
 </div> 
-
-
 
 {% endblock %}
