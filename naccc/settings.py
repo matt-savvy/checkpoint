@@ -177,6 +177,8 @@ SERVE_RACER_PHOTOS_FROM_S3 = False
 
 PAYPAL_RECEIVER_EMAIL = "philabma@gmail.com"
 
+LOGIN_REDIRECT_URL = "admin"
+
 try:
     from .local_settings import *
 except:

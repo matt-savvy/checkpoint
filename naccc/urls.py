@@ -23,8 +23,8 @@ import paypal.standard.ipn.signals
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    (r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
-    (r'^accounts/logout/$', 'django.contrib.auth.views.logout'),
+    (r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
+    url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
     
     url(r'^nunya/', include(admin.site.urls)),
     url(r'^$', home_views.WelcomeView.as_view(), name="welcome-view"),
@@ -32,7 +32,7 @@ urlpatterns = patterns('',
     # url(r'^$', login_required(home_views.HomeView.as_view())),
     
     #Racer URLs
-    url(r'^racers/$', login_required(racer_views.RacerListView.as_view())),
+    url(r'^racers/$', login_required(racer_views.RacerListView.as_view()), name="admin"),
     url(r'^racers/create/$', login_required(racer_views.RacerCreateView.as_view())),
     url(r'^racers/register/$', racer_views.RacerRegisterView.as_view(), name="register-view"),
     url(r'^racers/registered/$', racer_views.RacerListViewPublic.as_view(), name="already-registered-view"),
