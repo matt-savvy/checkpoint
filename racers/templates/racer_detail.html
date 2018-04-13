@@ -8,11 +8,11 @@
 	</p></p>
   
 </div>
-
-<div>
+<h2> {{object.display_name}}</h2>
+<div class="col-md-6">
     <img src={{racer.racer_image}}>
     <dl>
-		<h2> {{object.display_name}}</h2>
+		
       <dt>Racer Number</dt>
       <dd>{{object.racer_number}}</dd>
       <dt>Gender</dt>
@@ -28,5 +28,19 @@
       <dd>{{object.city}}</dd>
     </dl>   
 </div> 
+
+<div class="col-md-6">
+	
+	<div>
+		<label>Payment Link</label>
+		<input type="text" class="form-control" value="{{object.payment_link}}" readonly>
+	</div>
+	
+	<div>
+		<label>T-Shirt Update Link</label>
+		<input type="text" class="form-control" value="{{object.shirt_link}}" readonly>
+	</div>
+</div>
+
 
 {% endblock %}

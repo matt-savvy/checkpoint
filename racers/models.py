@@ -3,9 +3,9 @@ from django.conf import settings
 from django.core.validators import RegexValidator
 class Racer(models.Model):
         
-    GENDER_MALE                     = 'M'
-    GENDER_FEMALE                   = 'F'
-    GENDER_TRANS                    = 'T'
+    GENDER_MALE   = 'M'
+    GENDER_FEMALE = 'F'
+    GENDER_TRANS  = 'T'
     
     GENDER_OPTIONS = (
         (GENDER_MALE, "Male"),
@@ -22,7 +22,6 @@ class Racer(models.Model):
         (RACER_CATEGORY_NON_MESSENGER, "Non-Messenger"),
         (RACER_CATEGORY_EX_MESSENGER, "Recovered Messenger")
     )
-    
     
     SHIRT_SIZE_SMALL  = 'S'
     SHIRT_SIZE_MEDIUM = 'M'
@@ -55,6 +54,14 @@ class Racer(models.Model):
         
     def get_absolute_url(self):
         return '/racers/details/' + str(self.id)
+    
+    @property
+    def payment_link(self):
+        return u'https://naccc.herokuapp.com/racers/pay/?racer_number={}'.format(str(self.racer_number))
+    
+    @property
+    def shirt_link(self):
+        return u'https://naccc.herokuapp.com/racers/shirt?pk={}&racer_number={}'.format(str(self.id), str(self.racer_number))
 
     @property
     def display_name(self):

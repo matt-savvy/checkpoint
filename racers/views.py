@@ -23,7 +23,7 @@ from paypal.standard.models import ST_PP_COMPLETED
 from paypal.standard.ipn.signals import valid_ipn_received
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
-
+import hashlib
 import pdb
 
 class RacerListView(AuthorizedRaceOfficalMixin, ListView):
@@ -47,7 +47,6 @@ class RacerListView(AuthorizedRaceOfficalMixin, ListView):
         context['total_m'] = len(queryset.filter(shirt_size='M'))
         context['total_l'] = len(queryset.filter(shirt_size='L'))
         context['total_xl'] = len(queryset.filter(shirt_size='XL'))
-        
         
         return context
     
@@ -156,7 +155,22 @@ class RacerCreateView(AuthorizedRaceOfficalMixin, CreateView):
 class RacerUpdateView(AuthorizedRaceOfficalMixin, UpdateView):
     template_name = 'update_racer.html'
     model = Racer
-
+    
+    def get_success_url(self):
+       import requests
+       MAILCHIMP_USERNAME = 'naccc2018'
+       MAILCHIMP_API_KEY = '73e4693f5ed7ff2cd92e3b35a5abf0f1-us16' 
+       mailchimp_user = '{}:{}'.format(MAILCHIMP_USERNAME, MAILCHIMP_API_KEY)
+       md5 = hashlib.md5(self.object.email).hexdigest()
+       listid = '459031a70e'
+       address = 'https://us16.api.mailchimp.com/3.0'
+       endpoint =  "{}/lists/{}?user={}:{}".format(address, listid, MAILCHIMP_USERNAME, MAILCHIMP_API_KEY)
+       response = requests.get(address, headers={'user' : mailchimp_user})
+       print response.json()['detail']
+       pass
+       return super(RacerUpdateView, self).get_success_url()
+        
+        
 class RacerUpdateShirtView(UpdateView):
     template_name = 'update_racer_shirt.html'
     model = Racer
