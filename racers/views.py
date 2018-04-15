@@ -51,7 +51,7 @@ class RacerListView(AuthorizedRaceOfficalMixin, ListView):
         return context
     
     def get_queryset(self):
-        return Racer.objects.all().order_by('racer_number')
+        return Racer.objects.all().order_by('-pk')
 
 
 class RacerListViewPublic(ListView):
