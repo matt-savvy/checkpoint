@@ -72,3 +72,8 @@ class Racer(models.Model):
     @property
     def category_as_string(self):
         return self.RACER_CATEGORY_OPTIONS[self.category][1]
+    
+    def mark_as_paid(self):
+        if not self.paid:
+            self.paid = True
+            self.save()

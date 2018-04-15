@@ -106,6 +106,7 @@ urlpatterns = patterns('',
     url(r'^ajax/setracestarttime/$', login_required(ajax_views.SetRaceStartTime.as_view())),
     url(r'^ajax/setcurrentrace/$', login_required(ajax_views.SetCurrentRace.as_view())),
     url(r'^ajax/massstartracers/$', login_required(ajax_views.MassStartRacers.as_view())),
+    url(r'^ajax/racerpaid/$', login_required(ajax_views.MarkAsPaidRacerAjaxView.as_view())),
     #runs views
     url(r'^commission/(?P<race>[0-9]+)/(?P<racer>[0-9]+)/$', login_required(run_views.CommissionView.as_view())),
     #log views

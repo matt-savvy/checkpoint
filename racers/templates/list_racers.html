@@ -66,6 +66,7 @@
       <th>Last Name</th>
       <th>First Name</th>
       <th>Nick</th>
+	  <th>email</th>
       <th>Sex</th>
       <th>City</th>
       <th>Team</th>
@@ -80,16 +81,19 @@
               <td>{{racer.last_name}}</td>
               <td>{{racer.first_name}}</td>
               <td>{{racer.nick_name}}</td>
+			  <td>{{racer.email}}</td>
               <td>{{racer.gender}}</td>
-              <td>{{racer.city}}</td>
+              <td>{{racer.city}}</td>	
               <td>{{racer.team}}</td>
               <td>{{racer.category_as_string}}</td>
 			  <td>{{racer.shirt_size}}</td>
-			  <td>{% if racer.paid %}<span class="success">paid</span>{% else %} <span class="danger">NOT PAID</span> {% endif %}</td>
+			  <td>{% if racer.paid %}<span id="paid{{racer.pk}}" class="success">paid</span>{% else %} <span id="paid{{racer.pk}}" class="danger">NOT PAID</span> {% endif %}</td>
               <td>
 				  <a href="/racers/update/{{racer.pk}}/" class="btn btn-default btn-xs btn-info">Edit</a>
+				  <a href="/racers/delete/{{racer.pk}}/" class="btn btn-default btn-xs btn-danger">Delete</a>
+			  	{% if not racer.paid %}<button value="{{racer.pk}}" class="btn btn-defaul btn-xs btn-success paid">Paid</button>{% endif %}
+			  </td>
 				  
-				  <a href="/racers/delete/{{racer.pk}}/" class="btn btn-default btn-xs btn-danger">Delete</a></td>
            </tr>
       {% empty %}
       <tr>
@@ -99,4 +103,9 @@
 </table>
 </div>
 
+{% endblock %}
+
+{% block javascript_imports %}
+	{% load staticfiles %}
+	<script src="{% static "js/racer.js" %}"></script>
 {% endblock %}

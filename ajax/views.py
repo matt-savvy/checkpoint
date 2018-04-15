@@ -73,6 +73,17 @@ class FinishRacerAjaxView(APIView):
             })
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
+class MarkAsPaidRacerAjaxView(APIView):
+    def post(self, request):
+        print self.request.DATA
+        racer_pk = self.request.DATA['racer_pk']
+        try:
+            racer = Racer.objects.get(pk=racer_pk)
+            racer.mark_as_paid()
+            return Response(status=status.HTTP_202_ACCEPTED)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+            
 class DQRacerAjaxView(APIView):
     def post(self, request):
         racer_number = self.request.DATA['racer']
