@@ -67,8 +67,6 @@ class RacerDetailView(AuthorizedRaceOfficalMixin, DetailView):
     template_name = 'racer_detail.html'
     model = Racer
 
-
-
 from importlib import import_module
 from django.conf import settings
 from ajax.serializers import RegistrationSerializer
@@ -79,7 +77,8 @@ from django.contrib.sessions.models import Session
 from rest_framework.renderers import JSONRenderer
 import pdb
 from django.contrib.sessions.backends.db import SessionStore            
-            
+
+
 @require_GET
 def ThankYouView(request):    
     pdt_obj, failed = process_pdt(request)
@@ -102,6 +101,9 @@ def ThankYouView(request):
             new_racer.paid = True
             new_racer.paypal_tx = pdt_obj.txn_id
             new_racer.save()
+            
+            s.delete()
+            
             return render(request, 'thank_you.html', context)
     return render(request, 'bad_payment.html', context)
 
