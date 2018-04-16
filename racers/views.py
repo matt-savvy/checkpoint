@@ -23,6 +23,7 @@ from paypal.standard.models import ST_PP_COMPLETED
 from paypal.standard.ipn.signals import valid_ipn_received
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
+from django.views.decorators.http import require_GET
 import hashlib
 import pdb
 
@@ -62,17 +63,51 @@ class RacerListViewPublic(ListView):
     def get_queryset(self):
         return Racer.objects.all().order_by('racer_number')
 
-
 class RacerDetailView(AuthorizedRaceOfficalMixin, DetailView):
     template_name = 'racer_detail.html'
     model = Racer
 
-class ThankYouView(TemplateView):
-    template_name = 'thank_you.html'
-    
-    
+
+
+from importlib import import_module
+from django.conf import settings
+from ajax.serializers import RegistrationSerializer
+from paypal.standard.pdt.views import process_pdt
+from django.utils.six import BytesIO
+from rest_framework.parsers import JSONParser
+from django.contrib.sessions.models import Session
+from rest_framework.renderers import JSONRenderer
+import pdb
+from django.contrib.sessions.backends.db import SessionStore            
+            
+@require_GET
+def ThankYouView(request):    
+    pdt_obj, failed = process_pdt(request)
+    context = {"failed": failed, "pdt_obj": pdt_obj}
+    if not failed:
+        if pdt_obj.receiver_email == settings.PAYPAL_RECEIVER_EMAIL:
+            session_key = pdt_obj.custom
+            
+            SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
+        
+            s = Session.objects.get(pk=session_key)    
+            decoded_data = s.get_decoded()
+
+            stream = BytesIO(decoded_data['racer_json'])
+            data = JSONParser().parse(stream)
+            
+            new_serializer = RegistrationSerializer(data=data)
+            new_serializer.is_valid()
+            new_racer = new_serializer.create(new_serializer.data)
+            new_racer.paid = True
+            new_racer.paypal_tx = pdt_obj.txn_id
+            new_racer.save()
+            return render(request, 'thank_you.html', context)
+    return render(request, 'bad_payment.html', context)
+
 def view_that_asks_for_money(request):
     try:
+        session_key = request.session['session_key']
         racer_number = str(request.GET['racer_number'])
         url = request.build_absolute_uri(reverse('pay-view'))
         cancel_url = url + "?racer_number={}".format(racer_number)
@@ -82,14 +117,14 @@ def view_that_asks_for_money(request):
     
     item_name = "Registration for Racer {}".format(racer_number)    
     paypal_dict = {
-        "business": "philabma@gmail.com",
+        "business": settings.PAYPAL_RECEIVER_EMAIL,
         "amount": "50.00",
         "item_name": item_name,
-       ## "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
-        "notify_url": "http://2cdaf2eb.ngrok.io/paypal/",
-        "return_url": request.build_absolute_uri(reverse('thank-you-view')),
+        "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
+        "return_url" : "http://92105408.ngrok.io/racers/thanks/",
+        #"return_url": request.build_absolute_uri(reverse('pdt_return_url')),
         "cancel_return": cancel_url,
-        ##custom": "premium_plan",  # Custom command to correlate to some function later (optional)
+        "custom" : session_key,
     }
     
     form = PayPalPaymentsForm(initial=paypal_dict)
@@ -131,6 +166,18 @@ class RacerRegisterView(CreateView):
     def get_context_data(self, **kwargs):
           context = super(RacerRegisterView, self).get_context_data(**kwargs)
           return context
+    
+    def form_valid(self, form):
+        self.request.session.flush()
+        self.object = form.save(commit=False)
+        serializer = RegistrationSerializer(self.object)
+        json = JSONRenderer().render(serializer.data)
+        s = SessionStore()
+        s['racer_json'] = json
+        s.create()
+        self.request.session['session_key'] = s.session_key
+        
+        return HttpResponseRedirect(self.get_success_url())
     
     def get_success_url(self):
         url = self.request.build_absolute_uri(reverse('pay-view'))
@@ -178,7 +225,7 @@ class RacerUpdateShirtView(UpdateView):
     
     def get_success_url(self):
         messages.success(self.request, 'Rider updated.')
-        return reverse_lazy('thank-you-view')
+        return reverse_lazy('pdt_return_url')
     
     def get_object(self):
         racer_pk = self.request.GET.get('pk')

@@ -65,7 +65,7 @@ INSTALLED_APPS = (
     'south',
     'paypal.standard',
     'paypal.standard.ipn',
-    #'paypal.standard.pdt',
+    'paypal.standard.pdt',
     'nacccusers',
     'racers',
     'races',
@@ -89,7 +89,7 @@ INSTALLED_APPS = (
     
 )
 
-##PAYPAL_IDENTITY_TOKEN = ""
+#PAYPAL_IDENTITY_TOKEN = "Orx5c4XVqv8VqZizQdUdJ3hQshLik2MuIRtF_boHKhZidzW262C-h1SkLVa"
 PAYPAL_TEST = False
 
 LOGGING = {
@@ -179,6 +179,7 @@ DATABASES['default'].update(db_from_env)
 SERVE_RACER_PHOTOS_FROM_S3 = False
 
 PAYPAL_RECEIVER_EMAIL = "philabma@gmail.com"
+
 
 LOGIN_REDIRECT_URL = "admin"
 

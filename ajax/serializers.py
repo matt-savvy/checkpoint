@@ -1,10 +1,17 @@
 from rest_framework import serializers
-
 from racers.models import Racer
 from raceentries.models import RaceEntry
 from jobs.models import Job
 from checkpoints.models import Checkpoint
 
+class RegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Racer
+        fields = ('racer_number', 'first_name', 'last_name', 'nick_name', 'email', 'city', 'gender', 'category', 'shirt_size', 'paid', 'team', 'company')
+    
+    def create(self, validated_data):
+            return Racer(**validated_data)
+    
 class RacerSerializer(serializers.ModelSerializer):
     display_name = serializers.CharField(source='display_name')
     category_as_string = serializers.CharField(source='category_as_string')

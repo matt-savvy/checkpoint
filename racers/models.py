@@ -46,6 +46,7 @@ class Racer(models.Model):
     category = models.IntegerField(choices=RACER_CATEGORY_OPTIONS)
     shirt_size = models.CharField(max_length=2, choices=SHIRT_SIZE_OPTIONS, default=SHIRT_SIZE_MEDIUM)
     paid = models.BooleanField(default=False)
+    paypal_tx = models.CharField(blank=True, max_length=100)
     team = models.CharField(blank=True, max_length=100)
     company = models.CharField(blank=True, max_length=100)
 
