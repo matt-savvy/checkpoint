@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
+
 class Racer(models.Model):
         
     GENDER_MALE   = 'M'

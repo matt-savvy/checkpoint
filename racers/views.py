@@ -123,8 +123,9 @@ def view_that_asks_for_money(request):
         "amount": "50.00",
         "item_name": item_name,
         "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
-        "return_url" : "http://92105408.ngrok.io/racers/thanks/",
-        #"return_url": request.build_absolute_uri(reverse('pdt_return_url')),
+        #"notify_url": "http://92105408.ngrok.io/paypal/", 
+        #"return_url" : "http://92105408.ngrok.io/racers/thanks/",
+        "return_url": request.build_absolute_uri(reverse('pdt_return_url')),
         "cancel_return": cancel_url,
         "custom" : session_key,
     }
@@ -139,20 +140,27 @@ def show_me_the_money(sender, **kwargs):
     print "show_me_the_money"
     print ipn_obj
     if ipn_obj.payment_status == ST_PP_COMPLETED:
-        # WARNING !
-        # Check that the receiver email is the same we previously
-        # set on the `business` field. (The user could tamper with
-        # that fields on the payment form before it goes to PayPal)
-        if ipn_obj.receiver_email != "receiver_email@example.com":
-            # Not a valid payment
+        if ipn_obj.receiver_email == settings.PAYPAL_RECEIVER_EMAIL:
+            
+            try:
+                session_key = ipn_obj.custom
+                SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
+                s = Session.objects.get(pk=session_key)    
+                decoded_data = s.get_decoded()
+                stream = BytesIO(decoded_data['racer_json'])
+                data = JSONParser().parse(stream)
+            
+                new_serializer = RegistrationSerializer(data=data)
+                new_serializer.is_valid()
+                new_racer = new_serializer.create(new_serializer.data)
+                new_racer.paid = True
+                new_racer.paypal_tx = pdt_obj.txn_id
+                new_racer.save()
+                s.delete()
+            except:
+                pass
+        else:
             return
-
-        # ALSO: for the same reason, you need to check the amount
-        # received, `custom` etc. are all what you expect or what
-        # is allowed.
-        
-        ##if ipn_obj.mc_gross == price and ipn_obj.mc_currency == 'USD':
-        ##    pass
     else:
         pass
 
