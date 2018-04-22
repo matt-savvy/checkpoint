@@ -80,42 +80,58 @@ from django.contrib.sessions.backends.db import SessionStore
 
 
 @require_GET
-def ThankYouView(request):    
+def ThankYouView(request):
     pdt_obj, failed = process_pdt(request)
     context = {"failed": failed, "pdt_obj": pdt_obj}
     if not failed:
         if pdt_obj.receiver_email == settings.PAYPAL_RECEIVER_EMAIL:
             session_key = pdt_obj.custom
-            
-            SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
-        
-            s = Session.objects.get(pk=session_key)    
-            decoded_data = s.get_decoded()
+            if session_key != "NONE":
+                try:
+                    SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
+                    s = Session.objects.get(pk=session_key)    
+                    decoded_data = s.get_decoded()
 
-            stream = BytesIO(decoded_data['racer_json'])
-            data = JSONParser().parse(stream)
-            
-            new_serializer = RegistrationSerializer(data=data)
-            new_serializer.is_valid()
-            new_racer = new_serializer.create(new_serializer.data)
-            new_racer.paid = True
-            new_racer.paypal_tx = pdt_obj.txn_id
-            new_racer.save()
-            
-            s.delete()
-            
-            return render(request, 'thank_you.html', context)
+                    stream = BytesIO(decoded_data['racer_json'])
+                    data = JSONParser().parse(stream)
+        
+                    new_serializer = RegistrationSerializer(data=data)
+                    new_serializer.is_valid()
+                    new_racer = new_serializer.create(new_serializer.data)
+                    new_racer.paid = True
+                    new_racer.paypal_tx = pdt_obj.txn_id
+                    new_racer.save()
+                    s.delete()
+                except:
+                    pass
+            else:
+                try:
+                    racer_number = pdt_obj.item_name.split("Racer ")[1]
+                    if session_key == "NONE":
+                        racer = Racer.objects.get(racer_number=racer_number)
+                        racer.paid = True
+                        racer.save()
+                except:
+                    pass
+        return render(request, 'thank_you.html', context)
     return render(request, 'bad_payment.html', context)
 
 def view_that_asks_for_money(request):
+    url = request.build_absolute_uri(reverse('pay-view'))
+        
     try:
         session_key = request.session['session_key']
+    except KeyError:
+        session_key = "NONE"
+
+    try:
         racer_number = str(request.GET['racer_number'])
-        url = request.build_absolute_uri(reverse('pay-view'))
         cancel_url = url + "?racer_number={}".format(racer_number)
-    except:
+        
+    
+    except KeyError:
         racer_number = ""
-        cancel_url = request.build_absolute_uri(reverse('welcome-view'))
+        cancel_url = request.build_absolute_uri(reverse('welcome-view'))        
     
     item_name = "Registration for Racer {}".format(racer_number)    
     paypal_dict = {
