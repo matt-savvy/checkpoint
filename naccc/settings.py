@@ -70,7 +70,6 @@ INSTALLED_APPS = (
     'racers',
     'races',
     'raceentries',
-    'racecontrol',
     'checkpoints',
     'jobs',
     'runs',
@@ -166,9 +165,6 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'postmaster@www.naccc2018.com'
 EMAIL_HOST_PASSWORD = 'e939f35d86f1700229d9caf4b776c170-4497bd1d-afc45084'
 EMAIL_USE_TLS = True
-
-#send_mail('test subject', 'body of the message', 'do-not-reply@naccc2018.com', ['matt@1-800-rad-dude.com'])
-
 
 MAILCHIMP_USERNAME = 'naccc2018'
 MAILCHIMP_API_KEY = '73e4693f5ed7ff2cd92e3b35a5abf0f1-us16'

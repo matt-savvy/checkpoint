@@ -128,6 +128,9 @@ def view_that_asks_for_money(request):
         racer_number = str(request.GET['racer_number'])
         cancel_url = url + "?racer_number={}".format(racer_number)
         
+        racer = Racer.objects.get(racer_number=racer_number)
+        if racer.paid:
+            return render(request, 'already_paid.html')
     
     except KeyError:
         racer_number = ""
