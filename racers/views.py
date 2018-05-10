@@ -75,7 +75,6 @@ from django.utils.six import BytesIO
 from rest_framework.parsers import JSONParser
 from django.contrib.sessions.models import Session
 from rest_framework.renderers import JSONRenderer
-import pdb
 from django.contrib.sessions.backends.db import SessionStore            
 
 
@@ -86,23 +85,22 @@ def ThankYouView(request):
     if not failed:
         if pdt_obj.receiver_email == settings.PAYPAL_RECEIVER_EMAIL:
             session_key = pdt_obj.custom
-            
-            SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
+            if session_key:
+                SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
         
-            s = Session.objects.get(pk=session_key)    
-            decoded_data = s.get_decoded()
+                s = Session.objects.get(pk=session_key)    
+                decoded_data = s.get_decoded()
 
-            stream = BytesIO(decoded_data['racer_json'])
-            data = JSONParser().parse(stream)
+                stream = BytesIO(decoded_data['racer_json'])
+                data = JSONParser().parse(stream)
+                new_serializer = RegistrationSerializer(data=data)
+                new_serializer.is_valid()
+                new_racer = new_serializer.create(new_serializer.data)
+                new_racer.paid = True
+                new_racer.paypal_tx = pdt_obj.txn_id
+                new_racer.save()
             
-            new_serializer = RegistrationSerializer(data=data)
-            new_serializer.is_valid()
-            new_racer = new_serializer.create(new_serializer.data)
-            new_racer.paid = True
-            new_racer.paypal_tx = pdt_obj.txn_id
-            new_racer.save()
-            
-            s.delete()
+                s.delete()
             
             return render(request, 'thank_you.html', context)
     return render(request, 'bad_payment.html', context)
@@ -115,6 +113,7 @@ def view_that_asks_for_money(request):
         cancel_url = url + "?racer_number={}".format(racer_number)
     except:
         racer_number = ""
+        session_key = ""
         cancel_url = request.build_absolute_uri(reverse('welcome-view'))
     
     item_name = "Registration for Racer {}".format(racer_number)    
