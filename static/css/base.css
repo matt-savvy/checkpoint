@@ -8,6 +8,10 @@ body {
   margin-bottom: 20px;
 }
 
+.theme-showcase {
+	background-attachment: fixed;
+}
+
 .theme-showcase > p > .btn {
   margin: 5px 0;
 }

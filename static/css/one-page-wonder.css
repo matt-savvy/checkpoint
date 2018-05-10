@@ -48,25 +48,12 @@ h6 {
   letter-spacing: 0.1rem;
 }
 
-/*header.masthead {
-  position: relative;
-  overflow: hidden;
-  padding-top: calc(7rem + 72px);
-  padding-bottom: 7rem;
-  background: linear-gradient(0deg, #ff6a00 0%, #ee0979 100%);
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-attachment: scroll;
-  background-size: cover;
-  background-image: url("philadelphia.jpg");
-}*/
-
 header.masthead {
   text-align: center;
   color: white;
   background-image: url("../img/philadelphia.jpg");
   background-repeat: no-repeat;
-  background-attachment: scroll;
+  background-attachment: fixed;
   background-position: center center;
   -webkit-background-size: cover;
   -moz-background-size: cover;
@@ -89,7 +76,7 @@ header.masthead .masthead-content .masthead-subheading {
 }
 
 @media screen and (min-width: 768px) {
-    body { padding-top: 100px; }
+    body { padding-top: 35px; }
 }
 
 @media (max-width: 979px) {
