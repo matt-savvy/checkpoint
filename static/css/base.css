@@ -8,6 +8,11 @@ body {
   margin-bottom: 20px;
 }
 
+.responsive-img {
+    max-width: 100%;
+    height: auto;
+}
+
 .theme-showcase {
 	background-attachment: fixed;
 }
