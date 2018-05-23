@@ -20,6 +20,8 @@
       <dt>Category</dt>
       <dd>{{object.category_as_string}}</dd>
 	  
+	  <dt>Payment status</dt><dd>{% if racer.paid %}<span id="paid{{racer.pk}}" class="success">paid</span>{% else %} <span id="paid{{racer.pk}}" class="danger">NOT PAID</span> {% endif %}</dd>
+	  
       <dt>Shirt Size</dt>
       <dd>{{object.shirt_size}}</dd>
 	  

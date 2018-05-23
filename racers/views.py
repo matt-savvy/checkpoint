@@ -121,12 +121,10 @@ def view_that_asks_for_money(request):
         racer_number = ''
         cancel_url = request.build_absolute_uri(reverse('welcome-view'))
 
-    try:
-        racer = Racer.objects.get(racer_number=racer_number)
+    racer = Racer.objects.filter(racer_number=racer_number).first()
+    if racer:
         if racer.paid:
-            return render(request, 'thank_you.html', context)
-    except:
-        pass
+            return render(request, 'thank_you.html')
     
     item_name = "Registration for Racer {}".format(str(racer_number))    
     paypal_dict = {
