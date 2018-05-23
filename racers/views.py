@@ -34,7 +34,6 @@ class RacerListView(AuthorizedRaceOfficalMixin, ListView):
     
     def get_context_data(self, **kwargs):
         context = super(RacerListView, self).get_context_data(**kwargs)
-        #pdb.set_trace()
         queryset = context['object_list']
         context['total_men'] = len(queryset.filter(gender='M'))
         context['total_women'] = len(queryset.filter(gender='F'))
@@ -101,22 +100,35 @@ def ThankYouView(request):
                 new_racer.save()
             
                 s.delete()
-            
+            else:
+                try:
+                    racer_number = pdt_obj.item_name.split("Racer ")[1]
+                    racer = Racer.objects.get(racer_number=racer_number)
+                    racer.mark_as_paid()
+                except:
+                    return render(request, 'bad_payment.html', context)
+                
             return render(request, 'thank_you.html', context)
     return render(request, 'bad_payment.html', context)
 
 def view_that_asks_for_money(request):
-    try:
-        session_key = request.session['session_key']
-        racer_number = str(request.GET['racer_number'])
+    racer_number = request.GET.get('racer_number')
+    session_key = request.session.get('session_key')
+    if racer_number:
         url = request.build_absolute_uri(reverse('pay-view'))
         cancel_url = url + "?racer_number={}".format(racer_number)
-    except:
-        racer_number = ""
-        session_key = ""
+    else:
+        racer_number = ''
         cancel_url = request.build_absolute_uri(reverse('welcome-view'))
+
+    try:
+        racer = Racer.objects.get(racer_number=racer_number)
+        if racer.paid:
+            return render(request, 'thank_you.html', context)
+    except:
+        pass
     
-    item_name = "Registration for Racer {}".format(racer_number)    
+    item_name = "Registration for Racer {}".format(str(racer_number))    
     paypal_dict = {
         "business": settings.PAYPAL_RECEIVER_EMAIL,
         "amount": "50.00",

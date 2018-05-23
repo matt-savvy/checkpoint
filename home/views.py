@@ -12,3 +12,6 @@ class WelcomeView(TemplateView):
 
 class ContactView(TemplateView):
     template_name = "contact.html"
+    
+class EmailTemplate(TemplateView):
+    template_name = "email.html"

@@ -23,12 +23,14 @@ import paypal.standard.ipn.signals
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    
     (r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
     (r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
     url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
     
     url(r'^nunya/', include(admin.site.urls)),
     url(r'^$', home_views.WelcomeView.as_view(), name="welcome-view"),
+    url(r'^$', home_views.EmailTemplate.as_view(), name="email-template"),
     url(r'^contact/$', home_views.ContactView.as_view(), name="contact-view"),
     # url(r'^$', login_required(home_views.HomeView.as_view())),
     
