@@ -76,9 +76,11 @@ from django.contrib.sessions.models import Session
 from rest_framework.renderers import JSONRenderer
 from django.contrib.sessions.backends.db import SessionStore            
 
+class ThankYouView(TemplateView):
+    template_name = "thank_you.html"
 
 @require_GET
-def ThankYouView(request):    
+def RegFinished(request):
     pdt_obj, failed = process_pdt(request)
     context = {"failed": failed, "pdt_obj": pdt_obj}
     if not failed:
@@ -105,10 +107,12 @@ def ThankYouView(request):
                     racer_number = pdt_obj.item_name.split("Racer ")[1]
                     racer = Racer.objects.get(racer_number=racer_number)
                     racer.mark_as_paid()
+                    redirect_url = "{}?pk={}&racer_number={}".format(reverse('shirt-view'), str(racer.pk), racer_number)
+                    return HttpResponseRedirect(redirect_url)
                 except:
                     return render(request, 'bad_payment.html', context)
                 
-            return render(request, 'thank_you.html', context)
+            return HttpResponseRedirect(reverse('thank-you'))
     return render(request, 'bad_payment.html', context)
 
 def view_that_asks_for_money(request):
@@ -133,7 +137,7 @@ def view_that_asks_for_money(request):
         "item_name": item_name,
         "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
         #"notify_url": "http://92105408.ngrok.io/paypal/", 
-        #"return_url" : "http://92105408.ngrok.io/racers/thanks/",
+        #"return_url" : "http://92105408.ngrok.io/racers/pdtreturn/",
         "return_url": request.build_absolute_uri(reverse('pdt_return_url')),
         "cancel_return": cancel_url,
         "custom" : session_key,
@@ -235,16 +239,15 @@ class RacerUpdateView(AuthorizedRaceOfficalMixin, UpdateView):
        print response.json()['detail']
        pass
        return super(RacerUpdateView, self).get_success_url()
-        
-        
+
 class RacerUpdateShirtView(UpdateView):
     template_name = 'update_racer_shirt.html'
     model = Racer
     fields = ['shirt_size']
     
     def get_success_url(self):
-        messages.success(self.request, 'Rider updated.')
-        return reverse_lazy('pdt_return_url')
+        messages.success(self.request, 'Racer updated.')
+        return reverse_lazy('thank-you')
     
     def get_object(self):
         racer_pk = self.request.GET.get('pk')
