@@ -5,22 +5,22 @@ from django.template import Context
 from django.template.loader import get_template
 
 class Command(BaseCommand):
-    help = 'Emails all racers where paid=False and provides them the payment link'
+    help = 'Emails all racers from before we had a t-shirt size field. '
     
     def handle(self, *args, **options):
-        unpaid_racers = Racer.objects.filter(paid=False)
-        print unpaid_racers.count()
-        subject = "PHL NACCC : Payment Required"
-        headline = "We need you to settle up." 
+        racers = Racer.objects.filter(id__lte=126)
+        print racers.count()
+        subject = "PHL NACCC : Update Required"
+        headline = "We need your shirt size." 
         #self.stdout.write(unpaid_racers.count())
         
-        for racer in unpaid_racers:
+        for racer in racers:
             print racer
-            ctx = {'link' : racer.payment_link, 'subject' : subject, 'headline' : headline}
-            message = get_template('unpaid_racer_email.html').render(Context(ctx))
+            ctx = {'object' : racer.shirt_link, 'subject' : subject, 'headline' : headline}
+            message = get_template('shirt_email.html').render(Context(ctx))
             msg = EmailMessage(subject, message, to=[racer.email])
             msg.content_subtype = 'html'
             msg.send()
-
+            #self.stdout.write(racer.payment_link)
         
         

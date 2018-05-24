@@ -13,7 +13,7 @@
 		<meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>PHL NACCC : Payment Required</title>
+		<title>{{subject}}</title>
         
     <style type="text/css">
 		p{
@@ -489,7 +489,7 @@
 }</style></head>
     <body>
 		<!--*|IF:MC_PREVIEW_TEXT|*-->
-		<!--[if !gte mso 9]><!----><span class="mcnPreviewText" style="display:none; font-size:0px; line-height:0px; max-height:0px; max-width:0px; opacity:0; overflow:hidden; visibility:hidden; mso-hide:all;">*|MC_PREVIEW_TEXT|*</span><!--<![endif]-->
+		<!--[if !gte mso 9]><!----><span class="mcnPreviewText" style="display:none; font-size:0px; line-height:0px; max-height:0px; max-width:0px; opacity:0; overflow:hidden; visibility:hidden; mso-hide:all;"></span><!--<![endif]-->
 		<!--*|END:IF|*-->
         <center>
             <table align="center" border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="bodyTable">
@@ -560,7 +560,7 @@
                         
                         <td valign="top" class="mcnTextContent" style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
                         
-                            <h1>We need you to settle up.</h1>
+                            <h1>{{headline}}</h1>
 
                         </td>
                     </tr>
@@ -611,12 +611,8 @@
                         
                         <td valign="top" class="mcnTextContent" style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
                         
-                            <p>If you're reading this, it looks like you filled out the registration form but never followed through with your payment. </p>
-
-<p><strong>This is your last chance  </strong>to finish your registration at the discounted rate. On June 1, the price rises to $65.00 and will only continue to go up the longer that you wait.  </p>
-
-<p><strong>Just click the button below to make your payment  </strong>and get on with your day.  </p>
-
+                         	{% block email_text %}
+							{% endblock %}
                         </td>
                     </tr>
                 </tbody></table>
@@ -657,7 +653,7 @@
                     <tbody>
                         <tr>
                             <td align="center" valign="middle" class="mcnButtonContent" style="font-family: Helvetica; font-size: 18px; padding: 18px;">
-                                <a class="mcnButton " title="Finish Registration" href="{{object.payment_link}}" target="_self" style="font-weight: bold;letter-spacing: -0.5px;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;">Finish Registration</a>
+                                <a class="mcnButton " title="Finish Registration" href="{{link}}" target="_self" style="font-weight: bold;letter-spacing: -0.5px;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;">Finish Registration</a>
                             </td>
                         </tr>
                     </tbody>
@@ -683,43 +679,6 @@
             </td>
         </tr>
     </tbody>
-</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnBoxedTextBlock" style="min-width:100%;">
-    <!--[if gte mso 9]>
-	<table align="center" border="0" cellspacing="0" cellpadding="0" width="100%">
-	<![endif]-->
-	<tbody class="mcnBoxedTextBlockOuter">
-        <tr>
-            <td valign="top" class="mcnBoxedTextBlockInner">
-                
-				<!--[if gte mso 9]>
-				<td align="center" valign="top" ">
-				<![endif]-->
-                <table align="left" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width:100%;" class="mcnBoxedTextContentContainer">
-                    <tbody><tr>
-                        
-                        <td style="padding-top:9px; padding-left:18px; padding-bottom:9px; padding-right:18px;">
-                        
-                            <table border="0" cellspacing="0" class="mcnTextContentContainer" width="100%" style="min-width: 100% !important;background-color: #F7F7F7;">
-                                <tbody><tr>
-                                    <td valign="top" class="mcnTextContent" style="padding: 18px;color: #808080;font-family: Helvetica;font-size: 16px;line-height: 200%;text-align: center;">
-                                        <h3>Share what's new</h3>Let people know what you've been up to or what they might have missed.
-                                    </td>
-                                </tr>
-                            </tbody></table>
-                        </td>
-                    </tr>
-                </tbody></table>
-				<!--[if gte mso 9]>
-				</td>
-				<![endif]-->
-                
-				<!--[if gte mso 9]>
-                </tr>
-                </table>
-				<![endif]-->
-            </td>
-        </tr>
-    </tbody>
 </table></td>
 										</tr>
 									</table>
@@ -730,25 +689,7 @@
 									<![endif]-->
 								</td>
                             </tr>
-                            <tr>
-								<td align="center" valign="top" id="templateFooter" data-template-container>
-									<!--[if (gte mso 9)|(IE)]>
-									<table align="center" border="0" cellspacing="0" cellpadding="0" width="600" style="width:600px;">
-									<tr>
-									<td align="center" valign="top" width="600" style="width:600px;">
-									<![endif]-->
-									<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" class="templateContainer">
-										<tr>
-                                			<td valign="top" class="footerContainer"></td>
-										</tr>
-									</table>
-									<!--[if (gte mso 9)|(IE)]>
-									</td>
-									</tr>
-									</table>
-									<![endif]-->
-								</td>
-                            </tr>
+                            
                         </table>
                         <!-- // END TEMPLATE -->
                     </td>
