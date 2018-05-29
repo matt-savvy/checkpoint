@@ -133,7 +133,7 @@ def view_that_asks_for_money(request):
     item_name = "Registration for Racer {}".format(str(racer_number))    
     paypal_dict = {
         "business": settings.PAYPAL_RECEIVER_EMAIL,
-        "amount": "50.00",
+        "amount": settings.REGISTRATION_PRICE,
         "item_name": item_name,
         "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
         #"notify_url": "http://92105408.ngrok.io/paypal/", 
@@ -145,6 +145,7 @@ def view_that_asks_for_money(request):
     
     form = PayPalPaymentsForm(initial=paypal_dict)
     context = {"form": form}
+    context['registration_price'] = settings.REGISTRATION_PRICE
     return render(request, 'racer_pay.html', context)
 
 @csrf_exempt
@@ -188,6 +189,7 @@ class RacerRegisterView(CreateView):
     
     def get_context_data(self, **kwargs):
           context = super(RacerRegisterView, self).get_context_data(**kwargs)
+          context['registration_price'] = settings.REGISTRATION_PRICE
           return context
     
     def form_valid(self, form):
