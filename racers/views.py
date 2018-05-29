@@ -58,9 +58,6 @@ class RacerListViewPublic(ListView):
     model = Racer
     template_name = 'list_racers_public.html'
     context_object_name = 'racers'
-    
-    def get_queryset(self):
-        return Racer.objects.all().order_by('racer_number')
 
 class RacerDetailView(AuthorizedRaceOfficalMixin, DetailView):
     template_name = 'racer_detail.html'

@@ -50,7 +50,10 @@ class Racer(models.Model):
     paypal_tx = models.CharField(blank=True, max_length=100)
     team = models.CharField(blank=True, max_length=100)
     company = models.CharField(blank=True, max_length=100)
-
+    
+    class Meta:
+        ordering = ['last_name']
+        
     def __unicode__(self):
         return self.display_name
         
