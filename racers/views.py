@@ -97,8 +97,10 @@ def RegFinished(request):
                 new_racer.paid = True
                 new_racer.paypal_tx = pdt_obj.txn_id
                 new_racer.save()
-            
-                s.delete()
+                
+                if 'session_key' in request:
+                    del request.session['session_key']
+                    s.delete()
             else:
                 try:
                     racer_number = pdt_obj.item_name.split("Racer ")[1]
