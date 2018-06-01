@@ -184,7 +184,7 @@ SERVE_RACER_PHOTOS_FROM_S3 = False
 
 PAYPAL_RECEIVER_EMAIL = "philabma@gmail.com"
 
-
+REGISTRATION_PRICE = "65.00"
 LOGIN_REDIRECT_URL = "admin"
 
 try:
