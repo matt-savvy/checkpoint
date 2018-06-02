@@ -91,16 +91,24 @@ def RegFinished(request):
 
                 stream = BytesIO(decoded_data['racer_json'])
                 data = JSONParser().parse(stream)
+                
+                racer_number = int(data['racer_number'])
+                while Racer.objects.filter(racer_number=racer_number).exists():
+                    racer_number += 1
+                data['racer_number'] = racer_number
+                
                 new_serializer = RegistrationSerializer(data=data)
                 new_serializer.is_valid()
+                
                 new_racer = new_serializer.create(new_serializer.data)
                 new_racer.paid = True
                 new_racer.paypal_tx = pdt_obj.txn_id
                 new_racer.save()
+                s.delete()
                 
-                if 'session_key' in request:
+                if 'session_key' in request:    
                     del request.session['session_key']
-                    s.delete()
+                    
             else:
                 try:
                     racer_number = pdt_obj.item_name.split("Racer ")[1]
@@ -192,7 +200,10 @@ class RacerRegisterView(CreateView):
           return context
     
     def form_valid(self, form):
-        self.request.session.flush()
+        if 'session_key' in self.request:
+            del request.session['session_key']
+            s.delete()
+            
         self.object = form.save(commit=False)
         serializer = RegistrationSerializer(self.object)
         json = JSONRenderer().render(serializer.data)
