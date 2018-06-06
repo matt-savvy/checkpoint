@@ -32,6 +32,7 @@ urlpatterns = patterns('',
     url(r'^$', home_views.WelcomeView.as_view(), name="welcome-view"),
     url(r'^$', home_views.EmailTemplate.as_view(), name="email-template"),
     url(r'^contact/$', home_views.ContactView.as_view(), name="contact-view"),
+    url(r'^schedule/$', home_views.ScheduleView.as_view(), name="schedule"),
     # url(r'^$', login_required(home_views.HomeView.as_view())),
     
     #Racer URLs
