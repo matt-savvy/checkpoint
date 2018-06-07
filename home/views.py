@@ -17,3 +17,6 @@ class ContactView(TemplateView):
     
 class EmailTemplate(TemplateView):
     template_name = "email.html"
+
+class WhatIsView(TemplateView):
+    template_name = "what_is_naccc.html"
