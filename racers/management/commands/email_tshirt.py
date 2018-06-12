@@ -10,13 +10,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         racers = Racer.objects.filter(id__lte=126).filter(paid=True)
         print racers.count()
-        subject = "PHL NACCC : Update Required"
-        headline = "We need your shirt size." 
+        subject = "PHL NACCC : Update Required (fixed link)"
+        headline = "We need your shirt size. (fixed link)"
         #self.stdout.write(unpaid_racers.count())
-        
+
         for racer in racers:
-            print racer
-            ctx = {'object' : racer.shirt_link, 'subject' : subject, 'headline' : headline}
+            #print racer
+            ctx = {'link' : racer.shirt_link, 'subject' : subject, 'headline' : headline}
             message = get_template('shirt_email.html').render(Context(ctx))
             msg = EmailMessage(subject, message, to=[racer.email])
             msg.content_subtype = 'html'
