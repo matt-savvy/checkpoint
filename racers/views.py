@@ -47,6 +47,7 @@ class RacerListView(AuthorizedRaceOfficalMixin, ListView):
         context['total_m'] = len(queryset.filter(shirt_size='M'))
         context['total_l'] = len(queryset.filter(shirt_size='L'))
         context['total_xl'] = len(queryset.filter(shirt_size='XL'))
+        context['total_unpaid'] = len(queryset.filter(paid=False))
         
         return context
     
