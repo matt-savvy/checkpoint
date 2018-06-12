@@ -203,7 +203,6 @@ class RacerRegisterView(CreateView):
         if 'session_key' in self.request:
             del request.session['session_key']
             s.delete()
-            
         self.object = form.save(commit=False)
         serializer = RegistrationSerializer(self.object)
         json = JSONRenderer().render(serializer.data)

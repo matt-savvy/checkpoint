@@ -8,7 +8,7 @@ class Command(BaseCommand):
     help = 'Emails all racers from before we had a t-shirt size field. '
     
     def handle(self, *args, **options):
-        racers = Racer.objects.filter(id__lte=126)
+        racers = Racer.objects.filter(id__lte=126).filter(paid=True)
         print racers.count()
         subject = "PHL NACCC : Update Required"
         headline = "We need your shirt size." 

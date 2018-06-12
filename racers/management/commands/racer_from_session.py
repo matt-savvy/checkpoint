@@ -24,7 +24,6 @@ class Command(BaseCommand):
                     racer_json = JSONParser().parse(stream)
                     print("{} {}".format(session.pk, racer_json))
             selection = raw_input("choose session number : ")
-            #selection = "yatt6gr26ab5444z90h0gefeuro1r37b"
             try:
                 sess = Session.objects.get(pk=selection)
                 decoded_data = sess.get_decoded()
