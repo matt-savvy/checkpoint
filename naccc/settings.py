@@ -62,6 +62,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'raven.contrib.django.raven_compat',
     'south',
     'paypal.standard',
     'paypal.standard.ipn',
@@ -117,6 +118,15 @@ LOGGING = {
             'level': 'DEBUG'
        },
    }
+}
+
+import raven
+
+RAVEN_CONFIG = {
+    'dsn': 'https://7ef81bb8c17a49be992f6cdebbd99d75:f5a2be74c21940c48c71ea143870f0f0@sentry.io/1231476',
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    #'release': raven.fetch_git_sha(os.path.abspath(os.pardir)),
 }
 
 

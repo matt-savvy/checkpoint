@@ -22,3 +22,4 @@ six==1.11.0
 wsgiref==0.1.2
 dj-database-url==0.4.0
 whitenoise==2.0.5
+raven==6.9.0
