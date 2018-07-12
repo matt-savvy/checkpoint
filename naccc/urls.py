@@ -20,6 +20,7 @@ import runs.views as run_views
 import racelogs.views as log_views
 import paypal.standard.ipn.signals
 
+
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -50,6 +51,7 @@ urlpatterns = patterns('',
     url(r'^racers/update/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerUpdateView.as_view())),
     url(r'^racers/details/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerDetailView.as_view())),
     url(r'^racers/delete/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerDeleteView.as_view())),
+    url(r'^racers/sessions/', login_required(racer_views.SessionListView.as_view())),
     #Checkpoint URLs
     url(r'^checkpoints/$', login_required(checkpoint_views.CheckpointListView.as_view())),
     url(r'^checkpoints/create/$', login_required(checkpoint_views.CheckpointCreateView.as_view())),

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block container %}
+<div class="page-header">
+  <h1>Racers <small>NACCC PHL NACCC</small></h1>
+</div>
+
+<div class="table-responsive">
+<table class="table table-striped">
+  <tr>
+      <th>Session</th>
+	  <th>JSON</th>
+  </tr>
+      {% for object in object_list %}
+          <tr>
+          	<td>{{object}}</td>
+			<td>{{object.racer_json}}</td>
+		  </th>
+	  {% endfor %}
+</table>
+</div>
+
+{% endblock %}
+
+{% block javascript_imports %}
+	{% load staticfiles %}
+	<script src="{% static "js/racer.js" %}"></script>
+{% endblock %}

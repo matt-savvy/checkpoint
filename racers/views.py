@@ -26,6 +26,11 @@ from django.db.models import Count
 from django.views.decorators.http import require_GET
 import hashlib
 import pdb
+from rest_framework.renderers import JSONRenderer
+from django.contrib.sessions.models import Session
+from django.contrib.sessions.backends.db import SessionStore 
+from django.utils.six import BytesIO
+from rest_framework.parsers import JSONParser
 
 class RacerListView(AuthorizedRaceOfficalMixin, ListView):
     model = Racer
@@ -274,3 +279,24 @@ class RacerDeleteView(AuthorizedRaceOfficalMixin, DeleteView):
     def get_success_url(self):
         messages.success(self.request, 'Racer was successfully deleted')
         return '/racers/'
+
+class SessionListView(AuthorizedRaceOfficalMixin, ListView):
+    model = Session
+    template_name = "list_sessions.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super(SessionListView, self).get_context_data(**kwargs)
+        
+        object_list = []
+        sessions = Session.objects.all()
+        if sessions:
+            for session in sessions:
+                decoded_data = session.get_decoded()
+                if 'racer_json' in decoded_data:
+                    stream = BytesIO(decoded_data['racer_json'])
+                    racer_json = JSONParser().parse(stream)
+                    obj = session
+                    obj.racer_json = racer_json
+                    object_list.append(obj)
+        context['object_list'] = object_list
+        return context
