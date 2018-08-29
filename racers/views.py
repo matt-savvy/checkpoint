@@ -300,3 +300,28 @@ class SessionListView(AuthorizedRaceOfficalMixin, ListView):
                     object_list.append(obj)
         context['object_list'] = object_list
         return context
+
+class NumbersListView(AuthorizedRaceOfficalMixin, ListView):
+    model = Racer
+    template_name = "list_racer_numbers.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super(NumbersListView, self).get_context_data(**kwargs)
+        
+        racer_numbers_list = list(Racer.objects.values_list('racer_number', flat=True).order_by('racer_number'))
+        numbers = []
+        for number in racer_numbers_list:
+            numbers.append(int(number))
+        target_length = len(numbers) + 50
+        for x in range(500, 999):
+            if not x in numbers:
+                numbers.append(x)
+            if len(numbers) > target_length:
+                break
+        numbers.sort()
+
+        context['numbers'] = numbers 
+        return context
+        
+                
+        
