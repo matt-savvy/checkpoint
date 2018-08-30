@@ -39,7 +39,8 @@ urlpatterns = patterns('',
     
     #Racer URLs
     url(r'^racers/$', login_required(racer_views.RacerListView.as_view()), name="admin"),
-   url(r'^racers/numbers/$', login_required(racer_views.NumbersListView.as_view()), name="racer-numbers"),
+    url(r'^racers/numbers/$', login_required(racer_views.NumbersListView.as_view()), name="racer-numbers"),
+    url(r'^racers/emails/$', login_required(racer_views.NumbersListView.as_view()), name="racer-emails"),
     url(r'^racers/create/$', login_required(racer_views.RacerCreateView.as_view())),
     url(r'^racers/register/$', racer_views.RacerRegisterView.as_view(), name="register-view"),
     url(r'^racers/shirt$', racer_views.RacerUpdateShirtView.as_view(), name="shirt-view"),

@@ -323,5 +323,6 @@ class NumbersListView(AuthorizedRaceOfficalMixin, ListView):
         context['numbers'] = numbers 
         return context
         
-                
-        
+class EmailsListView(AuthorizedRaceOfficalMixin, ListView):
+    model = Racer
+    template_name = "list_racer_emails.html"

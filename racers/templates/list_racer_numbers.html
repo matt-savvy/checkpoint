@@ -1,19 +1,4 @@
-{% extends 'base.html' %}
-{% block container %}
-<div class="page-header">
-  <h1>Racer Numbers <small>NACCC PHL NACCC</small></h1>
-</div>
-<table>
-      {% for number in numbers %}
-          <tr>
-              <td>{{ number }}</td>
-           </tr>
-      {% empty %}
-      <tr>
-          <td colspan="7">No racers entered</td>
-       </tr>
+      {% for object in object_list %}
+	  	{{ object.email }}, {{ object.first_name}}, 
       {% endfor %}
-</table>
-</div>
 
-{% endblock %}
