@@ -332,11 +332,10 @@ class NumbersListView(AuthorizedRaceOfficalMixin, ListView):
         context['numbers'] = numbers 
         return context
         
-class EmailsListView(AuthorizedRaceOfficalMixin, ListView):
+class EmailListView(AuthorizedRaceOfficalMixin, ListView):
     model = Racer
-    template_name = "list_racer_emails.html"
+    template_name = "list_emails.html"
     
-        
 class VolunteerRegisterView(CreateView):
     template_name = 'register_volunteer.html'
     model = Volunteer
@@ -459,3 +458,7 @@ class VolunteerListView(AuthorizedRaceOfficalMixin, ListView):
 class VolunteerDetailView(AuthorizedRaceOfficalMixin, DetailView):
     model = Volunteer
     template_name = "volunteer_detail.html"
+    
+class VolunteerEmailsListView(AuthorizedRaceOfficalMixin, ListView):
+    model = Volunteer
+    template_name = "list_emails.html"

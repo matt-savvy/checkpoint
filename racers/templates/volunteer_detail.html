@@ -18,6 +18,9 @@
 	  
 	  <dt>Payment Status</dt><dd>{% if object.paid %}<span id="paid{{object.pk}}" class="success">paid</span>{% else %} <span id="paid{{object.pk}}" class="danger">NOT PAID</span> {% endif %}</dd>
 	  
+	  <dt>Paypal Transaction ID </dt>
+	  <dd>{{object.paypal_tx}}
+	  
       <dt>Shirt Size</dt>
       <dd>{{object.shirt_size}}</dd>
 	  
