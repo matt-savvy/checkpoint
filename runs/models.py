@@ -8,10 +8,12 @@ class Run(models.Model):
 
     RUN_STATUS_PICKED               = 0
     RUN_STATUS_COMPLETED            = 1
+    RUN_STATUS_ASSIGNED             = 2
     
     RUN_STATUS_CHOICES = (
         (RUN_STATUS_PICKED, 'Picked'),
-        (RUN_STATUS_COMPLETED, 'Completed')
+        (RUN_STATUS_COMPLETED, 'Completed'),
+        (RUN_STATUS_ASSIGNED, 'Assigned')
     )
     
     DETERMINATION_OK                = 1
@@ -40,6 +42,12 @@ class Run(models.Model):
     utc_time_dropped = models.DateTimeField(blank=True, null=True)
     completion_seconds = models.IntegerField(default=0)
     
+    class Meta:
+        ordering = ['job__minutes_ready_after_start']
+    
+    def __unicode__(self):
+        return u"({}){}:{}".format(self.RUN_STATUS_CHOICES[self.status][1], self.race_entry.racer, self.job)
+    
     def status_as_string(self):
         return self.RUN_STATUS_CHOICES[self.status][1]
     
@@ -47,9 +55,15 @@ class Run(models.Model):
         index = [i for i, v in enumerate(self.DETERMINATION_CHOICES) if v[0] == self.determination]
         return self.DETERMINATION_CHOICES[index[0]][1]
     
-    def pick(self, job, race_entry):
-        self.job = job
-        self.race_entry = race_entry
+    #def pick(self, job, race_entry):
+    #    self.job = job
+    #    self.race_entry = race_entry
+    #    self.status = self.RUN_STATUS_PICKED
+    #    self.determination = self.DETERMINATION_NOT_DROPPED
+    #    self.utc_time_picked = datetime.datetime.now(tz=pytz.utc)
+    #    self.save()
+    
+    def pick(self):
         self.status = self.RUN_STATUS_PICKED
         self.determination = self.DETERMINATION_NOT_DROPPED
         self.utc_time_picked = datetime.datetime.now(tz=pytz.utc)

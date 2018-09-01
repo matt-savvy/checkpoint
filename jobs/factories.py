@@ -5,10 +5,17 @@ from races.factories import RaceFactory
 from checkpoints.factories import CheckpointFactory
 from faker import Faker
 
+def get_job_id():
+    last_job = Job.objects.order_by('job_id').last()
+    if last_job:
+        last_job_id = last_job.job_id
+        return int(last_job_id) + 1
+    else:
+        return 1
+        
 class JobFactory(factory.DjangoModelFactory):
-    
     """(Job description)"""
-    job_id = factory.Sequence(lambda n: '%d' % n)
+    job_id = factory.LazyFunction(get_job_id)
     race = RaceFactory()
     pick_checkpoint = CheckpointFactory()
     drop_checkpoint = CheckpointFactory()
