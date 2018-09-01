@@ -5,9 +5,8 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
-
 from .serializers import CheckpointSerializer, RacerSerializer
-
+from ajax.serializers import JobSerializer
 from checkpoints.models import Checkpoint
 from racers.models import Racer
 from racecontrol.models import RaceControl
@@ -15,7 +14,7 @@ from raceentries.models import RaceEntry
 from jobs.models import Job
 from runs.models import Run
 from racelogs.models import RaceLog
-
+from mobilecheckpoint.util import get_available_runs
 import datetime
 import pytz
 
@@ -65,21 +64,36 @@ class RacerDetailViewOld(generics.RetrieveAPIView):
     model = Racer
     lookup_field = 'racer_number'
     
-class RacerDetailView(generics.RetrieveAPIView):
+class RacerDetailView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
     def post(self, request, *args, **kwargs):
+        import pdb
+        #pdb.set_trace()
         current_race = RaceControl.shared_instance().current_race
         racer_number = request.DATA['racer_number']
         checkpoint = request.DATA['checkpoint']
         
-        #check for racer
+        #check for race entry object
         racer = Racer.objects.filter(racer_number=racer_number).first()
         
         if racer:
-            pass
-        return ##no racer found with this number
+            
+            race_entry = RaceEntry.objects.filter(racer=racer).filter(race=current_race)
+            available_runs = get_available_runs(race_entry, checkpoint)
+            available_jobs = []
+            for run in available_runs:
+                jobs.append(run)
+            
+            serialized_racer = RacerSerializer(racer)
+            serialized_jobs = JobSerializer(available_jobs)
+            return Response({'racer' : serialized_racer.data, 'runs' : serialized_jobs.data, 'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
+            
+        else:
+            return Response({'error' : True, 'error_title' : 'Cannot Find Racer', 'error_description' : 'No racer found with racer number {}.'.format(str(racer_number))}, status=status.HTTP_200_OK)
+            
+        return 
     
         
 

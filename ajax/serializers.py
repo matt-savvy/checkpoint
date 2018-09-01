@@ -3,6 +3,7 @@ from racers.models import Racer, Volunteer
 from raceentries.models import RaceEntry
 from jobs.models import Job
 from checkpoints.models import Checkpoint
+from runs.models import Run
 
 class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,6 +42,8 @@ class CheckpointSerializer(serializers.ModelSerializer):
 class JobSerializer(serializers.ModelSerializer):
     pick_checkpoint = CheckpointSerializer()
     drop_checkpoint = CheckpointSerializer()
+    
     class Meta:
         model = Job
         depth = 2
+        fields = ('pick_checkpoint', 'drop_checkpoint')

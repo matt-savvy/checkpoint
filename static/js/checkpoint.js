@@ -50,16 +50,26 @@ $(document).ready(function() {
             found(racer);
             return;
         }
+		
+        var request = new Object();
+        request.racer_number = racerNumber;
+        request.checkpoint = checkpoint;
+        var json = JSON.stringify(request);
         
         $.ajax({
-            url: '/api/v1/racer/' + racerNumber + '/',
-            type: 'GET',
+            url: '/api/v1/racer/',
+            type: 'POST',
+			contentType: 'application/json',
+			data: json,
             beforeSend: function (request) {
                 request.setRequestHeader("X-CSRFToken", csrftoken);
             },
             success: function(data, textStatus, xhr) {
-                addRacerToCache(data);
-                found(data);
+				console.log(data);
+				if (data.racer){
+					addRacerToCache(data.racer);
+					found(data.racer);
+				}
             },
             error: function(xhr, textStatus, errorThrown) {
                 failure();
