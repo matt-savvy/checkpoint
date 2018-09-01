@@ -5,12 +5,26 @@
 </div>
 
 <div class="row">
-	<legend>{{racers|length}} racers</legend>
+	<legend>{{racers|length}} racers 
+	
+	<br>
+	{% if include_unpaid %}
+	<a href="?include_unpaid=False">Exclude Unpaid</a>
+	{% else %}
+	<a href="?include_unpaid=True">Include Unpaid</a>
+	{% endif %}
+	</legend> 
+	
+	
 	<div class="col-md-4">
 		<P>Men : 
 		{{total_men}}
 		</p>
-
+		
+		<p>WTF
+		{{total_wtf}}
+		</p>
+		
 		<P>Women : 
 		{{total_women}}
 		</p>
@@ -20,11 +34,15 @@
 		</p>
 	</div>
 	
+
 	<div class="col-md-4">
+			{% if include_unpaid %}
 		<p>Unpaid : 
 			{{total_unpaid}}
 		</p>
+			{% endif %}
 	</div>
+	
 	
 	<div class="col-md-4">
 
@@ -43,6 +61,7 @@
 	</div>
 	
 	<div class="col-md-4">
+		<h4>Shirt Sizes</h4>
 		<P>S
 		{{total_s}}
 		</p>

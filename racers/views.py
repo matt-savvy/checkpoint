@@ -31,6 +31,7 @@ from django.contrib.sessions.models import Session
 from django.contrib.sessions.backends.db import SessionStore 
 from django.utils.six import BytesIO
 from rest_framework.parsers import JSONParser
+from django.db.models import Q
 
 class RacerListView(AuthorizedRaceOfficalMixin, ListView):
     model = Racer
@@ -40,7 +41,9 @@ class RacerListView(AuthorizedRaceOfficalMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(RacerListView, self).get_context_data(**kwargs)
         queryset = context['object_list']
+        context['include_unpaid'] = self.request.GET.get('include_unpaid') == 'True'
         context['total_men'] = len(queryset.filter(gender='M'))
+        context['total_wtf'] = len(queryset.filter(Q(gender='F') | Q(gender='T')))
         context['total_women'] = len(queryset.filter(gender='F'))
         context['total_trans'] = len(queryset.filter(gender='T'))
         
@@ -57,13 +60,19 @@ class RacerListView(AuthorizedRaceOfficalMixin, ListView):
         return context
     
     def get_queryset(self):
-        return Racer.objects.all().order_by('-pk')
-
+        include_unpaid = self.request.GET.get('include_unpaid') == 'True'
+        queryset = Racer.objects.order_by('-pk')
+        if not include_unpaid:
+            queryset = queryset.filter(paid=True)
+        return queryset
 
 class RacerListViewPublic(ListView):
     model = Racer
     template_name = 'list_racers_public.html'
     context_object_name = 'racers'
+    
+    def get_queryset(self):
+        return Racer.objects.filter(paid=True)
 
 class RacerDetailView(AuthorizedRaceOfficalMixin, DetailView):
     template_name = 'racer_detail.html'
