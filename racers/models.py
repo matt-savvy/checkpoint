@@ -104,6 +104,8 @@ class Volunteer(models.Model):
     shirt_size = models.CharField(max_length=2, choices=SHIRT_SIZE_OPTIONS, default=SHIRT_SIZE_MEDIUM)
     paid = models.BooleanField(default=False)
     paypal_tx = models.CharField(blank=True, max_length=100)
+    fixed_gear = models.BooleanField("riding a proper track bike?", default=False)
+    packet_picked_up = models.BooleanField("packet is picked up?", default=False)
     
     class Meta:
         ordering = ['last_name']
