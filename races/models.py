@@ -4,10 +4,12 @@ class Race(models.Model):
     
     RACE_TYPE_PRELIMS = 1
     RACE_TYPE_FINALS = 2
+    RACE_TYPE_DISPATCH = 3
     
     RACE_TYPE_CHOICES = (
         (RACE_TYPE_PRELIMS, 'Prelims'),
-        (RACE_TYPE_FINALS, 'Finals')
+        (RACE_TYPE_FINALS, 'Finals'),
+        (RACE_TYPE_DISPATCH, 'Dispatch')
     )
     
     """(Race description)"""

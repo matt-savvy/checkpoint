@@ -57,13 +57,31 @@ class CheckpointIdentificationView(APIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-class RacerDetailView(generics.RetrieveAPIView):
+class RacerDetailViewOld(generics.RetrieveAPIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
     serializer_class = RacerSerializer
     model = Racer
     lookup_field = 'racer_number'
+    
+class RacerDetailView(generics.RetrieveAPIView):
+    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    
+    def post(self, request, *args, **kwargs):
+        current_race = RaceControl.shared_instance().current_race
+        racer_number = request.DATA['racer_number']
+        checkpoint = request.DATA['checkpoint']
+        
+        #check for racer
+        racer = Racer.objects.filter(racer_number=racer_number).first()
+        
+        if racer:
+            pass
+        return ##no racer found with this number
+    
+        
 
 class PickView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)

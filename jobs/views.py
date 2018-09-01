@@ -16,11 +16,11 @@ class JobRaceListView(ListView):
     context_object_name = 'jobs'
     
     def get_queryset(self):
-        return Job.objects.all().distinct('race')
+        return Job.objects.all()
     
     def get_context_data(self, **kwargs):
         context = super(JobRaceListView, self).get_context_data(**kwargs)
-        races_in_jobs = Job.objects.all().distinct('race')
+        races_in_jobs = Job.objects.all()
         job_counts = []
         for race in races_in_jobs:
             count = Job.objects.filter(race=race.race).count()

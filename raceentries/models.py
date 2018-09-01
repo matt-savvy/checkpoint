@@ -136,7 +136,6 @@ class RaceEntry(models.Model):
     def time_due_back(self, tz):
         due_back = self.start_time + datetime.timedelta(seconds=self.race.time_limit * 60)
         return due_back.astimezone(tz)
-            
     
     @property
     def current_elapsed_time(self):

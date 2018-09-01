@@ -11,7 +11,8 @@ djangorestframework==2.3.13
 ecdsa==0.11
 gunicorn==18.0
 mock==1.0.1
-#model-mommy==1.2
+factory-boy==2.11.1
+Faker==0.8.17
 paramiko==1.12.4
 psycopg2==2.7.4
 pycrypto==2.6.1
