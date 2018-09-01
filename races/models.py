@@ -24,4 +24,3 @@ class Race(models.Model):
     
     def get_absolute_url(self):
         return "/races/details/" + str(self.id) + "/"
-

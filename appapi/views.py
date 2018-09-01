@@ -70,8 +70,13 @@ class RacerDetailView(APIView):
     
     def post(self, request, *args, **kwargs):
         import pdb
-        #pdb.set_trace()
+        pdb.set_trace()
         current_race = RaceControl.shared_instance().current_race
+        
+        ### FIX THIS 
+        from races.models import Race
+        current_race = Race.objects.get(race_name='test race one')
+        
         racer_number = request.DATA['racer_number']
         checkpoint = request.DATA['checkpoint']
         
@@ -84,7 +89,7 @@ class RacerDetailView(APIView):
             available_runs = get_available_runs(race_entry, checkpoint)
             available_jobs = []
             for run in available_runs:
-                jobs.append(run)
+                available_jobs.append(run.job)
             
             serialized_racer = RacerSerializer(racer)
             serialized_jobs = JobSerializer(available_jobs)

@@ -9,11 +9,13 @@ class Run(models.Model):
     RUN_STATUS_PICKED               = 0
     RUN_STATUS_COMPLETED            = 1
     RUN_STATUS_ASSIGNED             = 2
+    RUN_STATUS_PENDING              = 3
     
     RUN_STATUS_CHOICES = (
-        (RUN_STATUS_PICKED, 'Picked'),
-        (RUN_STATUS_COMPLETED, 'Completed'),
-        (RUN_STATUS_ASSIGNED, 'Assigned')
+        (RUN_STATUS_PENDING, 'Pending'), ## job exists in the future for the rider but is not available yet
+        (RUN_STATUS_ASSIGNED, 'Assigned'), ## job is assigned and active
+        (RUN_STATUS_PICKED, 'Picked'), ## job is picked up
+        (RUN_STATUS_COMPLETED, 'Completed') ##job is dropped
     )
     
     DETERMINATION_OK                = 1
