@@ -1,0 +1,59 @@
+        {% load widget_tweaks %}
+        {% csrf_token %}
+		
+		<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+       
+	    <legend>Your Info</legend>
+			
+			{% if form.errors %}
+			
+				<div class="alert-danger">
+					{{ form.errors }}
+				</div>
+					
+			{% endif %}
+			
+		<div class="row">
+			
+          <div class="col-md-4">
+              <fieldset>
+                  
+                      <div class="form-group">
+                          <label for="first_name">First Name</label>
+                          {{ form.first_name|add_class:"form-control"|attr:"required:required"}}
+                      </div>
+                      <div class="form-group">
+                          <label for="last_name">Last Name</label>
+                          {{ form.last_name|add_class:"form-control doc"|attr:"placeholder:"|attr:"required:required"}}
+                      </div>
+                      <div class="form-group">
+                          <label for="email">Email</label>
+                          {{ form.email|add_class:"form-control doc"|attr:"placeholder:"|attr:"required:required"}}
+                      </div>
+					  
+                     
+                      
+					  
+              </fieldset>   
+		  </div>
+		  
+          <div class="col-md-4"> 
+              <fieldset>
+				  
+                  <div class="form-group">
+                      <label for="nickname">Phone Number</label>
+                      {{ form.phone|add_class:"form-control doc"}}
+                  </div>
+				  
+				  <div class="form-group">
+					  <label for="city">City</label>
+					  {{ form.city|add_class:"form-control doc"|attr:"required:required"}}
+				  </div>
+				  	
+                      <div class="form-group">
+                          <label for="gender">T-Shirt Size</label>
+                          {{ form.shirt_size|add_class:"form-control"|attr:"required:required"}}
+                      </div>
+              </fieldset>   
+		  	</div>
+		 </div>

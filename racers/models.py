@@ -81,3 +81,40 @@ class Racer(models.Model):
         if not self.paid:
             self.paid = True
             self.save()
+            
+class Volunteer(models.Model):
+    SHIRT_SIZE_SMALL  = 'S'
+    SHIRT_SIZE_MEDIUM = 'M'
+    SHIRT_SIZE_LARGE  = 'L'
+    SHIRT_SIZE_XLARGE = 'XL'
+    
+    SHIRT_SIZE_OPTIONS = (
+        (SHIRT_SIZE_SMALL, "S"),
+        (SHIRT_SIZE_MEDIUM, "M"),
+        (SHIRT_SIZE_LARGE, "L"),
+        (SHIRT_SIZE_XLARGE, "XL")
+    )
+    
+    """(Volunteer description)"""
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    email = models.EmailField(max_length=50, blank=True)
+    phone = models.CharField("Phone Number", max_length=15)
+    city = models.CharField(max_length=50, blank=True)
+    shirt_size = models.CharField(max_length=2, choices=SHIRT_SIZE_OPTIONS, default=SHIRT_SIZE_MEDIUM)
+    paid = models.BooleanField(default=False)
+    paypal_tx = models.CharField(blank=True, max_length=100)
+    
+    class Meta:
+        ordering = ['last_name']
+        
+    def __unicode__(self):
+        return u"{} {}".format(self.first_name, self.last_name)
+    
+    def get_absolute_url(self):
+        return '/volunteer/details/' + str(self.id)
+
+    def mark_as_paid(self):
+        if not self.paid:
+            self.paid = True
+            self.save()

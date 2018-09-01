@@ -1,10 +1,14 @@
 from django import forms
 from django.db import models
-from .models import Racer
+from .models import Racer, Volunteer
 
 class RacerForm(forms.ModelForm):
     class Meta:
         model = Racer
+        
+class VolunteerForm(forms.ModelForm):
+    class Meta:
+        model = Volunteer
 
 class ShirtForm(forms.ModelForm):
     class Meta:

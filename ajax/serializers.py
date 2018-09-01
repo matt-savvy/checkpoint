@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from racers.models import Racer
+from racers.models import Racer, Volunteer
 from raceentries.models import RaceEntry
 from jobs.models import Job
 from checkpoints.models import Checkpoint
@@ -11,7 +11,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
             return Racer(**validated_data)
+
+class VolunteerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Volunteer
+        fields = ('first_name', 'last_name', 'email', 'phone', 'city', 'shirt_size', 'paid')
     
+    def create(self, validated_data):
+            return Volunteer(**validated_data)
+
 class RacerSerializer(serializers.ModelSerializer):
     display_name = serializers.CharField(source='display_name')
     category_as_string = serializers.CharField(source='category_as_string')

@@ -1,0 +1,36 @@
+{% extends 'base2.html' %}
+{% load widget_tweaks %}
+{% block container %}
+
+<div class="row">
+		
+	<div class="col-md-12">
+	<h1>VOLUNTEER</h1>
+	
+	<p>Volunteering is ${{volunteer_price}}. </p>
+	 
+	<form action="" method="post" enctype="multipart/form-data">
+	    {% include "register_volunteer_form.html" %}
+		</br>
+	   	 	<input class="btn btn-primary" type="submit" name="save" value="Submit" />
+			</br>
+			</br>
+   	</div>
+	</form>
+
+	
+</div>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+

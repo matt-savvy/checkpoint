@@ -11,8 +11,8 @@ from django.core.urlresolvers import reverse, reverse_lazy
 import uuid
 import os
 from django.conf import settings
-from racers.models import Racer
-from racers.forms import RacerForm, RegisterForm, ShirtForm
+from racers.models import Racer, Volunteer
+from racers.forms import RacerForm, RegisterForm, ShirtForm, VolunteerForm
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from nacccusers.auth import AuthorizedRaceOfficalMixin
@@ -80,7 +80,7 @@ class RacerDetailView(AuthorizedRaceOfficalMixin, DetailView):
 
 from importlib import import_module
 from django.conf import settings
-from ajax.serializers import RegistrationSerializer
+from ajax.serializers import RegistrationSerializer, VolunteerSerializer
 from paypal.standard.pdt.views import process_pdt
 from django.utils.six import BytesIO
 from rest_framework.parsers import JSONParser
@@ -236,6 +236,111 @@ class RacerRegisterView(CreateView):
         except:
             pass
         return url
+        
+class VolunteerRegisterView(CreateView):
+    template_name = 'register_volunteer.html'
+    model = Volunteer
+    form_class = VolunteerForm
+    
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(VolunteerRegisterView, self).dispatch(*args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+          context = super(VolunteerRegisterView, self).get_context_data(**kwargs)
+          context['volunteer_price'] = settings.VOLUNTEER_PRICE
+          return context
+    
+    def form_valid(self, form):
+        if 'session_key' in self.request:
+            del request.session['session_key']
+            s.delete()
+        self.object = form.save(commit=False)
+        serializer = VolunteerSerializer(self.object)
+        json = JSONRenderer().render(serializer.data)
+        s = SessionStore()
+        s['volunteer_json'] = json
+        s.create()
+        self.request.session['session_key'] = s.session_key
+        
+        return HttpResponseRedirect(self.get_success_url())
+    
+    def get_success_url(self):
+        url = self.request.build_absolute_uri(reverse('volunteer-pay-view'))
+        try:
+            url = url + "?first_name={}&last_name={}".format(self.object.first_name, self.object.last_name)
+        except:
+            pass
+        return url
+        
+def volunteer_view_that_asks_for_money(request):
+    first_name = request.GET.get('first_name')
+    last_name = request.GET.get('last_name')
+    volunteer_name = "{} {}".format(first_name, last_name)
+    session_key = request.session.get('session_key')
+    if volunteer_name:
+        url = request.build_absolute_uri(reverse('volunteer-pay-view'))
+        cancel_url = url + "?first_name={}&last_name={}".format(first_name, last_name)
+    else:
+        volunteer_name = ''
+        cancel_url = request.build_absolute_uri(reverse('welcome-view'))
+
+    volunteer = Volunteer.objects.filter(first_name=first_name).filter(last_name=last_name).first()
+    if volunteer:
+        if volunteer.paid:
+            return render(request, 'thank_you.html')
+    
+    item_name = "Registration for Volunteer {}".format(str(volunteer_name))    
+    paypal_dict = {
+        "business": settings.PAYPAL_RECEIVER_EMAIL,
+        "amount": settings.VOLUNTEER_PRICE,
+        "item_name": item_name,
+        "notify_url": request.build_absolute_uri(reverse('paypal-ipn')),
+        #"notify_url": "http://92105408.ngrok.io/paypal/", 
+        #"return_url" : "http://92105408.ngrok.io/racers/pdtreturn/",
+        "return_url": request.build_absolute_uri(reverse('volunteer-pdt_return_url')),
+        "cancel_return": cancel_url,
+        "custom" : session_key,
+    }
+    
+    form = PayPalPaymentsForm(initial=paypal_dict)
+    context = {"form": form}
+    context['volunteer_price'] = settings.VOLUNTEER_PRICE
+    return render(request, 'volunteer_pay.html', context)
+    
+@require_GET
+def VolunteerRegFinished(request):
+    pdt_obj, failed = process_pdt(request)
+    context = {"failed": failed, "pdt_obj": pdt_obj}
+    if not failed:
+        if pdt_obj.receiver_email == settings.PAYPAL_RECEIVER_EMAIL:
+            session_key = pdt_obj.custom
+            if session_key:
+                SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
+        
+                s = Session.objects.get(pk=session_key)    
+                decoded_data = s.get_decoded()
+
+                stream = BytesIO(decoded_data['volunteer_json'])
+                data = JSONParser().parse(stream)
+                
+                first_name = data['first_name']
+                last_name = data['last_name']
+                
+                new_serializer = VolunteerSerializer(data=data)
+                new_serializer.is_valid()
+                
+                new_volunteer = new_serializer.create(new_serializer.data)
+                new_volunteer.paid = True
+                new_volunteer.paypal_tx = pdt_obj.txn_id
+                new_volunteer.save()
+                s.delete()
+                
+                if 'session_key' in request:    
+                    del request.session['session_key']
+                
+            return HttpResponseRedirect(reverse('thank-you'))
+    return render(request, 'bad_payment.html', context)
 
 class RacerCreateView(AuthorizedRaceOfficalMixin, CreateView):
     template_name = 'create_racer.html'
