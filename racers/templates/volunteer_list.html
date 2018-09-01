@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block container %}
+<div class="page-header">
+  <h1>Volunteers <small>NACCC PHL NACCC</small></h1>
+</div>
+
+<div class="row">
+	<legend>{{object_list|length}} volunteers 
+	
+	<div class="col-md-4">
+		<h4>Shirt Sizes</h4>
+		<P>S
+		{{total_s}}
+		</p>
+
+		<P>M : 
+		{{total_m}}
+		</p>
+
+		<P>L: 
+		{{total_l}}
+		</p>
+
+		<P>XL : 
+		{{total_xl}}
+		</p>
+	</div>
+</div>
+
+<div class="table-responsive">
+<table class="table table-striped">
+  <tr>
+      <th>Name</th>
+	  <th>Email</th>
+	  <th>Phone</th>
+      <th>City</th>
+	  <th>Shirt Size</th>
+	  <th>Paid?</th>
+
+  </tr>
+      {% for volunteer in object_list %}
+          <tr>
+              <td><a href = "/volunteers/details/{{volunteer.pk}}">{{volunteer}}</a></td>
+			  <td>{{volunteer.email}}</td>
+              <td>{{volunteer.phone}}</td>
+              <td>{{volunteer.city}}</td>	
+			  <td>{{volunteer.shirt_size}}</td>
+			  <td>{% if volunteer.paid %}<span id="paid{{volunteer.pk}}" class="success">paid</span>{% else %} <span id="paid{{volunteer.pk}}" class="danger">NOT PAID</span> {% endif %}</td>				  
+           </tr>
+      {% empty %}
+      <tr>
+          <td colspan="7">No volunteers entered</td>
+       </tr>
+      {% endfor %}
+</table>
+</div>
+
+{% endblock %}

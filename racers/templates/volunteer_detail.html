@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block container %}
+<div class="page-header">
+  <h1>Volunteer Detail <small>PHL NACCC</small></h1>
+   		<a href="/volunteers/">Volunteers</a>
+	</p></p>
+  
+</div>
+<h2> {{object}}</h2>
+<div class="col-md-6">
+
+    <dl>
+		
+      <dt>Email</dt>
+      <dd>{{object.email}}</dd>
+      <dt>Phone</dt>
+      <dd>{{object.phone}}</dd>
+	  
+	  <dt>Payment Status</dt><dd>{% if object.paid %}<span id="paid{{object.pk}}" class="success">paid</span>{% else %} <span id="paid{{object.pk}}" class="danger">NOT PAID</span> {% endif %}</dd>
+	  
+      <dt>Shirt Size</dt>
+      <dd>{{object.shirt_size}}</dd>
+	  
+      <dt>City</dt>
+      <dd>{{object.city}}</dd>
+    </dl>   
+</div> 
+
+{% endblock %}

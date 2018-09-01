@@ -236,6 +236,106 @@ class RacerRegisterView(CreateView):
         except:
             pass
         return url
+
+class RacerCreateView(AuthorizedRaceOfficalMixin, CreateView):
+    template_name = 'create_racer.html'
+    model = Racer
+    form_class = RacerForm
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Racer was successfully created')
+        if 'save-another' in self.request.POST:
+            return '/racers/create/'
+        return super(RacerCreateView, self).get_success_url()
+    
+class RacerUpdateView(AuthorizedRaceOfficalMixin, UpdateView):
+    template_name = 'update_racer.html'
+    model = Racer
+    
+    def get_success_url(self):
+       import requests
+       MAILCHIMP_USERNAME = 'naccc2018'
+       MAILCHIMP_API_KEY = '73e4693f5ed7ff2cd92e3b35a5abf0f1-us16' 
+       mailchimp_user = '{}:{}'.format(MAILCHIMP_USERNAME, MAILCHIMP_API_KEY)
+       md5 = hashlib.md5(self.object.email).hexdigest()
+       listid = '459031a70e'
+       address = 'https://us16.api.mailchimp.com/3.0'
+       endpoint =  "{}/lists/{}?user={}:{}".format(address, listid, MAILCHIMP_USERNAME, MAILCHIMP_API_KEY)
+       response = requests.get(address, headers={'user' : mailchimp_user})
+       print response.json()['detail']
+       pass
+       return super(RacerUpdateView, self).get_success_url()
+
+class RacerUpdateShirtView(UpdateView):
+    template_name = 'update_racer_shirt.html'
+    model = Racer
+    fields = ['shirt_size']
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Racer updated.')
+        return reverse_lazy('thank-you')
+    
+    def get_object(self):
+        racer_pk = self.request.GET.get('pk')
+        racer_number = self.request.GET.get('racer_number')
+        return get_object_or_404(Racer, pk=racer_pk, racer_number=racer_number)
+    
+    
+class RacerDeleteView(AuthorizedRaceOfficalMixin, DeleteView):
+    template_name = "delete_racer.html"
+    model = Racer
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Racer was successfully deleted')
+        return '/racers/'
+
+class SessionListView(AuthorizedRaceOfficalMixin, ListView):
+    model = Session
+    template_name = "list_sessions.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super(SessionListView, self).get_context_data(**kwargs)
+        
+        object_list = []
+        sessions = Session.objects.all()
+        if sessions:
+            for session in sessions:
+                decoded_data = session.get_decoded()
+                if 'racer_json' in decoded_data:
+                    stream = BytesIO(decoded_data['racer_json'])
+                    racer_json = JSONParser().parse(stream)
+                    obj = session
+                    obj.racer_json = racer_json
+                    object_list.append(obj)
+        context['object_list'] = object_list
+        return context
+
+class NumbersListView(AuthorizedRaceOfficalMixin, ListView):
+    model = Racer
+    template_name = "list_racer_numbers.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super(NumbersListView, self).get_context_data(**kwargs)
+        
+        racer_numbers_list = list(Racer.objects.values_list('racer_number', flat=True).order_by('racer_number'))
+        numbers = []
+        for number in racer_numbers_list:
+            numbers.append(int(number))
+        target_length = len(numbers) + 50
+        for x in range(500, 999):
+            if not x in numbers:
+                numbers.append(x)
+            if len(numbers) > target_length:
+                break
+        numbers.sort()
+
+        context['numbers'] = numbers 
+        return context
+        
+class EmailsListView(AuthorizedRaceOfficalMixin, ListView):
+    model = Racer
+    template_name = "list_racer_emails.html"
+    
         
 class VolunteerRegisterView(CreateView):
     template_name = 'register_volunteer.html'
@@ -341,102 +441,21 @@ def VolunteerRegFinished(request):
                 
             return HttpResponseRedirect(reverse('thank-you'))
     return render(request, 'bad_payment.html', context)
-
-class RacerCreateView(AuthorizedRaceOfficalMixin, CreateView):
-    template_name = 'create_racer.html'
-    model = Racer
-    form_class = RacerForm
     
-    def get_success_url(self):
-        messages.success(self.request, 'Racer was successfully created')
-        if 'save-another' in self.request.POST:
-            return '/racers/create/'
-        return super(RacerCreateView, self).get_success_url()
-    
-class RacerUpdateView(AuthorizedRaceOfficalMixin, UpdateView):
-    template_name = 'update_racer.html'
-    model = Racer
-    
-    def get_success_url(self):
-       import requests
-       MAILCHIMP_USERNAME = 'naccc2018'
-       MAILCHIMP_API_KEY = '73e4693f5ed7ff2cd92e3b35a5abf0f1-us16' 
-       mailchimp_user = '{}:{}'.format(MAILCHIMP_USERNAME, MAILCHIMP_API_KEY)
-       md5 = hashlib.md5(self.object.email).hexdigest()
-       listid = '459031a70e'
-       address = 'https://us16.api.mailchimp.com/3.0'
-       endpoint =  "{}/lists/{}?user={}:{}".format(address, listid, MAILCHIMP_USERNAME, MAILCHIMP_API_KEY)
-       response = requests.get(address, headers={'user' : mailchimp_user})
-       print response.json()['detail']
-       pass
-       return super(RacerUpdateView, self).get_success_url()
-
-class RacerUpdateShirtView(UpdateView):
-    template_name = 'update_racer_shirt.html'
-    model = Racer
-    fields = ['shirt_size']
-    
-    def get_success_url(self):
-        messages.success(self.request, 'Racer updated.')
-        return reverse_lazy('thank-you')
-    
-    def get_object(self):
-        racer_pk = self.request.GET.get('pk')
-        racer_number = self.request.GET.get('racer_number')
-        return get_object_or_404(Racer, pk=racer_pk, racer_number=racer_number)
-    
-    
-class RacerDeleteView(AuthorizedRaceOfficalMixin, DeleteView):
-    template_name = "delete_racer.html"
-    model = Racer
-    
-    def get_success_url(self):
-        messages.success(self.request, 'Racer was successfully deleted')
-        return '/racers/'
-
-class SessionListView(AuthorizedRaceOfficalMixin, ListView):
-    model = Session
-    template_name = "list_sessions.html"
+class VolunteerListView(AuthorizedRaceOfficalMixin, ListView):
+    model = Volunteer
+    template_name = "volunteer_list.html"
     
     def get_context_data(self, **kwargs):
-        context = super(SessionListView, self).get_context_data(**kwargs)
+        context = super(VolunteerListView, self).get_context_data(**kwargs)
+        queryset = self.get_queryset()
+        context['total_s'] = len(queryset.filter(shirt_size='S'))
+        context['total_m'] = len(queryset.filter(shirt_size='M'))
+        context['total_l'] = len(queryset.filter(shirt_size='L'))
+        context['total_xl'] = len(queryset.filter(shirt_size='XL'))
         
-        object_list = []
-        sessions = Session.objects.all()
-        if sessions:
-            for session in sessions:
-                decoded_data = session.get_decoded()
-                if 'racer_json' in decoded_data:
-                    stream = BytesIO(decoded_data['racer_json'])
-                    racer_json = JSONParser().parse(stream)
-                    obj = session
-                    obj.racer_json = racer_json
-                    object_list.append(obj)
-        context['object_list'] = object_list
         return context
-
-class NumbersListView(AuthorizedRaceOfficalMixin, ListView):
-    model = Racer
-    template_name = "list_racer_numbers.html"
     
-    def get_context_data(self, **kwargs):
-        context = super(NumbersListView, self).get_context_data(**kwargs)
-        
-        racer_numbers_list = list(Racer.objects.values_list('racer_number', flat=True).order_by('racer_number'))
-        numbers = []
-        for number in racer_numbers_list:
-            numbers.append(int(number))
-        target_length = len(numbers) + 50
-        for x in range(500, 999):
-            if not x in numbers:
-                numbers.append(x)
-            if len(numbers) > target_length:
-                break
-        numbers.sort()
-
-        context['numbers'] = numbers 
-        return context
-        
-class EmailsListView(AuthorizedRaceOfficalMixin, ListView):
-    model = Racer
-    template_name = "list_racer_emails.html"
+class VolunteerDetailView(AuthorizedRaceOfficalMixin, DetailView):
+    model = Volunteer
+    template_name = "volunteer_detail.html"

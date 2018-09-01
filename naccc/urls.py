@@ -49,10 +49,14 @@ urlpatterns = patterns('',
     url(r'^racers/pdtreturn/$', racer_views.RegFinished, name="pdt_return_url"),
     url(r'^racers/thanks/$', racer_views.ThankYouView.as_view(), name="thank-you"),
     
+    #volunteer URLS
+    url(r'^volunteers/$', racer_views.VolunteerListView.as_view(), name="volunteer-register-view"),
+    url(r'^volunteers/details/(?P<pk>[0-9]+)/$', login_required(racer_views.VolunteerDetailView.as_view())),
     url(r'^volunteers/register/$', racer_views.VolunteerRegisterView.as_view(), name="volunteer-register-view"),
     url(r'^volunteers/pay/$', racer_views.volunteer_view_that_asks_for_money, name="volunteer-pay-view"),
     url(r'^volunteers/pdtreturn/$', racer_views.VolunteerRegFinished, name="volunteer-pdt_return_url"),
     url(r'^volunteers/thanks/$', racer_views.ThankYouView.as_view(), name="volunteer-thank-you"),
+    #
     url(r'^paypal/', include('paypal.standard.ipn.urls')),
     url(r'^racers/update/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerUpdateView.as_view())),
     url(r'^racers/details/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerDetailView.as_view())),
