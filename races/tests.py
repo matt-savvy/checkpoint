@@ -53,4 +53,98 @@ class RaceTestCase(TestCase):
          
         runs = Run.objects.filter(race_entry=self.race_entry_one)
         self.assertEqual(runs.count(), 12)
+
+
+class ClearRacerTestCase(TestCase):
+    def setUp(self):
+        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH)
+        self.race_entry_one = RaceEntryFactory(race=self.race)
+        self.race_entry_one.start_racer()
+                
+    def test_find_clear_racer(self):
+        """one racer is clear"""
+        racer = self.race.find_clear_racer()
+        self.assertEqual(self.race_entry_one, racer)
+        
+    def test_find_clear_racer_out_of_several(self):
+        """several clear racers, make sure we return the one with the highest position"""        
+        self.race_entry_two = RaceEntryFactory(race=self.race)
+        self.race_entry_two.start_racer()
+        self.race_entry_two.starting_position = int(self.race_entry_one.starting_position) + 1
+        self.race_entry_two.save()
+        jobs = JobFactory.create_batch(5, race=self.race)
+        self.race.populate_runs(self.race_entry_one)
+
+        first_run = Run.objects.filter(race_entry=self.race_entry_one).first()
+        first_run.status = Run.RUN_STATUS_DISPATCHING
+        first_run.save()
+        first_run.assign()
+        
+        racer = self.race.find_clear_racer()
+        self.assertEqual(self.race_entry_two, racer)
     
+    def test_find_clear_racer_when_no_one_is_clear(self):
+        """no one is clear"""
+        job = JobFactory(race=self.race)
+        self.race.populate_runs(self.race_entry_one)
+        
+        self.race_entry_two = RaceEntryFactory(race=self.race)
+        self.race_entry_two.start_racer()
+        self.race_entry_two.starting_position = 2
+        self.race_entry_two.save()
+        self.race.populate_runs(self.race_entry_two)
+        
+        for run in Run.objects.filter(race_entry__race=self.race):
+            run.status = Run.RUN_STATUS_ASSIGNED
+            run.save()
+        
+        racer = self.race.find_clear_racer()
+        self.assertIsNone(racer)
+    
+    def test_find_clear_racer_finished(self):
+        """we have a racer that is clear, but they are finished"""
+        self.race_entry_one.finish_racer()
+        racer = self.race.find_clear_racer()
+        self.assertIsNone(racer)
+    
+    def test_find_clear_racer_not_started(self):
+        """we have a racer that is clear, but they are not started"""
+        self.race_entry_one.unstart_racer()
+        racer = self.race.find_clear_racer()
+        self.assertIsNone(racer)
+        
+    def test_find_clear_racer_dq(self):
+        """we have a racer that is clear, but they have been dq'd"""
+        self.race_entry_one.dq_racer()
+        racer = self.race.find_clear_racer()
+        self.assertIsNone(racer)
+        
+    def test_find_clear_racer_dnf(self):
+        """we have a racer that is clear, but they have been dnf'd"""
+        
+        self.race_entry_one.dnf_racer()
+        racer = self.race.find_clear_racer()
+        self.assertIsNone(racer)
+    
+    def test_find_clear_racer_but_has_jobs_dispatching(self):
+        """we have a racer that is clear, but they have been dnf'd"""
+        runs = Run.objects.filter(race_entry=self.race_entry_one)
+        jobs = JobFactory.create_batch(5, race=self.race)
+        self.race.populate_runs(self.race_entry_one)
+        for run in runs:
+            run.status = Run.RUN_STATUS_DISPATCHING
+            run.save()
+        racer = self.race.find_clear_racer()
+        self.assertIsNone(racer)
+    
+    def test_find_clear_racer_but_has_pending_jobs(self):
+        """we have a racer that is clear, but they have pending jobs"""
+        import datetime
+        import pytz
+        runs = Run.objects.filter(race_entry=self.race_entry_one)
+        for run in runs:
+            run.status = Run.RUN_STATUS_PENDING
+            run.utc_time_ready = datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(minutes=5)
+            run.save()
+        racer = self.race.find_clear_racer()
+        self.assertEqual(racer, self.race_entry_one)

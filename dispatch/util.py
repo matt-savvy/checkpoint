@@ -15,6 +15,12 @@ def get_next_message(race, dispatcher=None):
     if message:
         return message
     
+    race_entries = RaceEntry.objects.filter(race=race)
+    if race_entries:
+        for race in race_entries:
+            ##check for a clear racer
+            pass
+    
     runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
 
     if runs:

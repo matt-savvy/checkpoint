@@ -1,5 +1,6 @@
 from django.db import models
 import datetime
+from django.db.models import Q
 
 class Race(models.Model):
     
@@ -24,7 +25,18 @@ class Race(models.Model):
     
     def get_absolute_url(self):
         return "/races/details/" + str(self.id) + "/"
-        
+    
+    def find_clear_racer(self):
+        from raceentries.models import RaceEntry
+        from runs.models import Run
+
+        race_entries = RaceEntry.objects.filter(race=self).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT))
+        for race_entry in race_entries:
+            run_count = Run.objects.filter(race_entry=race_entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_DISPATCHING)).count()
+            if run_count == 0:
+                return race_entry
+        return 
+    
     def populate_runs(self, race_entry):
         from raceentries.models import RaceEntry
         from jobs.models import Job

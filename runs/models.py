@@ -70,7 +70,7 @@ class Run(models.Model):
     #    self.save()
     
     def assign(self):
-        time_now = datetime.datetime.now(tz=pytz.utc) 
+        time_now = datetime.datetime.now(tz=pytz.utc)
         if time_now >= self.utc_time_ready and self.status == self.RUN_STATUS_DISPATCHING:
             self.status = self.RUN_STATUS_ASSIGNED
             self.determination = self.DETERMINATION_NOT_PICKED

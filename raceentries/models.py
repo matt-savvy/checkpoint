@@ -10,20 +10,21 @@ import pytz
 class RaceEntry(models.Model):
     ENTRY_STATUS_ENTERED    = 0
     ENTRY_STATUS_RACING     = 1
-    ENTRY_STATUS_PROCESSING = 5
     ENTRY_STATUS_FINISHED   = 2
     ENTRY_STATUS_DQD        = 3
     ENTRY_STATUS_DNF        = 4
+    ENTRY_STATUS_PROCESSING = 5
+    ENTRY_STATUS_CUT        = 6
     
     ENTRY_STATUS_CHOICES = (
         (ENTRY_STATUS_ENTERED, 'Entered'),
         (ENTRY_STATUS_RACING, 'Racing'),
-        (ENTRY_STATUS_PROCESSING, 'Racer has finished the race and is waiting to finish'),  
         (ENTRY_STATUS_FINISHED, 'Finished'),
         (ENTRY_STATUS_DQD, 'Disqualified'),
-        (ENTRY_STATUS_DNF, 'Did not finish')
+        (ENTRY_STATUS_DNF, 'Did not finish'),
+        (ENTRY_STATUS_CUT, 'Not finished yet but will be given no more jobs, only a "come to the office" message'),
+        (ENTRY_STATUS_PROCESSING, 'Racer has finished the race and is waiting to finish')
     )
-    
     
     """(RaceEntry description)"""
     racer = models.ForeignKey(Racer)
@@ -91,21 +92,32 @@ class RaceEntry(models.Model):
             return True
         return False
     
+    def cut_racer(self):
+        if self.entry_status == self.ENTRY_STATUS_RACING:
+            self.entry_status = self.ENTRY_STATUS_CUT
+            self.save()
+            return True
+            #TODO log
+        return False
+    
     def finish_racer(self):
         if self.entry_status == self.ENTRY_STATUS_RACING:
             self.entry_status = self.ENTRY_STATUS_FINISHED
             self.end_time = datetime.datetime.utcnow().replace(tzinfo=utc)
             time_diff = self.end_time - self.start_time
             self.final_time = time_diff.seconds
+            self.save()
             return True
         elif self.entry_status == self.ENTRY_STATUS_PROCESSING:
             self.entry_status = self.ENTRY_STATUS_FINISHED
+            self.save()
             return True
         return False
     
     def dq_racer(self):
         self.entry_status = self.ENTRY_STATUS_DQD
         self.dq_time = datetime.datetime.utcnow().replace(tzinfo=utc)
+        self.save()
         return True
     
     def un_dq_racer(self):
@@ -115,14 +127,18 @@ class RaceEntry(models.Model):
             self.entry_status = self.ENTRY_STATUS_FINISHED
         else:
             self.entry_status = self.ENTRY_STATUS_RACING
+        self.save()
         return True
     
     def dnf_racer(self):
         self.entry_status = self.ENTRY_STATUS_DNF
+        self.save()
         return True
     
     def un_dnf_racer(self):
         self.entry_status = self.ENTRY_STATUS_RACING
+        self.save()
+        return True
     
     def add_up_points(self):
         runs = Run.objects.filter(race_entry__racer=self.racer).filter(job__race=self.race)
