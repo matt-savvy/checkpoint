@@ -1,4 +1,5 @@
 from django.db import models
+import datetime
 
 class Race(models.Model):
     
@@ -23,6 +24,20 @@ class Race(models.Model):
     
     def get_absolute_url(self):
         return "/races/details/" + str(self.id) + "/"
+        
+    def populate_runs(self, race_entry):
+        from raceentries.models import RaceEntry
+        from jobs.models import Job
+        from runs.models import Run
+        
+        if self.race_type == self.RACE_TYPE_DISPATCH:
+            jobs = Job.objects.filter(race=self)
+            for job in jobs:
+                run = Run(job=job, race_entry=race_entry, status=Run.RUN_STATUS_PENDING)
+                if self.race_start_time:
+                    run.utc_time_ready = self.race_start_time + datetime.timedelta(minutes=job.minutes_ready_after_start)
+                run.save()
+        return
 
 class Manifest(models.Model):
     """jobs will belong to a manifest, so we can have different sets of jobs for the same race"""

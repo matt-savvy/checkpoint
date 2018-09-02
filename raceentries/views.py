@@ -74,6 +74,7 @@ class EnterRacersView(AuthorizedRaceOfficalMixin, View):
                         re.race = race
                         re.racer = Racer.objects.get(pk=int(racer_id))
                         re.save()
+                        #TODO race.populate_jobs(race_entry)
                         RaceLog(racer=re.racer, race=race, user=request.user, log="Racer entered in race", current_grand_total=re.grand_total, current_number_of_runs=re.number_of_runs_completed).save()
                     except IntegrityError as ex:
                         pass         

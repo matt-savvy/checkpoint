@@ -17,8 +17,8 @@ class JobFactory(factory.DjangoModelFactory):
     """(Job description)"""
     job_id = factory.LazyFunction(get_job_id)
     race = RaceFactory()
-    pick_checkpoint = CheckpointFactory()
-    drop_checkpoint = CheckpointFactory()
+    pick_checkpoint = factory.SubFactory(CheckpointFactory)
+    drop_checkpoint = factory.SubFactory(CheckpointFactory)
     points = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True)
     minutes_ready_after_start = 0
     minutes_due_after_start = 9999

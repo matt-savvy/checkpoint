@@ -7,7 +7,7 @@ from faker import Faker
 fake = Faker()
 
 class CheckpointFactory(factory.DjangoModelFactory):
-    checkpoint_number = factory.Faker('pyint')
+    checkpoint_number = factory.Sequence(lambda n: "%d" % n)
     checkpoint_name = factory.Faker('company')
     
     class Meta:
