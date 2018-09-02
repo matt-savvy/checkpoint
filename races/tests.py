@@ -45,4 +45,12 @@ class RaceTestCase(TestCase):
         self.assertEqual(second_runs.count(), 8)
         self.assertEqual(third_runs.count(), 12)
         
+    def test_populate_runs_without_start_time(self):
+        """make sure minutes stay with the race start time minutes"""
+        self.race.race_start_time = None
+        self.race.save()
+        self.race.populate_runs(self.race_entry_one)
+         
+        runs = Run.objects.filter(race_entry=self.race_entry_one)
+        self.assertEqual(runs.count(), 12)
     

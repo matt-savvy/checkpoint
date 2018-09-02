@@ -15,7 +15,7 @@ def get_job_id():
         
 class JobFactory(factory.DjangoModelFactory):
     """(Job description)"""
-    job_id = factory.LazyFunction(get_job_id)
+    job_id = factory.Sequence(lambda n: "%d" % n)
     race = RaceFactory()
     pick_checkpoint = factory.SubFactory(CheckpointFactory)
     drop_checkpoint = factory.SubFactory(CheckpointFactory)

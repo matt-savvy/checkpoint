@@ -22,6 +22,7 @@ class Run(models.Model):
     DETERMINATION_LATE              = 2
     DETERMINATION_NOT_DROPPED       = 3
     DETERMINATION_NOT_DETERMINED    = 4
+    DETERMINATION_NOT_PICKED        = 5
     DETERMINATION_ERROR             = 9
     
     DETERMINATION_CHOICES = (
@@ -41,6 +42,7 @@ class Run(models.Model):
     time_entered = models.DateTimeField(auto_now_add=True)
     points_awarded = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
     utc_time_ready = models.DateTimeField(blank=True, null=True)
+    utc_time_assigned = models.DateTimeField(blank=True, null=True)
     utc_time_picked = models.DateTimeField(blank=True, null=True)
     utc_time_dropped = models.DateTimeField(blank=True, null=True)
     completion_seconds = models.IntegerField(default=0)
@@ -66,32 +68,42 @@ class Run(models.Model):
     #    self.utc_time_picked = datetime.datetime.now(tz=pytz.utc)
     #    self.save()
     
+    def assign(self):
+        time_now = datetime.datetime.now(tz=pytz.utc) 
+        if time_now >= self.utc_time_ready:
+            self.status = self.RUN_STATUS_ASSIGNED
+            self.determination = self.DETERMINATION_NOT_PICKED
+            self.utc_time_assigned = time_now
+            self.save()
+    
     def pick(self):
-        self.status = self.RUN_STATUS_PICKED
-        self.determination = self.DETERMINATION_NOT_DROPPED
-        self.utc_time_picked = datetime.datetime.now(tz=pytz.utc)
-        self.save()
+        if self.status == self.RUN_STATUS_ASSIGNED:
+            self.status = self.RUN_STATUS_PICKED
+            self.determination = self.DETERMINATION_NOT_DROPPED
+            self.utc_time_picked = datetime.datetime.now(tz=pytz.utc)
+            self.save()
     
     def drop(self):
-        self.utc_time_dropped = datetime.datetime.now(tz=pytz.utc)
-        self.completion_seconds = (self.utc_time_dropped - self.utc_time_picked).seconds
-        self.status = self.RUN_STATUS_COMPLETED
+        if self.status == self.RUN_STATUS_PICKED:
+            self.utc_time_dropped = datetime.datetime.now(tz=pytz.utc)
+            self.completion_seconds = (self.utc_time_dropped - self.utc_time_picked).seconds
+            self.status = self.RUN_STATUS_COMPLETED
         
-        if not self.race_entry.race.race_start_time:
-            self.determination = self.DETERMINATION_ERROR
+            if not self.race_entry.race.race_start_time:
+                self.determination = self.DETERMINATION_ERROR
+                self.save()
+                return
+        
+            race = self.race_entry.race
+            job_due_time = race.race_start_time.astimezone(pytz.utc) + datetime.timedelta(minutes=self.job.minutes_due_after_start)
+            if self.utc_time_dropped <= job_due_time:
+                self.determination = self.DETERMINATION_OK
+                self.points_awarded = self.job.points
+            else:
+                self.determination = self.DETERMINATION_LATE
+                self.points_awarded = decimal.Decimal('0.00')
+        
             self.save()
-            return
-        
-        race = self.race_entry.race
-        job_due_time = race.race_start_time.astimezone(pytz.utc) + datetime.timedelta(minutes=self.job.minutes_due_after_start)
-        if self.utc_time_dropped <= job_due_time:
-            self.determination = self.DETERMINATION_OK
-            self.points_awarded = self.job.points
-        else:
-            self.determination = self.DETERMINATION_LATE
-            self.points_awarded = decimal.Decimal('0.00')
-        
-        self.save()
-        
+            
             
     

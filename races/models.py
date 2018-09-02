@@ -3,9 +3,9 @@ import datetime
 
 class Race(models.Model):
     
-    RACE_TYPE_PRELIMS = 1
-    RACE_TYPE_FINALS = 2
-    RACE_TYPE_DISPATCH = 3
+    RACE_TYPE_PRELIMS = 0
+    RACE_TYPE_FINALS = 1
+    RACE_TYPE_DISPATCH = 2
     
     RACE_TYPE_CHOICES = (
         (RACE_TYPE_PRELIMS, 'Prelims'),
@@ -38,6 +38,10 @@ class Race(models.Model):
                     run.utc_time_ready = self.race_start_time + datetime.timedelta(minutes=job.minutes_ready_after_start)
                 run.save()
         return
+    
+    @property
+    def race_type_string(self):
+        return self.RACE_TYPE_CHOICES[self.race_type][1]
 
 class Manifest(models.Model):
     """jobs will belong to a manifest, so we can have different sets of jobs for the same race"""
