@@ -10,12 +10,14 @@ class Run(models.Model):
     RUN_STATUS_COMPLETED            = 1
     RUN_STATUS_ASSIGNED             = 2
     RUN_STATUS_PENDING              = 3
+    RUN_STATUS_DISPATCHING          = 4
     
     RUN_STATUS_CHOICES = (
-        (RUN_STATUS_PENDING, 'Pending'), ## job exists in the future for the rider but is not available yet
-        (RUN_STATUS_ASSIGNED, 'Assigned'), ## job is assigned and active
         (RUN_STATUS_PICKED, 'Picked'), ## job is picked up
-        (RUN_STATUS_COMPLETED, 'Completed') ##job is dropped
+        (RUN_STATUS_COMPLETED, 'Completed'), ##job is dropped
+        (RUN_STATUS_ASSIGNED, 'Assigned'), ## job is assigned and active
+        (RUN_STATUS_PENDING, 'Pending'), ## job exists in the future for the rider but is not available yet
+        (RUN_STATUS_DISPATCHING, 'Dispatching') ## job is available and is in a message. so we don't double dispatch the same work.
     )
     
     DETERMINATION_OK                = 1
@@ -33,7 +35,6 @@ class Run(models.Model):
         (DETERMINATION_ERROR, 'Error!')
     )
     
-    
     job = models.ForeignKey(Job)
     race_entry = models.ForeignKey('raceentries.RaceEntry')
     status = models.IntegerField(choices=RUN_STATUS_CHOICES, default=RUN_STATUS_PENDING)
@@ -48,7 +49,7 @@ class Run(models.Model):
     completion_seconds = models.IntegerField(default=0)
     
     class Meta:
-        ordering = ['job__minutes_ready_after_start']
+        ordering = ['job__minutes_ready_after_start', 'race_entry__starting_position']
     
     def __unicode__(self):
         return u"({}){}:{}".format(self.RUN_STATUS_CHOICES[self.status][1], self.race_entry.racer, self.job)
@@ -70,7 +71,7 @@ class Run(models.Model):
     
     def assign(self):
         time_now = datetime.datetime.now(tz=pytz.utc) 
-        if time_now >= self.utc_time_ready:
+        if time_now >= self.utc_time_ready and self.status == self.RUN_STATUS_DISPATCHING:
             self.status = self.RUN_STATUS_ASSIGNED
             self.determination = self.DETERMINATION_NOT_PICKED
             self.utc_time_assigned = time_now

@@ -49,7 +49,6 @@ class StartRacerAjaxView(APIView):
         if len(race_entry) == 0:
             return Response({'detail' : 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
         if race_entry[0].start_racer():
-            race_entry[0].save()
             tz = pytz.timezone('US/Central')
             time_due_back_string = race_entry[0].time_due_back(tz).strftime('%I:%M %p')
             

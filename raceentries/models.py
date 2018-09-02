@@ -31,6 +31,7 @@ class RaceEntry(models.Model):
     entry_date = models.DateTimeField(auto_now_add=True)
     entry_status = models.IntegerField(choices=ENTRY_STATUS_CHOICES, default=ENTRY_STATUS_ENTERED)
     
+    starting_position = models.IntegerField(blank=True, null=True)
     start_time = models.DateTimeField(blank=True, null=True)
     end_time = models.DateTimeField(blank=True, null=True)
     final_time = models.IntegerField(default=0)
@@ -46,9 +47,10 @@ class RaceEntry(models.Model):
         
     scratch_pad = models.TextField(blank=True)
     
-    class Meta:
-        unique_together = ("racer", "race")
     
+    class Meta:
+        unique_together = (("racer", "race"), ("race", "starting_position"))
+        ordering = ['starting_position']
 
     def __unicode__(self):
         return u"{} in {}".format(self.racer, self.race)
@@ -67,12 +69,14 @@ class RaceEntry(models.Model):
     
     
     def start_racer(self):
+        #TODO if qualifiers, populate_runs for their race, then create a message for their first few jobs that is assigned to a specific dispatcher
         if self.entry_status == self.ENTRY_STATUS_ENTERED:
             self.entry_status = self.ENTRY_STATUS_RACING
             self.start_time = datetime.datetime.utcnow().replace(tzinfo=utc)
             self.points_earned = '0.00'
             self.deductions = '0.00'
             self.grand_total = '0.00'
+            self.save()
             return True
         return False
     
@@ -83,6 +87,7 @@ class RaceEntry(models.Model):
             self.points_earned = '0.00'
             self.deductions = '0.00'
             self.grand_total = '0.00'
+            self.save()
             return True
         return False
     

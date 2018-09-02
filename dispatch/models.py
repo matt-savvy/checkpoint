@@ -2,25 +2,30 @@ from django.db import models
 from races.models import Race
 from raceentries.models import RaceEntry
 from jobs.models import Job
+from runs.models import Run
 import datetime
+import pytz
 
 class Message(models.Model):
     MESSAGE_TYPE_DISPATCH = 1
     MESSAGE_TYPE_OFFICE   = 2
+    MESSAGE_TYPE_NOTHING  = 3
+    MESSAGE_TYPE_ERROR    = 4
     
     MESSAGE_TYPE_CHOICES = (
         (MESSAGE_TYPE_DISPATCH, 'Dispatching Jobs'),
         (MESSAGE_TYPE_OFFICE, 'Come to the Office'),
+        (MESSAGE_TYPE_NOTHING, "Nothing to dispatch."),
+        (MESSAGE_TYPE_ERROR, "Some kind of error.")
     )
     
     race = models.ForeignKey(Race)
     race_entry = models.ForeignKey(RaceEntry)
-    jobs = models.ManyToManyField(Job)
+    runs = models.ManyToManyField(Run)
     message_time = models.DateTimeField(blank=True, null=True)
     message_type = models.IntegerField(choices=MESSAGE_TYPE_CHOICES, default=MESSAGE_TYPE_DISPATCH)
     confirmed = models.BooleanField(default=False)
     confirmed_time = models.DateTimeField(blank=True, null=True)
-    
     #dispatcher = models.ForeignKey(Dispatcher)
     
     class Meta:
@@ -30,10 +35,11 @@ class Message(models.Model):
         if self.message_type == self.MESSAGE_TYPE_OFFICE:
             return u"{} - Come to the Office".format(self.race_entry.racer)
         if self.message_type == self.MESSAGE_TYPE_DISPATCH:
-            job_string = ""
-            for job in self.jobs.all():
-                job_string = "{} | {}".format(job_string, job)
-            return u"{} - {}".format(self.race_entry.racer, job_string)    
+            #dispatch_string = ""
+            #for run in self.runs.all():
+            dispatch_string = "assign jobs"
+            #    dispatch_string = "{} | {}".format(dispatch_string, run)
+            return u"{} - {}".format(self.race_entry.racer, dispatch_string)    
             
     @property
     def message_type_as_string(self):
@@ -41,15 +47,23 @@ class Message(models.Model):
     
     def message_body(self):
         pass
+        ## do we need this or will a react component take care of it?
         return
     
     def confirm(self):
         self.confirmed = True
-        self.confirmed_time = datetime.datetime.now()
+        self.confirmed_time = datetime.datetime.now(tz=pytz.utc)
+        for run in self.runs.all():
+            run.status = Run.RUN_STATUS_ASSIGNED
+            run.save()
         #TODO add logging
         return self
     
     def snooze(self):
-        self.message_time = datetime.datetime.now() + datetime.timedelta(seconds=60)
+        self.message_time = datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(seconds=60)
+        for run in self.runs.all():
+            run.status = Run.RUN_STATUS_PENDING
+            run.save()
         #TODO add logging
         return 
+    
