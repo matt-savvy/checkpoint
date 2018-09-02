@@ -2,6 +2,7 @@ from django.db import models
 from races.models import Race
 from raceentries.models import RaceEntry
 from jobs.models import Job
+import datetime
 
 class Message(models.Model):
     MESSAGE_TYPE_DISPATCH = 1
@@ -43,7 +44,12 @@ class Message(models.Model):
         return
     
     def confirm(self):
-        pass
+        self.confirmed = True
+        self.confirmed_time = datetime.datetime.now()
+        #TODO add logging
+        return self
     
     def snooze(self):
-        pass
+        self.message_time = datetime.datetime.now() + datetime.timedelta(seconds=60)
+        #TODO add logging
+        return 

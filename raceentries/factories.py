@@ -5,8 +5,8 @@ from races.factories import RaceFactory
 
 class RaceEntryFactory(factory.DjangoModelFactory):
     
-    racer = RacerFactory()
-    race = RaceFactory()
+    racer = factory.SubFactory(RacerFactory)
+    race = factory.SubFactory(RaceFactory)
 
     entry_status = RaceEntry.ENTRY_STATUS_ENTERED
 
