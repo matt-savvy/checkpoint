@@ -86,6 +86,7 @@ INSTALLED_APPS = (
     'authorizedcheckpoints',
     'mobilecheckpoint',
     'racelogs',
+    'dispatch',
 )
 
 PAYPAL_IDENTITY_TOKEN = "Orx5c4XVqv8VqZizQdUdJ3hQshLik2MuIRtF_boHKhZidzW262C-h1SkLVa"

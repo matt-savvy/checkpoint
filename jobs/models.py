@@ -1,5 +1,5 @@
 from django.db import models
-from races.models import Race
+from races.models import Race, Manifest
 from checkpoints.models import Checkpoint
 
 class Job(models.Model):
@@ -12,6 +12,7 @@ class Job(models.Model):
     points = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
     minutes_ready_after_start = models.IntegerField(default=0)
     minutes_due_after_start = models.IntegerField(default=9999)
+    manifest = models.ForeignKey(Manifest, blank=True, null=True)
     
     def __unicode__(self):
         return u"#{} {} to {}".format(str(self.id), self.pick_checkpoint, self.drop_checkpoint)

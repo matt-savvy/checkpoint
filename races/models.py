@@ -17,10 +17,15 @@ class Race(models.Model):
     race_type = models.IntegerField(choices=RACE_TYPE_CHOICES, default=RACE_TYPE_PRELIMS)
     time_limit = models.IntegerField(default=0)
     race_start_time = models.DateTimeField(blank=True, null=True)
-    
 
     def __unicode__(self):
         return self.race_name
     
     def get_absolute_url(self):
         return "/races/details/" + str(self.id) + "/"
+
+class Manifest(models.Model):
+    """jobs will belong to a manifest, so we can have different sets of jobs for the same race"""
+    race = models.ForeignKey(Race)
+    manifest_name = models.CharField(max_length=100)
+    order = models.IntegerField(default=0)
