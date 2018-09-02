@@ -106,6 +106,7 @@ class Volunteer(models.Model):
     paypal_tx = models.CharField(blank=True, max_length=100)
     fixed_gear = models.BooleanField("riding a proper track bike?", default=False)
     packet_picked_up = models.BooleanField("packet is picked up?", default=False)
+    radio = models.CharField(max_length=50, blank=True)
     
     class Meta:
         ordering = ['last_name']

@@ -4,3 +4,4 @@ from checkpoints.models import Checkpoint
 
 class NACCCUser(AbstractUser):
     authorized_checkpoints = models.ManyToManyField(Checkpoint, blank=True)
+    #authorized_dispatch = models.ManyToManyField(Dispatcher, blank=True)

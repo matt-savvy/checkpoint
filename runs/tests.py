@@ -12,8 +12,6 @@ class RunTestCase(TestCase):
         self.race_entry_one = RaceEntryFactory(race=self.race)
         self.race_entry_two = RaceEntryFactory(race=self.race)
         self.race.populate_runs(self.race_entry_one)
-        import pdb
-        #pdb.set_trace()
         self.race.populate_runs(self.race_entry_two)
         self.runs = Run.objects.filter(race_entry=self.race_entry_one)
         
