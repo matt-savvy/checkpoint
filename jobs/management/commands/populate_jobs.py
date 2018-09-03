@@ -52,9 +52,8 @@ class Command(BaseCommand):
            minutes_counter += random_minutes
            while this_set_counter <= jobs_in_this_set:
                checkpoint_combo = checkpoint_combos_list[job_counter]
-               #pdb.set_trace()
                job_id += 1
-               job = Job(job_id=job_id, race=race, pick_checkpoint=checkpoint_combo[0], drop_checkpoint=checkpoint_combo[1], minutes_ready_after_start=minutes_counter)
+               job = Job(job_id=job_id, race=race, pick_checkpoint=checkpoint_combo[0], drop_checkpoint=checkpoint_combo[1], minutes_ready_after_start=minutes_counter, points='3.45')
                job.save()
                
                this_set_counter += 1

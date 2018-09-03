@@ -1,6 +1,7 @@
 from django.db import models
 from races.models import Race, Manifest
 from checkpoints.models import Checkpoint
+import datetime
 
 class Job(models.Model):
     
@@ -19,4 +20,8 @@ class Job(models.Model):
     
     def get_absolute_url(self):
         return "/jobs/details/" + str(self.id) + "/"
-
+    
+    @property
+    def abosolute_ready_time(self):
+        if self.race.race_start_time:
+            return self.race.race_start_time + datetime.timedelta(minutes=self.minutes_ready_after_start)

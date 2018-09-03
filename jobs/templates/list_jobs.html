@@ -18,7 +18,8 @@
       <th>Pick Up</th>
       <th>Drop Off</th>
       <th>Points</th>
-      <th>Package</th>
+      <th>Minutes Ready After Start</th>
+	  <th>Ready Time</td>
   </tr>
       {% for job in jobs %}
           <tr>
@@ -26,7 +27,8 @@
               <td>{{job.pick_checkpoint}}</td>
               <td>{{job.drop_checkpoint}}</td>
               <td>{{job.points}}</td>
-              <td>{{job.package}}</td>
+			  <td>{{job.minutes_ready_after_start}}</td>
+			  <td>{{job.abosolute_ready_time}}</td>
            </tr>
       {% empty %}
       <tr>
