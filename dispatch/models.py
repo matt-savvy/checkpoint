@@ -53,6 +53,7 @@ class Message(models.Model):
     def confirm(self):
         self.confirmed = True
         self.confirmed_time = datetime.datetime.now(tz=pytz.utc)
+        self.save()
         for run in self.runs.all():
             run.status = Run.RUN_STATUS_ASSIGNED
             run.save()
@@ -61,6 +62,7 @@ class Message(models.Model):
     
     def snooze(self):
         self.message_time = datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(seconds=60)
+        self.save()
         for run in self.runs.all():
             run.status = Run.RUN_STATUS_PENDING
             run.save()
