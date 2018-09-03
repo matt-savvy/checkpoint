@@ -31,7 +31,13 @@ def get_next_message(race, dispatcher=None):
     
     race_entry = race.find_clear_racer()
     if race_entry:
-        runs_to_assign = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
+        runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING)
+        next_run_ready_time = runs.first().utc_time_ready
+        runs_to_assign = runs.filter(utc_time_ready__lte=next_run_ready_time)
+        for run in runs_to_assign:
+            run.utc_time_ready = right_now
+            run.save()
+            #TODO log this
         return assign_runs(runs_to_assign, race_entry)
     
     runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
