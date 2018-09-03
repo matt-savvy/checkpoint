@@ -224,4 +224,4 @@ class DispatchNextMessageView(APIView):
         pass
 
 class DispatchAssignView(APIView):
-    
+    pass
