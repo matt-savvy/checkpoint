@@ -1,13 +1,12 @@
 from django.test import TestCase
 from .models import Race
-from .factories import RaceFactory
+from .factories import RaceFactory, ManifestFactory
 from raceentries.factories import RaceEntryFactory
 from jobs.factories import JobFactory
 from runs.models import Run
 from faker import Faker
 import datetime
 fake = Faker()
-
 
 class RaceTestCase(TestCase):
     def setUp(self):
@@ -148,3 +147,11 @@ class ClearRacerTestCase(TestCase):
             run.save()
         racer = self.race.find_clear_racer()
         self.assertEqual(racer, self.race_entry_one)
+        
+class ManifestTestCase(TestCase):
+    def setUp(self):
+        self.manifests = ManifestFactory.create_batch(10)
+        
+    def test_manifest_type_as_string(self):
+        self.manifest = ManifestFactory()
+        self.assertTrue(True)

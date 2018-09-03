@@ -19,10 +19,16 @@ class RaceFactory(factory.DjangoModelFactory):
     class Meta:
         model = Race
 
+def get_random_manifest_type():
+    "Return a random category from available choices."
+    lt_choices = [x[0] for x in Manifest.TYPE_CHOICES]
+    return random.choice(lt_choices)
+
 class ManifestFactory(factory.DjangoModelFactory):
     race = factory.SubFactory(RaceFactory)
     manifest_name = factory.Faker('color_name')
     order = factory.Sequence(lambda n : "%d" % n)
+    manifest_type = factory.LazyFunction(get_random_manifest_type)
     
     class Meta:
         model = Manifest
