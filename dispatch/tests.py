@@ -65,6 +65,15 @@ class get_next_message_TestCase(TestCase):
             run = Run.objects.filter(job=job).first()
             self.assertTrue(run in next_message_runs)
     
+    def test_no_messages_or_jobs(self):
+        """make sure we got a MESSAGE_TYPE_NOTHING"""
+        Run.objects.all().delete()
+        Message.objects.all().delete()
+        
+        next_message = get_next_message(self.race)
+        
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
+    
     def test_get_next_message_no_messages_but_clear_racer(self):
         """no messages in the queue but we got a clear racer with pending work"""
         runs = Run.objects.filter(utc_time_ready__lte=self.race.race_start_time)
@@ -72,7 +81,6 @@ class get_next_message_TestCase(TestCase):
         runs.filter(race_entry=self.race_entry_two).first().assign()
         
         ##so we got runs for racer two ready now and runs for racer one ready in ten, but racer one is clear!
-        
         next_message = get_next_message(self.race)
         self.assertEqual(next_message.race_entry, self.race_entry_one)
         
