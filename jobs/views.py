@@ -20,13 +20,11 @@ class JobRaceListView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super(JobRaceListView, self).get_context_data(**kwargs)
-        races_in_jobs = Job.objects.all()
-        job_counts = []
-        for race in races_in_jobs:
-            count = Job.objects.filter(race=race.race).count()
-            job_counts.append(count)
-        for x in range(0, len(context['jobs'])):
-            context['jobs'][x].job_counts = job_counts[x]
+        from django.db.models import Count
+        
+        races = Race.objects.annotate(num_jobs=Count('job'))
+
+        context['races'] = races
         return context
     
 class JobListView(ListView):
