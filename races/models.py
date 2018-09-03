@@ -60,6 +60,27 @@ class Race(models.Model):
 
 class Manifest(models.Model):
     """jobs will belong to a manifest, so we can have different sets of jobs for the same race"""
+    TYPE_CHOICE_STARTING = 0
+    TYPE_CHOICE_MAIN     = 1
+    TYPE_CHOICE_BONUS    = 2
+    
+    TYPE_CHOICES = (
+        (TYPE_CHOICE_STARTING, 'Starting Manifest'),
+        (TYPE_CHOICE_MAIN, 'Main Manifest'),
+        (TYPE_CHOICE_BONUS, 'Overtime Manifest')
+    )
+    
     race = models.ForeignKey(Race)
     manifest_name = models.CharField(max_length=100)
     order = models.IntegerField(default=0)
+    manifest_type = models.IntegerField(choices=TYPE_CHOICES, default=TYPE_CHOICE_MAIN)
+    
+    class Meta:
+        ordering = ['manifest_type']
+    
+    def __unicode__(self):
+        return u"Manifest #{} for {} ({})".format(self.order, self.race, self.manifest_name)
+        
+    @property
+    def manifest_type_as_string(self):
+        return self.TYPE_CHOICES[self.manifest_type][1]

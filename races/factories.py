@@ -1,6 +1,6 @@
 import factory
 import random
-from races.models import Race
+from races.models import Race, Manifest
 from checkpoints.models import Checkpoint
 from faker import Faker
 import random
@@ -18,3 +18,11 @@ class RaceFactory(factory.DjangoModelFactory):
     
     class Meta:
         model = Race
+
+class ManifestFactory(factory.DjangoModelFactory):
+    race = factory.SubFactory(RaceFactory)
+    manifest_name = factory.Faker('color_name')
+    order = factory.Sequence(lambda n : "%d" % n)
+    
+    class Meta:
+        model = Manifest

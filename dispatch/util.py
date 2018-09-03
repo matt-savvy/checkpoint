@@ -40,7 +40,12 @@ def get_next_message(race, dispatcher=None):
                 run.save()
                 #TODO log this
             return assign_runs(runs_to_assign, race_entry)
-    
+        else:
+            #TODO
+            ##do the time check
+            ##pull from the last manifest
+            pass
+            
     runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
 
     if runs:
