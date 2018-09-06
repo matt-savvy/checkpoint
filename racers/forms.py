@@ -34,14 +34,13 @@ class RegisterForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
-        racer_numbers = range(1, 1000)
-        #racer_numbers = range(500, 1000)
+        racer_numbers = range(500, 1000)
         existing_numbers = Racer.objects.values_list('racer_number', flat=True)
         numbers_to_fill = 300 - len(existing_numbers)
         for number in existing_numbers:
             number = int(number)
         existing_numbers = [int(x) for x in existing_numbers]
-        available_numbers = [x for x in racer_numbers if x not in existing_numbers]#[:numbers_to_fill]
+        available_numbers = [x for x in racer_numbers if x not in existing_numbers][:numbers_to_fill]
         available_numbers_tup = tuple([(element, str(element)) for element in available_numbers])
         self.fields['racer_number'].choices = available_numbers_tup
         
