@@ -18,7 +18,7 @@
       {% for race in races %}
           <tr>
               <td><a href="/raceentries/race/{{race.id}}/">{{race.race_name}}</td>
-               <td>{{racer_counts}}</td>
+               <td>{{race.num_race_entries}}</td>
            </tr>
       {% endfor %}
 </table>

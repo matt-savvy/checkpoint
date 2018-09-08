@@ -5,9 +5,9 @@ from jobs.factories import JobFactory
 
 class RunFactory(factory.DjangoModelFactory):
 
-    job = JobFactory()
-    race_entry = RaceEntryFactory()
-    status = Run.RUN_STATUS_ASSIGNED
+    job = factory.SubFactory(JobFactory)
+    race_entry = factory.SubFactory(RaceEntryFactory)
+    status = Run.RUN_STATUS_PENDING
 
     class Meta:
         model = Run

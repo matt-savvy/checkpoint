@@ -19,7 +19,7 @@ import mobilecheckpoint.views as mobile_views
 import runs.views as run_views
 import racelogs.views as log_views
 import paypal.standard.ipn.signals
-
+import dispatch.views as dispatch_views
 
 admin.autodiscover()
 
@@ -106,6 +106,9 @@ urlpatterns = patterns('',
     url(r'^racecontrol/ajax/standings/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.StandingsView.as_view())),
     url(r'^racecontrol/ajax/racestatus/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.RaceStatusView.as_view())),
     url(r'^racecontrol/ajax/massstart/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.MassStartView.as_view())),
+    #Dispatch 
+    url(r'^dispatch/api/next_message/$', login_required(dispatch_views.NextMessage.as_view())),
+    
     #Ajax Views
     url(r'^ajax/racer/(?P<racer_number>[0-9]+)/$', login_required(ajax_views.RacerAjaxView.as_view())),
     url(r'^ajax/job/(?P<job_id>[0-9]+)/$', login_required(ajax_views.JobAjaxView.as_view())),

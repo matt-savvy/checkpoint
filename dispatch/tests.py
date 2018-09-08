@@ -8,6 +8,7 @@ from jobs.factories import JobFactory
 from races.factories import RaceFactory
 from .factories import MessageFactory
 from raceentries.factories import RaceEntryFactory
+from runs.factories import RunFactory
 import datetime
 import pytz
 
@@ -63,6 +64,38 @@ class get_next_message_TestCase(TestCase):
         
         for job in self.jobs_first:
             run = Run.objects.filter(job=job).first()
+            self.assertTrue(run in next_message_runs)
+            
+    def test_get_next_message_runs_with_no_ready_time(self):
+        """make sure if a job has no ready time, we act like it's ready now"""
+        racer = self.race.find_clear_racer()
+        no_time_ready_run = Run.objects.filter(race_entry=racer).last()
+        no_time_ready_run.utc_time_ready = None
+        no_time_ready_run.save()
+  
+        next_message = get_next_message(self.race)
+        next_message_runs = next_message.runs.all()
+        
+        self.assertTrue(no_time_ready_run in next_message_runs)
+        
+    def test_get_next_message_with_two_sets_of_runs_ready_now(self):
+        """some of these jobs was ready 5 mins ago, some were ready 8 mins ago. we should get them all back"""
+        import pdb
+        #pdb.set_trace()
+        runs = Run.objects.filter(race_entry=self.race_entry_one)
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        
+        runs[0].utc_time_ready = right_now - datetime.timedelta(minutes=5)
+        runs[0].save()
+        runs[1].utc_time_ready = right_now - datetime.timedelta(minutes=5)
+        runs[1].save()
+        runs[2].utc_time_ready = right_now - datetime.timedelta(minutes=10)
+        runs[2].save()
+        
+        next_message = get_next_message(self.race)
+        next_message_runs = next_message.runs.all()
+        
+        for run in runs:
             self.assertTrue(run in next_message_runs)
     
     def test_no_messages_or_jobs(self):

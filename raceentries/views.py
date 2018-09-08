@@ -25,6 +25,11 @@ class RaceEntryRaceListView(AuthorizedRaceOfficalMixin, ListView):
     
     def get_context_data(self, **kwargs):
         context = super(RaceEntryRaceListView, self).get_context_data(**kwargs)
+        from django.db.models import Count
+        
+        races = Race.objects.annotate(num_race_entries=Count('raceentry'))
+
+        context['races'] = races
         # racers_in_race = RaceEntry.objects.all().filter()
 #         RaceEntry_counts = []
 #         for race in races_in_RaceEntrys:

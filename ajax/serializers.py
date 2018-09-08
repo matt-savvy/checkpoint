@@ -5,6 +5,7 @@ from jobs.models import Job
 from checkpoints.models import Checkpoint
 from runs.models import Run
 
+
 class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Racer
@@ -12,6 +13,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
             return Racer(**validated_data)
+
+
+
 
 class VolunteerSerializer(serializers.ModelSerializer):
     class Meta:
