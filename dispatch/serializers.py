@@ -15,4 +15,4 @@ class MessageSerializer(serializers.ModelSerializer):
     message_type_as_string = serializers.CharField(source='message_type_as_string')
     class Meta:
         model = Message
-        fields = ('race_entry', 'runs', 'message_type', 'message_type_as_string')
+        fields = ('id', 'race_entry', 'runs', 'message_type', 'message_type_as_string')

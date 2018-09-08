@@ -3,6 +3,7 @@ from runs.models import Run
 from raceentries.models import RaceEntry
 from races.models import Race, Manifest
 from jobs.models import Job
+from django.db.models import Q
 import datetime
 import pytz
 
@@ -22,8 +23,6 @@ def assign_runs(runs_to_assign, race_entry):
     return message
 
 def get_next_message(race, dispatcher=None):
-    import pdb
-    #pdb.set_trace()
     if race.race_type != Race.RACE_TYPE_DISPATCH:
         message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
         message.save()
@@ -36,14 +35,19 @@ def get_next_message(race, dispatcher=None):
         return message
     
     #TODO .filter(dispatcher=dispatcher)
-    ## are there any messages that already exist? snoozed ones, perhaps
-    message = Message.objects.filter(confirmed=False).filter(message_time__lte=right_now).first()
     
-    if message:
-        return message
+    ## are there any SNOOZED messages IN THIS RACE that already exist?
+    snoozed_messages = Message.objects.filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(race_entry__race=race).filter(message_time__lte=right_now)
+    if snoozed_messages.first():
+        return snoozed_messages.first()
+    ## are there any messages marked DISPATCHING IN THIS RACE that are older than two minutes? maybe someone closed the tab and now it's in purgatory
     
+    old_unconfirmed_messages = Message.objects.filter(Q(status=Message.MESSAGE_STATUS_DISPATCHING) | Q(status=Message.MESSAGE_STATUS_NONE)).filter(race_entry__race=race).filter(message_time__lte=right_now - datetime.timedelta(minutes=2))
+    if old_unconfirmed_messages.first():
+        return old_unconfirmed_messages.first()
+        
+        
     ##are there any clear racers? they get top priority
-    
     race_entry = race.find_clear_racer()
 
     if race_entry:
@@ -86,7 +90,6 @@ def get_next_message(race, dispatcher=None):
             message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE)
             message.save()
             race_entry.cut_racer()
-            print "racer cut"
             return message
             #there is no bonus manifest, the bonus manifest has no jobs that racer hasn't done, or it is after the bonus manifest cut off
             #so we cut the rider

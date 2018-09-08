@@ -69,8 +69,6 @@ class RacerDetailView(APIView):
     permission_classes = (IsAuthenticated,)
     
     def post(self, request, *args, **kwargs):
-        import pdb
-        pdb.set_trace()
         current_race = RaceControl.shared_instance().current_race
         
         ### FIX THIS 

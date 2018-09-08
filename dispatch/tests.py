@@ -54,7 +54,7 @@ class MessageTestCase(TestCase):
             
         message.confirm()
         self.assertEqual(message.runs.first().status, Run.RUN_STATUS_ASSIGNED)
-        self.assertTrue(message.confirmed)
+        self.assertEqual(message.status, Message.MESSAGE_STATUS_CONFIRMED)
         
     def test_confirm_cut(self):
         self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_RACING
@@ -65,7 +65,7 @@ class MessageTestCase(TestCase):
         message.confirm()
         race_entry = RaceEntry.objects.get(pk=self.race_entry.pk)
         self.assertEqual(race_entry.entry_status, RaceEntry.ENTRY_STATUS_CUT)
-        self.assertTrue(message.confirmed)
+        self.assertEqual(message.status, Message.MESSAGE_STATUS_CONFIRMED)
         
 class get_next_message_TestCase(TestCase):
     def setUp(self):
@@ -102,15 +102,20 @@ class get_next_message_TestCase(TestCase):
         """make sure a snoozed job goes back in the queue """
         right_now = datetime.datetime.now(tz=pytz.utc)
         message_one = MessageFactory(race=self.race, race_entry=self.race_entry_one, message_time=right_now)
-        message_two = MessageFactory(race=self.race, race_entry=self.race_entry_two, message_time=right_now)
         
         message_one.snooze()
         
-        next_message = get_next_message(self.race)
-        self.assertEqual(message_two, next_message)
-        
-        messages = Message.objects.filter(race=self.race).filter(confirmed=False)
+        messages = Message.objects.filter(race=self.race).filter(status=Message.MESSAGE_STATUS_SNOOZED)
         self.assertTrue(message_one in messages)
+        
+    def test_get_next_message_gets_a_snoozed_message(self):
+        """make sure a snoozed job goes back in the queue """
+        five_mins_ago = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(seconds=75)
+        message_one = MessageFactory(race=self.race, race_entry=self.race_entry_one, message_time=five_mins_ago, status=Message.MESSAGE_STATUS_SNOOZED)
+        
+        next_message = get_next_message(self.race)
+        
+        self.assertEqual(message_one, next_message)
         
     def test_get_next_message_no_messages_but_jobs(self):
         """no messages in the queue but we got some jobs to dispatch"""
@@ -120,7 +125,24 @@ class get_next_message_TestCase(TestCase):
         for job in self.jobs_first:
             run = Run.objects.filter(job=job).first()
             self.assertTrue(run in next_message_runs)
-            
+    
+    def test_no_double_messages_for_racer(self):
+        self.race_entry_two.delete()
+        first_next_message = get_next_message(self.race)
+        second_next_message = get_next_message(self.race)
+        self.assertEqual(second_next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
+        
+    def test_message_left_unconfirmed_for_too_long_gets_attempted_again(self):
+        
+        first_next_message = get_next_message(self.race)
+        first_next_message_pk = first_next_message.pk
+        first_next_message.message_time = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=5)
+        first_next_message.save()
+        
+        next_message = get_next_message(self.race)
+        self.assertEqual(next_message.pk, first_next_message.pk)
+        
+           
     def test_get_next_message_runs_with_no_ready_time(self):
         """make sure if a job has no ready time, we act like it's ready now"""
         racer = self.race.find_clear_racer()

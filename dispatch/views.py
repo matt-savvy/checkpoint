@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authentication import OAuth2Authentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
+from nacccusers.auth import AuthorizedRaceOfficalMixin
 from rest_framework.views import APIView
 from dispatch.serializers import MessageSerializer, RunSerializer
 from racecontrol.models import RaceControl
@@ -32,10 +33,19 @@ class ConfirmMessage(APIView):
     
     def post(self, request, *args, **kwargs):
         current_race = RaceControl.shared_instance().current_race
+        message_pk = self.request.DATA.get('message')
+        message = Message.objects.get(pk=message_pk)
+        action = self.request.DATA.get('action')
         
-class MessageListView(ListView):
+        if action == "confirm":
+            message = message.confirm()
+        elif action == "snooze":
+            message = message.snooze()
+        
+        return Response(MessageSerializer(message).data, status=status.HTTP_200_OK)
+        
+class MessageListView(AuthorizedRaceOfficalMixin, ListView):
     model = Message
-    context_object_name = 'messages'
     
     def get_queryset(self):
-        return Message.objects.filter(race__pk=self.kwargs['race'])
+        return Message.objects.filter(race_entry__race__pk=self.kwargs['race'])

@@ -108,6 +108,7 @@ urlpatterns = patterns('',
     url(r'^racecontrol/ajax/massstart/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.MassStartView.as_view())),
     #Dispatch 
     url(r'^dispatch/api/next_message/$', login_required(dispatch_views.NextMessage.as_view())),
+    url(r'^dispatch/api/confirm/$', login_required(dispatch_views.ConfirmMessage.as_view())),
     
     url(r'^dispatch/messages/(?P<race>[0-9]+)/$', login_required(dispatch_views.MessageListView.as_view())),
     #Ajax Views

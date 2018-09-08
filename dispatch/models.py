@@ -19,12 +19,24 @@ class Message(models.Model):
         (MESSAGE_TYPE_ERROR, "Some kind of error.")
     )
     
+    MESSAGE_STATUS_NONE          = 0
+    MESSAGE_STATUS_DISPATCHING   = 1
+    MESSAGE_STATUS_SNOOZED       = 2
+    MESSAGE_STATUS_CONFIRMED     = 3
+    
+    MESSAGE_STATUS_CHOICES = (
+        (MESSAGE_STATUS_NONE, 'N/A'),
+        (MESSAGE_STATUS_DISPATCHING, 'Dispatching / On screen'),
+        (MESSAGE_STATUS_SNOOZED, "Dispatcher snoozed."),
+        (MESSAGE_STATUS_CONFIRMED, "Rider Confirmed.")
+    )
+    
     race = models.ForeignKey(Race)
     race_entry = models.ForeignKey(RaceEntry, null=True)
     runs = models.ManyToManyField(Run)
     message_time = models.DateTimeField(blank=True, null=True)
     message_type = models.IntegerField(choices=MESSAGE_TYPE_CHOICES, default=MESSAGE_TYPE_DISPATCH)
-    confirmed = models.BooleanField(default=False)
+    status = models.IntegerField(choices=MESSAGE_STATUS_CHOICES, default=MESSAGE_STATUS_NONE)
     confirmed_time = models.DateTimeField(blank=True, null=True)
     #dispatcher = models.ForeignKey(Dispatcher)
     
@@ -48,6 +60,10 @@ class Message(models.Model):
     @property
     def message_type_as_string(self):
         return self.MESSAGE_TYPE_CHOICES[self.message_type][1]
+        
+    @property
+    def message_status_as_string(self):
+        return self.MESSAGE_STATUS_CHOICES[self.status][1]
     
     def message_body(self):
         pass
@@ -55,7 +71,7 @@ class Message(models.Model):
         return
     
     def confirm(self):
-        self.confirmed = True
+        self.status = self.MESSAGE_STATUS_CONFIRMED
         self.confirmed_time = datetime.datetime.now(tz=pytz.utc)
         self.save()
         
@@ -72,6 +88,7 @@ class Message(models.Model):
     
     def snooze(self):
         self.message_time = datetime.datetime.now(tz=pytz.utc) + datetime.timedelta(seconds=60)
+        self.status = self.MESSAGE_STATUS_SNOOZED
         self.save()
         for run in self.runs.all():
             run.status = Run.RUN_STATUS_PENDING

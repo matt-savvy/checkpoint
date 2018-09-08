@@ -126,9 +126,7 @@ class ClearRacerTestCase(TestCase):
         self.assertIsNone(racer)
     
     def test_find_clear_racer_but_has_jobs_dispatching(self):
-        """we have a racer that is clear, but they jobs that are dispatching"""
-        import pdb
-        pdb.set_trace()
+        """we have a racer that is clear, but they have jobs that are on another dispatcher's screen"""
         
         runs = Run.objects.filter(race_entry=self.race_entry_one)
         runs.delete()
