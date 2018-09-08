@@ -127,13 +127,21 @@ class get_next_message_TestCase(TestCase):
             self.assertTrue(run in next_message_runs)
     
     def test_no_double_messages_for_racer(self):
-        self.race_entry_two.delete()
-        first_next_message = get_next_message(self.race)
-        second_next_message = get_next_message(self.race)
-        self.assertEqual(second_next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
+        """only message is a message already on a screen, next_message() should return a NOTHING message"""
+        messages = Message.objects.all().delete()
+        runs = Run.objects.all()
+        for run in runs:
+            run.status = Run.RUN_STATUS_COMPLETED
+            run.save()
+        
+        message = Message(race=self.race_entry_one.race, race_entry=self.race_entry_one, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
+        message.save()
+        
+        next_message = get_next_message(self.race)
+
+        self.assertNotEqual(next_message.race_entry, self.race_entry_one)
         
     def test_message_left_unconfirmed_for_too_long_gets_attempted_again(self):
-        
         first_next_message = get_next_message(self.race)
         first_next_message_pk = first_next_message.pk
         first_next_message.message_time = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=5)

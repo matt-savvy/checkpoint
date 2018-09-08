@@ -29,11 +29,15 @@ class Race(models.Model):
     def find_clear_racer(self):
         from raceentries.models import RaceEntry
         from runs.models import Run
+        from dispatch.models import Message
 
         race_entries = RaceEntry.objects.filter(race=self).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT))
         for race_entry in race_entries:
             run_count = Run.objects.filter(race_entry=race_entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_DISPATCHING)).count()
-            if run_count == 0:
+            
+            #befre we do say they're clear, let's make sure a message for them isn't already on someone's screen
+            current_message = Message.objects.filter(race=self).filter(race_entry=race_entry).filter(status=Message.MESSAGE_STATUS_DISPATCHING)
+            if not current_message and run_count == 0:
                 return race_entry
         return 
     

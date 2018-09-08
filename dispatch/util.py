@@ -8,7 +8,7 @@ import datetime
 import pytz
 
 def assign_runs(runs_to_assign, race_entry):
-    message = Message(race=race_entry.race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH)
+    message = Message(race=race_entry.race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH, status=Message.MESSAGE_STATUS_DISPATCHING)
     message.save()
     right_now = datetime.datetime.now(tz=pytz.utc)
     
@@ -45,15 +45,14 @@ def get_next_message(race, dispatcher=None):
     old_unconfirmed_messages = Message.objects.filter(Q(status=Message.MESSAGE_STATUS_DISPATCHING) | Q(status=Message.MESSAGE_STATUS_NONE)).filter(race_entry__race=race).filter(message_time__lte=right_now - datetime.timedelta(minutes=2))
     if old_unconfirmed_messages.first():
         return old_unconfirmed_messages.first()
-        
-        
+    
     ##are there any clear racers? they get top priority
     race_entry = race.find_clear_racer()
 
-    if race_entry:
-        if race_entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:
+    if race_entry:        
+        if race_entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:            
             #if they're clear AND cut, we send them a cut message right away
-            message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE)
+            message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
             message.save()
             return message
             
@@ -87,7 +86,7 @@ def get_next_message(race, dispatcher=None):
                             runs_to_assign.append(run_to_assign)
                             return assign_runs(runs_to_assign, race_entry)
             
-            message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE)
+            message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
             message.save()
             race_entry.cut_racer()
             return message

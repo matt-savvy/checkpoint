@@ -71,7 +71,7 @@ class RaceEntry(models.Model):
             return 'Processing'
         elif self.entry_status == self.ENTRY_STATUS_CUT:
             from dispatch.models import Message
-            message = Message.objects.filter(race_entry=self).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(confirmed=True)
+            message = Message.objects.filter(race_entry=self).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED)
             if message.exists():
                 return 'Cut, racer copied at {}'.format(messsage.confirmed_time)
             else:

@@ -13,6 +13,7 @@ class MessageSerializer(serializers.ModelSerializer):
     runs = RunSerializer()
     race_entry = RaceEntrySerializer()
     message_type_as_string = serializers.CharField(source='message_type_as_string')
+    message_status_as_string = serializers.CharField(source='message_status_as_string')
     class Meta:
         model = Message
-        fields = ('id', 'race_entry', 'runs', 'message_type', 'message_type_as_string')
+        fields = ('id', 'race_entry', 'runs', 'message_type', 'message_type_as_string', 'message_status_as_string')
