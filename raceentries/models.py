@@ -22,8 +22,8 @@ class RaceEntry(models.Model):
         (ENTRY_STATUS_FINISHED, 'Finished'),
         (ENTRY_STATUS_DQD, 'Disqualified'),
         (ENTRY_STATUS_DNF, 'Did not finish'),
+        (ENTRY_STATUS_PROCESSING, 'Racer has finished the race and is waiting to finish'),
         (ENTRY_STATUS_CUT, 'Not finished yet but will be given no more jobs, only a "come to the office" message'),
-        (ENTRY_STATUS_PROCESSING, 'Racer has finished the race and is waiting to finish')
     )
     
     """(RaceEntry description)"""
@@ -66,8 +66,18 @@ class RaceEntry(models.Model):
             return 'Finished'
         elif self.entry_status == self.ENTRY_STATUS_DQD:
             return 'Disqualified ({})'.format(self.dq_reason)
+        elif self.entry_status == self.ENTRY_STATUS_DNF:
+            return 'Did Not Finish'
+        elif self.entry_status == self.ENTRY_STATUS_PROCESSING:
+            return 'Processing'
+        elif self.entry_status == self.ENTRY_STATUS_CUT:
+            from dispatch.models import Message
+            message = Message.objects.filter(race_entry=self).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(confirmed=True)
+            if message.exists():
+                return 'Cut, racer copied at {}'.format(messsage.confirmed_time)
+            else:
+                return 'Cut, racer not messaged yet.'                    
         return 'Did Not Finish'
-    
     
     def start_racer(self):
         #TODO if qualifiers, populate_runs for their race, then create a message for their first few jobs that is assigned to a specific dispatcher

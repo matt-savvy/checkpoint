@@ -109,6 +109,7 @@ urlpatterns = patterns('',
     #Dispatch 
     url(r'^dispatch/api/next_message/$', login_required(dispatch_views.NextMessage.as_view())),
     
+    url(r'^dispatch/messages/(?P<race>[0-9]+)/$', login_required(dispatch_views.MessageListView.as_view())),
     #Ajax Views
     url(r'^ajax/racer/(?P<racer_number>[0-9]+)/$', login_required(ajax_views.RacerAjaxView.as_view())),
     url(r'^ajax/job/(?P<job_id>[0-9]+)/$', login_required(ajax_views.JobAjaxView.as_view())),
@@ -131,6 +132,7 @@ urlpatterns = patterns('',
     url(r'^ajax/racerpaid/$', login_required(ajax_views.MarkAsPaidRacerAjaxView.as_view())),
     #runs views
     url(r'^commission/(?P<race>[0-9]+)/(?P<racer>[0-9]+)/$', login_required(run_views.CommissionView.as_view())),
+    url(r'^races/runs/(?P<race>[0-9]+)/$', login_required(run_views.RunListView.as_view())),
     #log views
     url(r'^events/(?P<minute>[0-9]+)/$', log_views.RaceEventListView.as_view()),
     url(r'^logs/(?P<racer>[0-9]+)/$', log_views.RaceLogListView.as_view()),

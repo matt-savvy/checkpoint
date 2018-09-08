@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.views.generic.list import ListView
+from .models import Message
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authentication import OAuth2Authentication, SessionAuthentication
@@ -23,3 +25,10 @@ class NextMessage(APIView):
             #return Response({'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
             
         return
+        
+class MessageListView(ListView):
+    model = Message
+    context_object_name = 'messages'
+    
+    def get_queryset(self):
+        return Message.objects.filter(race__pk=self.kwargs['race'])

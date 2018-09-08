@@ -11,7 +11,7 @@ class Checkpoint(models.Model):
         ordering = ['checkpoint_number']
         
     def __unicode__(self):
-        return u"#{} {}".format(self.checkpoint_number, self.checkpoint_name)
+        return u"({}){}".format(self.checkpoint_number, self.checkpoint_name)
     
     def get_absolute_url(self):
         return u"/checkpoints/details/" + str(self.id) + "/"

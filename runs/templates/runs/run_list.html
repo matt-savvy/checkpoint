@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">PHL NACCC</a></li>
+  <li><a href="/runs/">Runs</a></li>
+</ol>
+<div class="page-header">
+  <h1>Runs <small>NACCC PHL NACCC</small></h1>
+</div>
+
+<div class="table-responsive">
+<table class="table table-striped">
+  <tr>
+      <th>Job</th>
+      <th>RaceEntry</th>
+      <th>Status</th>
+      <th>Determination</th>
+      <th>UTC Time Ready</th>
+	  <th>UTC Time Picked</th>
+	  <th>UTC Time Dropped</th>
+  </tr>
+      {% for run in runs %}
+          <tr>
+              <td><a href="/jobs/details/{{run.job.id}}/">{{run.job}}</td>
+              <td>{{run.race_entry}}</td>
+              <td>{{run.status_as_string}}</td>
+              <td>{{run.determination_as_string}}</td>
+			  <td>{{run.utc_time_ready}}</td>
+			  <td>{{run.utc_time_picked}}</td>
+			  <td>{{run.utc_time_dropped}}</td>
+           </tr>
+      {% empty %}
+      <tr>
+          <td colspan="7">No Runs yet.</td>
+       </tr>
+      {% endfor %}
+</table>
+</div>
+
+{% endblock %}

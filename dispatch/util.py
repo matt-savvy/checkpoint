@@ -85,8 +85,7 @@ def get_next_message(race, dispatcher=None):
             
             message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE)
             message.save()
-            race_entry.entry_status = RaceEntry.ENTRY_STATUS_CUT
-            race_entry.save() 
+            race_entry.cut_racer()
             print "racer cut"
             return message
             #there is no bonus manifest, the bonus manifest has no jobs that racer hasn't done, or it is after the bonus manifest cut off

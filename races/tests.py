@@ -126,9 +126,14 @@ class ClearRacerTestCase(TestCase):
         self.assertIsNone(racer)
     
     def test_find_clear_racer_but_has_jobs_dispatching(self):
-        """we have a racer that is clear, but they have been dnf'd"""
+        """we have a racer that is clear, but they jobs that are dispatching"""
+        import pdb
+        pdb.set_trace()
+        
         runs = Run.objects.filter(race_entry=self.race_entry_one)
-        jobs = JobFactory.create_batch(5, race=self.race)
+        runs.delete()
+        
+        jobs = JobFactory.create_batch(3, race=self.race)
         self.race.populate_runs(self.race_entry_one)
         for run in runs:
             run.status = Run.RUN_STATUS_DISPATCHING

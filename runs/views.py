@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.views.generic.list import ListView
 from django.views.generic import TemplateView
 from nacccusers.auth import AuthorizedRaceOfficalMixin
 from races.models import Race
@@ -6,7 +7,6 @@ from raceentries.models import RaceEntry
 from runs.models import Run
 import pytz
 import datetime
-
 
 class CommissionView(AuthorizedRaceOfficalMixin, TemplateView):
     template_name = "commission.html"
@@ -38,4 +38,11 @@ class CommissionView(AuthorizedRaceOfficalMixin, TemplateView):
             run_dict['payout'] = run.points_awarded
             context['runs'].append(run_dict)
         return context
-        
+
+class RunListView(ListView):
+    model = Run
+    context_object_name = 'runs'
+    
+    def get_queryset(self):
+        return Run.objects.filter(race_entry__race__pk=self.kwargs['race'])
+    

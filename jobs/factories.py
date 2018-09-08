@@ -16,7 +16,7 @@ def get_job_id():
 class JobFactory(factory.DjangoModelFactory):
     """(Job description)"""
     job_id = factory.Sequence(lambda n: "%d" % n)
-    race = RaceFactory()
+    race = factory.SubFactory(RaceFactory)
     pick_checkpoint = factory.SubFactory(CheckpointFactory)
     drop_checkpoint = factory.SubFactory(CheckpointFactory)
     points = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True)
