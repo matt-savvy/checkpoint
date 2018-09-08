@@ -25,6 +25,13 @@ class NextMessage(APIView):
             #return Response({'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
             
         return
+
+class ConfirmMessage(APIView):
+    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    
+    def post(self, request, *args, **kwargs):
+        current_race = RaceControl.shared_instance().current_race
         
 class MessageListView(ListView):
     model = Message

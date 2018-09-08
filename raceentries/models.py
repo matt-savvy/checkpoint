@@ -48,7 +48,6 @@ class RaceEntry(models.Model):
         
     scratch_pad = models.TextField(blank=True)
     
-    
     class Meta:
         unique_together = (("racer", "race"), ("race", "starting_position"))
         ordering = ['starting_position']

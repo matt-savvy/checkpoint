@@ -42,7 +42,30 @@ class MessageTestCase(TestCase):
     def test_unicode_nothing(self):
         message = Message(race=self.race, message_type=Message.MESSAGE_TYPE_NOTHING)
 
-        self.assertTrue("Blank Message" in message.__unicode__())    
+        self.assertTrue("Blank Message" in message.__unicode__())
+        
+    def test_confirm_dispatch(self):
+        self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_RACING
+        self.race_entry.save()
+        message = Message(race=self.race, race_entry=self.race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH)
+        message.save()
+        for run in Run.objects.all():
+            message.runs.add(run)
+            
+        message.confirm()
+        self.assertEqual(message.runs.first().status, Run.RUN_STATUS_ASSIGNED)
+        self.assertTrue(message.confirmed)
+        
+    def test_confirm_cut(self):
+        self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_RACING
+        self.race_entry.save()
+        message = Message(race=self.race, race_entry=self.race_entry, message_type=Message.MESSAGE_TYPE_OFFICE)
+        message.save()
+            
+        message.confirm()
+        race_entry = RaceEntry.objects.get(pk=self.race_entry.pk)
+        self.assertEqual(race_entry.entry_status, RaceEntry.ENTRY_STATUS_CUT)
+        self.assertTrue(message.confirmed)
         
 class get_next_message_TestCase(TestCase):
     def setUp(self):
