@@ -1,17 +1,49 @@
 from django.test import TestCase
 from .models import Message
 from runs.models import Run
-from races.models import Race
+from races.models import Race, Manifest
 from raceentries.models import RaceEntry
 from .util import get_next_message
 from jobs.factories import JobFactory
-from races.factories import RaceFactory
+from races.factories import RaceFactory, ManifestFactory
 from .factories import MessageFactory
 from raceentries.factories import RaceEntryFactory
 from runs.factories import RunFactory
 import datetime
 import pytz
+import pdb
 
+class MessageTestCase(TestCase):
+    def setUp(self):
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        self.race = RaceFactory(race_start_time=right_now, race_type=Race.RACE_TYPE_DISPATCH)
+        self.race_entry = RaceEntryFactory(race=self.race)
+        self.jobs = JobFactory.create_batch(3, race=self.race, minutes_ready_after_start=0)
+        self.runs_one = self.race.populate_runs(self.race_entry)
+        
+    def test_unicode_dispatch_with_runs(self):
+        message = Message(race=self.race, race_entry=self.race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH)
+        message.save()
+        for run in Run.objects.all():
+            message.runs.add(run)
+
+        self.assertTrue("assign runs" in message.__unicode__())
+    
+    def test_unicode_office(self):
+        message = Message(race=self.race, race_entry=self.race_entry, message_type=Message.MESSAGE_TYPE_OFFICE)
+
+        self.assertTrue("Come to the Office" in message.__unicode__())
+        
+    def test_unicode_error(self):
+        message = Message(race=self.race, race_entry=self.race_entry, message_type=Message.MESSAGE_TYPE_ERROR)
+
+        self.assertTrue("ERROR" in message.__unicode__())
+        
+    def test_unicode_nothing(self):
+        message = Message(race=self.race, message_type=Message.MESSAGE_TYPE_NOTHING)
+
+        self.assertTrue("Blank Message" in message.__unicode__())    
+        
 class get_next_message_TestCase(TestCase):
     def setUp(self):
         right_now = datetime.datetime.now(tz=pytz.utc)
@@ -77,11 +109,90 @@ class get_next_message_TestCase(TestCase):
         next_message_runs = next_message.runs.all()
         
         self.assertTrue(no_time_ready_run in next_message_runs)
+    
+    def test_clear_racer_with_no_pending_jobs(self):
+        "a clear racer with no pending jobs should be told to come back to the office because there is no bonus manifest"
+        racer = self.race.find_clear_racer()
+        runs = Run.objects.filter(race_entry=racer)
+        runs.delete()
+        
+        next_message = get_next_message(self.race)
+        next_message_runs = next_message.runs.all()
+        
+        self.assertIsNone(next_message_runs.first())
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
+    
+    def test_clear_racer_with_no_pending_jobs_but_bonus_manifest_exists(self):
+        "a clear racer with no pending jobs should be given work from the bonus manifest"
+        racer = self.race.find_clear_racer()
+        runs = Run.objects.filter(race_entry=racer)
+        runs.delete()
+        
+        bonus_manifest = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
+        job = JobFactory(race=self.race, manifest=bonus_manifest)
+        
+        next_message = get_next_message(self.race)
+        next_message_runs = next_message.runs.all()
+        
+        first_run = next_message_runs[0]
+        self.assertEqual(first_run.job, job)
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_DISPATCH)
+        
+    def test_clear_racer_with_no_pending_jobs_bonus_manifest_exists_before_cut_off_time(self):
+        "a clear racer with no pending jobs should be given work from the bonus manifest because we are well before the cut off time"
+        racer = self.race.find_clear_racer()
+        runs = Run.objects.filter(race_entry=racer)
+        runs.delete()
+        
+        bonus_manifest = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS, cut_off_minutes_after_start=20)
+        self.race.start_time = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=10)
+        job = JobFactory(race=self.race, manifest=bonus_manifest)
+        
+        next_message = get_next_message(self.race)
+        first_run = next_message.runs.first()
+        
+        self.assertEqual(first_run.job, job)
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_DISPATCH)
+        
+    def test_clear_racer_with_no_pending_jobs_bonus_manifest_exists_after_cut_off_time(self):
+        "a clear racer with no pending jobs should be cut because we are after the bonus cut off time. they should also get cut"
+        racer = self.race.find_clear_racer()
+        runs = Run.objects.filter(race_entry=racer)
+        runs.delete()
+        
+        bonus_manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS, cut_off_minutes_after_start=20)
+        self.race.race_start_time = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=30)
+        self.race.save()
+        
+        job = JobFactory.create(race=self.race, manifest=bonus_manifest)
+        
+        next_message = get_next_message(self.race)
+        racer = RaceEntry.objects.get(pk=racer.pk)
+        
+        self.assertIsNone(next_message.runs.first())
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
+        self.assertEqual(racer.entry_status, RaceEntry.ENTRY_STATUS_CUT)
+        
+    def test_clear_racer_with_no_pending_jobs_bonus_manifest_exists_but_all_jobs_done(self):
+        "a clear racer with no pending jobs who also did all the bonus jobs. they should get cut"
+        racer = self.race.find_clear_racer()
+        runs = Run.objects.filter(race_entry=racer)
+        runs.delete()
+        
+        bonus_manifest = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS, cut_off_minutes_after_start=20)
+        self.race.start_time = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=10)
+        job = JobFactory(race=self.race, manifest=bonus_manifest)
+        run = RunFactory(job=job, race_entry=racer, status=Run.RUN_STATUS_COMPLETED)
+        
+        next_message = get_next_message(self.race)
+        racer = RaceEntry.objects.get(pk=racer.pk)
+        
+        self.assertIsNone(next_message.runs.first())
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
+        self.assertEqual(racer.entry_status, RaceEntry.ENTRY_STATUS_CUT)
         
     def test_get_next_message_with_two_sets_of_runs_ready_now(self):
         """some of these jobs was ready 5 mins ago, some were ready 8 mins ago. we should get them all back"""
-        import pdb
-        #pdb.set_trace()
         runs = Run.objects.filter(race_entry=self.race_entry_one)
         right_now = datetime.datetime.now(tz=pytz.utc) 
         
@@ -103,8 +214,25 @@ class get_next_message_TestCase(TestCase):
         Run.objects.all().delete()
         Message.objects.all().delete()
         
-        next_message = get_next_message(self.race)
+        self.race_entry_one.entry_status = RaceEntry.ENTRY_STATUS_FINISHED
         
+        self.race_entry_two.entry_status = RaceEntry.ENTRY_STATUS_DQD
+        self.race_entry_one.save()
+        self.race_entry_two.save()
+        next_message = get_next_message(self.race)
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
+        
+        self.race_entry_one.entry_status = RaceEntry.ENTRY_STATUS_DNF
+        self.race_entry_two.entry_status = RaceEntry.ENTRY_STATUS_PROCESSING
+        self.race_entry_one.save()
+        self.race_entry_two.save()
+        next_message = get_next_message(self.race)
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
+        
+        self.race_entry_one.entry_status = RaceEntry.ENTRY_STATUS_ENTERED
+        self.race_entry_one.save()
+        self.race_entry_two.save()
+        next_message = get_next_message(self.race)
         self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
     
     def test_get_next_message_no_messages_but_clear_racer(self):

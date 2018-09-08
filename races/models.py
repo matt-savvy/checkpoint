@@ -74,9 +74,10 @@ class Manifest(models.Model):
     manifest_name = models.CharField(max_length=100)
     order = models.IntegerField(default=0)
     manifest_type = models.IntegerField(choices=TYPE_CHOICES, default=TYPE_CHOICE_MAIN)
+    cut_off_minutes_after_start = models.IntegerField(default=9999)
     
     class Meta:
-        ordering = ['manifest_type']
+        ordering = ['manifest_type', 'order']
     
     def __unicode__(self):
         return u"Manifest #{} for {} ({})".format(self.order, self.race, self.manifest_name)
@@ -84,3 +85,7 @@ class Manifest(models.Model):
     @property
     def manifest_type_as_string(self):
         return self.TYPE_CHOICES[self.manifest_type][1]
+        
+    def jobs(self):
+        from jobs.models import Job
+        return Job.objects.filter(race=race, manifest=self)

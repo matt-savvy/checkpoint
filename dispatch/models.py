@@ -7,10 +7,10 @@ import datetime
 import pytz
 
 class Message(models.Model):
-    MESSAGE_TYPE_DISPATCH = 1
-    MESSAGE_TYPE_OFFICE   = 2
-    MESSAGE_TYPE_NOTHING  = 3
-    MESSAGE_TYPE_ERROR    = 4
+    MESSAGE_TYPE_DISPATCH = 0
+    MESSAGE_TYPE_OFFICE   = 1
+    MESSAGE_TYPE_NOTHING  = 2
+    MESSAGE_TYPE_ERROR    = 3
     
     MESSAGE_TYPE_CHOICES = (
         (MESSAGE_TYPE_DISPATCH, 'Dispatching Jobs'),
@@ -20,7 +20,7 @@ class Message(models.Model):
     )
     
     race = models.ForeignKey(Race)
-    race_entry = models.ForeignKey(RaceEntry)
+    race_entry = models.ForeignKey(RaceEntry, null=True)
     runs = models.ManyToManyField(Run)
     message_time = models.DateTimeField(blank=True, null=True)
     message_type = models.IntegerField(choices=MESSAGE_TYPE_CHOICES, default=MESSAGE_TYPE_DISPATCH)
@@ -37,9 +37,13 @@ class Message(models.Model):
         if self.message_type == self.MESSAGE_TYPE_DISPATCH:
             #dispatch_string = ""
             #for run in self.runs.all():
-            dispatch_string = "assign jobs"
+            dispatch_string = "assign runs"
             #    dispatch_string = "{} | {}".format(dispatch_string, run)
-            return u"{} - {}".format(self.race_entry.racer, dispatch_string)    
+            return u"{} - {}".format(self.race_entry.racer, dispatch_string)  
+        if self.message_type == self.MESSAGE_TYPE_ERROR:
+            return u"ERROR"
+        if self.message_type == self.MESSAGE_TYPE_NOTHING:
+            return u"Blank Message"  
             
     @property
     def message_type_as_string(self):
