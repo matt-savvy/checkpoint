@@ -8,6 +8,11 @@ div.loading {
     transition: background-color #FFFFFF;
 }
 
+div.overlord {
+	z-index:999;
+	position:fixed;
+}
+
 .theme-dropdown .dropdown-menu {
   position: static;
   display: block;

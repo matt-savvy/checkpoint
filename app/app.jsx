@@ -25,7 +25,19 @@ function getCookie(name) {
 }
 
 
-
+class Feedback extends React.Component {
+	render() {
+		var alertClass = "alert alert-success"
+		return (
+			<div className="overlord">
+				<div className={alertClass} role="alert">
+					{this.props.object.message_status_as_string}
+				</div>
+			</div>
+		
+		)
+	}
+}
 
 class Message extends React.Component {
 	render() {
@@ -54,6 +66,7 @@ class Message extends React.Component {
 		
 		return(
 			<div><h2>{this.props.message.message_type_as_string} {racerName} </h2>
+			<hr width="50%" />
 			<br /><h3>{runs}</h3>
 			<br />Message ID #{this.props.message.id}
 			</div>
@@ -83,6 +96,9 @@ class DispatchScreen extends React.Component {
 		super(props);
 		this.state = {
 			raceID:raceID,
+			feedback: null,
+			disabled: null,
+			//showNext: true,
 			currentMessage:0,
 			messages : [{
     "id": 13, 
@@ -176,12 +192,42 @@ class DispatchScreen extends React.Component {
 	}
 	showLastMessage() {
 		var lastMessage = this.state.currentMessage + 1;
-		this.setState({currentMessage: lastMessage});
+		this.setState({currentMessage: lastMessage, feedback: null});
 	}
 	riderResponse(e) {
 		console.log(e.target.value);
+		this.setState({disabled:'disabled'});
+		var csrfToken = getCookie('csrftoken');
+		var riderResponse = {};
+		riderResponse.message = this.state.messages[this.state.currentMessage].id;
+		riderResponse.action = e.target.value;
+		var riderResponseJSON = JSON.stringify(riderResponse);
+		fetch("/dispatch/api/rider_response/", {
+		  headers: {
+			'X-CSRFToken': csrfToken,
+	      	'Accept': 'application/json',
+	      	'Content-Type': 'application/json',
+	      },
+		  //credentials: 'include',
+		  method: "POST",
+		  body: riderResponseJSON
+		})
+		.then(function(response) {
+			
+        	if (response.status !== 200) {
+          		alert('Looks like there was a problem. Status Code: ' + response.status);
+				return;
+			}
+			response.json().then(function(data) {
+				console.log(data);
+				var messages = this.state.messages
+				messages[this.state.currentMessage] = data;
+				this.setState({feedback:data, disabled:null, showNext:true, messages:messages})
+			      }.bind(this));
+		}.bind(this))
 	}
 	getNextMessage() {
+		this.setState({disabled:'disabled', feedback:null, currentMessage: 0});
 		var csrfToken = getCookie('csrftoken');
 		var nextMessageRequest = {};
 		nextMessageRequest.race = this.state.raceID;
@@ -206,33 +252,41 @@ class DispatchScreen extends React.Component {
 				console.log(data);
 				var messages = this.state.messages;
 				messages.unshift(data);
-				this.setState({messages: messages, currentMessage:0})
+				this.setState({messages: messages, disabled:null});
 			      }.bind(this));
 	
 		}.bind(this))
 	}
 	render(){
 		var currentMessage = this.state.messages[this.state.currentMessage]
-		var message, showConfirm;
+		var message, showConfirm, showNext;
 		
 		if(currentMessage){
 			message = <Message message={currentMessage}/>
 		}
 		//<i class="fas fa-spinner fa-spin"></i>
-		if((currentMessage.message_type== MESSAGE_TYPE_DISPATCH) || (currentMessage.message_type== MESSAGE_TYPE_OFFICE)){
-			showConfirm = true;
+		if (this.state.showNext) {
+			showNext = true;
 		}
+		else if ((currentMessage.message_type== MESSAGE_TYPE_DISPATCH) || (currentMessage.message_type== MESSAGE_TYPE_OFFICE)){
+			showConfirm = true;
+		} else {
+			showNext = true
+		}
+		
+		
 		
 		return (
 		<div className="container">
 			<div className="row">
 				<div className="col-md-6">
-						{this.state.messages[this.state.currentMessage+1] && <button onClick={this.showLastMessage.bind(this)} className="btn btn" value="Show Last"><i className="fas fa-undo-alt"></i>Show Last Message</button>}
+						{this.state.messages[this.state.currentMessage+1] && <button disabled={this.state.disabled} onClick={this.showLastMessage.bind(this)} className="btn btn" value="Show Last"><i className="fas fa-undo-alt"></i>Show Last Message</button>}
 				</div>
 			</div>
 			
 			<div className="row">
-				<div className="col-md-6 text-center">	
+				<div className="col-md-6 text-center">
+					{this.state.feedback && <Feedback object={this.state.feedback} />}
 					{message}
 				</div>
 			</div>
@@ -240,15 +294,18 @@ class DispatchScreen extends React.Component {
 			<div className="row">
 				<div className="col-sm-3 text-center">
 					<br />
-					{showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-danger" value="SNOOZE"><i className="fas fa-user-slash"></i> No Response</button>}
+					{showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-danger" disabled={this.state.disabled}  value="SNOOZE"><i className="fas fa-user-slash"></i> No Response</button>}
 				</div>
 				<div className="col-sm-3 text-center">
 					<br />
-					{!showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-info" value="NEXT"><i className="fas fa-redo"></i> Refresh</button>}
-					{showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-success" value="CONFIRM"><i className="fas fa-check-circle"></i> Rider Confirmed</button>}
-				</div>
-					
-					
+					{showNext && <button onClick={this.getNextMessage.bind(this)} className="btn btn-info" disabled={this.state.disabled} value="NEXT"><i className="fas fa-redo"></i> Next</button>}
+					{showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-success" disabled={this.state.disabled} value="CONFIRM"><i className="fas fa-check-circle"></i> Rider Confirmed</button>}
+					</div>
+			</div>
+			<div className="row">
+					<div className="col-md-6 text-center">
+						
+					</div>
 			</div>
 		
 		</div>

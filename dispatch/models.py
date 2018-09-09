@@ -65,11 +65,6 @@ class Message(models.Model):
     def message_status_as_string(self):
         return self.MESSAGE_STATUS_CHOICES[self.status][1]
     
-    def message_body(self):
-        pass
-        ## do we need this or will a react component take care of it?
-        return
-    
     def confirm(self):
         self.status = self.MESSAGE_STATUS_CONFIRMED
         self.confirmed_time = datetime.datetime.now(tz=pytz.utc)

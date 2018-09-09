@@ -30,7 +30,7 @@ class NextMessage(APIView):
             
         return
 
-class ConfirmMessage(APIView):
+class RiderResponse(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
@@ -40,11 +40,12 @@ class ConfirmMessage(APIView):
         message = Message.objects.get(pk=message_pk)
         action = self.request.DATA.get('action')
         
-        if action == "confirm":
+        if action == "CONFIRM":
             message = message.confirm()
-        elif action == "snooze":
+        elif action == "SNOOZE":
             message = message.snooze()
         
+        print message
         return Response(MessageSerializer(message).data, status=status.HTTP_200_OK)
         
 class MessageListView(AuthorizedRaceOfficalMixin, ListView):
