@@ -1,0 +1,3 @@
+excludeDirectoriesInFileChooser = "{$excludeDirectoriesInFileChooser,node_modules}" 
+include = "{$include,.*}"
+exclude = "{$exclude,.git}"
