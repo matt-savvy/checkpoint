@@ -1,13 +1,15 @@
 from django.shortcuts import render
 from django.views.generic.list import ListView
 from django.views.generic import TemplateView
-from .models import Message
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authentication import OAuth2Authentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
-from nacccusers.auth import AuthorizedRaceOfficalMixin
 from rest_framework.views import APIView
+from nacccusers.auth import AuthorizedRaceOfficalMixin
+from .models import Message
 from dispatch.serializers import MessageSerializer, RunSerializer
 from racecontrol.models import RaceControl
 from .util import get_next_message
@@ -53,3 +55,14 @@ class MessageListView(AuthorizedRaceOfficalMixin, ListView):
         
 class DispatchView(AuthorizedRaceOfficalMixin, TemplateView):
     template_name = "dispatch.html"
+    
+    method_decorator(ensure_csrf_cookie)
+    def dispatch(self, request, *args, **kwargs):
+        return super(DispatchView, self).dispatch(request, *args, **kwargs)
+        
+    def render_to_response(self, context, **response_kwargs):
+        response = super(DispatchView, self).render_to_response(context, **response_kwargs)
+        current_race = RaceControl.shared_instance().current_race
+        print current_race
+        response.set_cookie('raceID', current_race.pk)
+        return response

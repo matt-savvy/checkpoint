@@ -7,7 +7,7 @@ class RunSerializer(serializers.ModelSerializer):
     job = JobSerializer()
     class Meta:
         model = Run
-        fields = ('job', 'status')
+        fields = ('job', 'status', 'id')
         
 class MessageSerializer(serializers.ModelSerializer):
     runs = RunSerializer()
@@ -16,4 +16,4 @@ class MessageSerializer(serializers.ModelSerializer):
     message_status_as_string = serializers.CharField(source='message_status_as_string')
     class Meta:
         model = Message
-        fields = ('id', 'race_entry', 'runs', 'message_type', 'message_type_as_string', 'message_status_as_string')
+        fields = ('id', 'race_entry', 'runs', 'message_type', 'message_type_as_string', 'message_status_as_string', 'message_time')

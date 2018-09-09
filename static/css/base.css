@@ -2,6 +2,11 @@ body {
 	margin-top : 30px;
 }
 
+div.loading {
+    /* Ensures that the transition only runs in one direction */
+    -webkit-transition: background-color #AAAAAA;
+    transition: background-color #FFFFFF;
+}
 
 .theme-dropdown .dropdown-menu {
   position: static;

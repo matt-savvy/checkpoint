@@ -69,3 +69,6 @@ ehthumbs.db
 Thumbs.db
 
 .idea/
+
+#node
+node_modules	

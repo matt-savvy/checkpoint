@@ -50,4 +50,4 @@ class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         depth = 2
-        fields = ('pick_checkpoint', 'drop_checkpoint')
+        fields = ('pick_checkpoint', 'drop_checkpoint',)
