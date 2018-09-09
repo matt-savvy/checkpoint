@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.generic.list import ListView
+from django.views.generic import TemplateView
 from .models import Message
 from rest_framework.response import Response
 from rest_framework import status
@@ -49,3 +50,6 @@ class MessageListView(AuthorizedRaceOfficalMixin, ListView):
     
     def get_queryset(self):
         return Message.objects.filter(race_entry__race__pk=self.kwargs['race'])
+        
+class DispatchView(AuthorizedRaceOfficalMixin, TemplateView):
+    template_name = "dispatch.html"

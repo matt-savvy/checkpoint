@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">PHL NACCC</a></li>
+  <li><a href="/jobs/">Dispatch</a></li>
+</ol>
+
+<br/><br/>
+<div id="react-area">
+</div>
+
+{% endblock %}
+{% block javascript_imports %}
+	{% load staticfiles %}
+	<script src="{% static 'js/dispatch.js' %}"></script>
+{% endblock %}

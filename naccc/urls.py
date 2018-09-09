@@ -109,6 +109,9 @@ urlpatterns = patterns('',
     #Dispatch 
     url(r'^dispatch/api/next_message/$', login_required(dispatch_views.NextMessage.as_view())),
     url(r'^dispatch/api/confirm/$', login_required(dispatch_views.ConfirmMessage.as_view())),
+    url(r'^dispatch/$', login_required(dispatch_views.DispatchView.as_view())),
+    
+    
     
     url(r'^dispatch/messages/(?P<race>[0-9]+)/$', login_required(dispatch_views.MessageListView.as_view())),
     #Ajax Views
