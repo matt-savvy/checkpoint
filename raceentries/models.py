@@ -73,7 +73,7 @@ class RaceEntry(models.Model):
             from dispatch.models import Message
             message = Message.objects.filter(race_entry=self).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED)
             if message.exists():
-                return 'Cut, racer copied at {}'.format(messsage.confirmed_time)
+                return 'Cut, racer copied at {}'.format(message.first().confirmed_time)
             else:
                 return 'Cut, racer not messaged yet.'                    
         return 'Did Not Finish'

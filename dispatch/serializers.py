@@ -8,7 +8,8 @@ class RunSerializer(serializers.ModelSerializer):
     class Meta:
         model = Run
         fields = ('job', 'status', 'id')
-        
+
+#TODO add message time in some kind of readable format
 class MessageSerializer(serializers.ModelSerializer):
     runs = RunSerializer()
     race_entry = RaceEntrySerializer()
@@ -16,4 +17,4 @@ class MessageSerializer(serializers.ModelSerializer):
     message_status_as_string = serializers.CharField(source='message_status_as_string')
     class Meta:
         model = Message
-        fields = ('id', 'race_entry', 'runs', 'message_type', 'message_type_as_string', 'message_status_as_string', 'message_time')
+        fields = ('id', 'race_entry', 'runs', 'message_type', 'message_type_as_string', 'status', 'message_status_as_string', 'message_time')

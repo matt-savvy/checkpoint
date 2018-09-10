@@ -74,6 +74,7 @@ class Message(models.Model):
             for run in self.runs.all():
                 run.status = Run.RUN_STATUS_ASSIGNED
                 run.save()
+            
         elif self.message_type == self.MESSAGE_TYPE_OFFICE:
             self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_CUT
             self.race_entry.save()
@@ -89,5 +90,5 @@ class Message(models.Model):
             run.status = Run.RUN_STATUS_PENDING
             run.save()
         #TODO add logging
-        return 
+        return self
     
