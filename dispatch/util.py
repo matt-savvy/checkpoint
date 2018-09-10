@@ -51,10 +51,14 @@ def get_next_message(race, dispatcher=None):
 
     if race_entry:        
         if race_entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:            
-            #if they're clear AND cut, we send them a cut message right away
-            message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
-            message.save()
-            return message
+            #if they're clear AND cut, we see if they have already 10-4'd a request to come to the office
+            already_confirmed_cut = Message.objects.filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_TYPE_CONFIRMED).exists()
+            
+            if not already_confirmed_cut:
+                #they haven't already gotten that message, send them a cut message right away
+                message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
+                message.save()
+                return message
             
         runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING)
         if runs:

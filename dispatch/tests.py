@@ -126,6 +126,23 @@ class get_next_message_TestCase(TestCase):
             run = Run.objects.filter(job=job).first()
             self.assertTrue(run in next_message_runs)
     
+    def test_cut_racers_that_know_it_dont_get_told_it_repeatedly(self):
+        """if you're cut, you get told once, confirm it, and that's it"""
+        
+        racer = self.race.find_clear_racer()
+        race_entries = RaceEntry.objects.exclude(pk=racer.pk)
+        race_entries.delete()
+        runs = Run.objects.filter(race_entry=racer)
+        runs.delete()
+        
+        next_message = get_next_message(self.race)
+        next_message_runs = next_message.runs.all()
+
+        next_message = get_next_message(self.race)
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
+        
+    
+    
     def test_no_double_messages_for_racer(self):
         """only message is a message already on a screen, next_message() should return a NOTHING message"""
         messages = Message.objects.all().delete()
