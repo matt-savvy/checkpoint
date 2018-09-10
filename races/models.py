@@ -37,7 +37,11 @@ class Race(models.Model):
             
             #befre we do say they're clear, let's make sure a message for them isn't already on someone's screen
             current_message = Message.objects.filter(race=self).filter(race_entry=race_entry).filter(status=Message.MESSAGE_STATUS_DISPATCHING)
-            if not current_message and run_count == 0:
+            
+            #if they're clear AND cut, we see if they have already 10-4'd a request to come to the office
+            already_confirmed_cut = Message.objects.filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED).exists()
+            
+            if not current_message and run_count == 0 and not already_confirmed_cut:
                 return race_entry
         return 
     
