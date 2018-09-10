@@ -66,6 +66,7 @@ class Message(models.Model):
         return self.MESSAGE_STATUS_CHOICES[self.status][1]
     
     def confirm(self):
+        #TODO add utc_time_assigned to confirmed runs
         self.status = self.MESSAGE_STATUS_CONFIRMED
         self.confirmed_time = datetime.datetime.now(tz=pytz.utc)
         self.save()
@@ -87,7 +88,7 @@ class Message(models.Model):
         self.status = self.MESSAGE_STATUS_SNOOZED
         self.save()
         for run in self.runs.all():
-            run.status = Run.RUN_STATUS_PENDING
+            run.status = Run.RUN_STATUS_DISPATCHING
             run.save()
         #TODO add logging
         return self

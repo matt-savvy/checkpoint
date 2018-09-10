@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from nacccusers.auth import AuthorizedRaceOfficalMixin
 from .models import Message
+from runs.models import Run
 from dispatch.serializers import MessageSerializer, RunSerializer
 from racecontrol.models import RaceControl
 from .util import get_next_message
@@ -44,8 +45,15 @@ class RiderResponse(APIView):
             message = message.confirm()
         elif action == "SNOOZE":
             message = message.snooze()
-        
-        print message
+        elif action == "UNDO":
+            message.status = Message.MESSAGE_STATUS_DISPATCHING
+            message.confirmed_time = None
+            message.save()
+            if message.message_type == Message.MESSAGE_TYPE_DISPATCH:
+                for run in message.runs.all():
+                    run.run_status = Run.RUN_STATUS_DISPATCHING
+                    run.save()
+            #TODO log this undo
         return Response(MessageSerializer(message).data, status=status.HTTP_200_OK)
         
 class MessageListView(AuthorizedRaceOfficalMixin, ListView):

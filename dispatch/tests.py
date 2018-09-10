@@ -106,7 +106,21 @@ class get_next_message_TestCase(TestCase):
         message_one.snooze()
         
         messages = Message.objects.filter(race=self.race).filter(status=Message.MESSAGE_STATUS_SNOOZED)
+        
         self.assertTrue(message_one in messages)
+    
+    def test_snooze_delays_a_message(self):
+        """make sure when we hit snooze it will get bumped back a good sixty seconds"""
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        message_one = MessageFactory(race=self.race, race_entry=self.race_entry_one, message_time=right_now)
+        
+        message_one.snooze()
+        
+        messages = Message.objects.filter(race=self.race).filter(status=Message.MESSAGE_STATUS_SNOOZED)
+        Message.objects.exclude(pk=message_one.pk).all().delete()
+        next_message = get_next_message(self.race)
+        
+        self.assertNotEqual(next_message.runs, message_one.runs)
         
     def test_get_next_message_gets_a_snoozed_message(self):
         """make sure a snoozed job goes back in the queue """

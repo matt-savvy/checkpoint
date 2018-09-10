@@ -13,7 +13,7 @@ const MESSAGE_STATUS_DISPATCHING = 1
 const MESSAGE_STATUS_SNOOZED     = 2
 const MESSAGE_STATUS_CONFIRMED   = 3
 
-var TESTMESSAGES = [{
+/*var TESTMESSAGES = [{
     "id": 1, 
     "race_entry": {
         "entry_status_as_string": "Racing", 
@@ -94,7 +94,8 @@ var TESTMESSAGES = [{
     "status": 1, 
     "message_status_as_string": "Dispatching / On screen", 
     "message_time": null
-}];
+}];*/
+var TESTMESSAGES = [];
 
 function getCookie(name) {
     var cookieValue = null;
@@ -114,11 +115,15 @@ function getCookie(name) {
 
 
 class Feedback extends React.Component {
+	handleUndo() {
+		this.props.undo();
+	}
 	render() {
 		var alertClass = "alert alert-success bottom-alert";
 		return (
 				<div className={alertClass} role="alert">
 					{this.props.object.message_status_as_string}
+					<span className="text-right"><a href="#" onClick={this.handleUndo.bind(this)}>Undo</a></span>
 				</div>		
 		)
 	}
@@ -142,12 +147,39 @@ class Message extends React.Component {
 			racerName = "#" + this.props.message.race_entry.racer.racer_number.toString() + " " + this.props.message.race_entry.racer.display_name;
 		}
 		
-		return(
-			<div><h2>{this.props.message.message_type_as_string} {racerName} </h2>
-			<hr width="50%" />
-			<br /><h3>{runs}</h3>
-			</div>
-		)
+		console.log(this.props.message.message_type);
+		//debugger;
+		if (this.props.message.message_type == MESSAGE_TYPE_DISPATCH) {
+			return (
+				<div><h2>{this.props.message.message_type_as_string} {racerName} </h2>
+				<hr width="50%" />
+				<br /><h3>{runs}</h3>
+				</div>
+			) 
+		} else if (this.props.message.message_type == MESSAGE_TYPE_OFFICE) {
+			return (
+				<div><h2>{racerName} </h2>
+				<hr width="50%" />
+				<br /><h3>Come to the Office</h3>
+				</div>
+			)
+		} else if (this.props.message.message_type == MESSAGE_TYPE_NOTHING) {
+			return (
+				<div><h2>Nothing to Dispatch</h2>
+				<hr width="50%" />
+				<br /><h3>Refresh soon.</h3>
+				</div>
+			)
+		} else if (this.props.message.message_type == MESSAGE_TYPE_ERROR) {
+			return (
+				<div><h2>Error</h2>
+				<hr width="50%" />
+				<br /><h3>Reload the page and try again.</h3>
+				</div>
+			)
+		}
+		
+		return null;
 	}
 }
 
@@ -167,7 +199,7 @@ class DispatchScreen extends React.Component {
 		}.bind(this))
 	    .catch(function(err) {
 	      console.log('Fetch Error :-S', err);
-	    });*/
+	    });*/ 
 	}
 	constructor(props) {
 		super(props);
@@ -177,7 +209,7 @@ class DispatchScreen extends React.Component {
 			disabled: null,
 			showRefresh: true,
 			currentMessage:0,
-			messages : [TESTMESSAGES],
+			messages : [],
 		}
 	}
 	showBackMessage() {
@@ -218,7 +250,41 @@ class DispatchScreen extends React.Component {
 				messages[this.state.currentMessage] = data;
 				this.setState({feedback:data, disabled:null, showRefresh:true, messages:messages})
 			      }.bind(this));
-		}.bind(this))
+		}.bind(this)) 
+	}
+	undo () {
+		console.log("pretend we undid an action");
+		
+		this.setState({disabled:'disabled'});
+		
+		var csrfToken = getCookie('csrftoken');
+		var riderResponse = {};
+		riderResponse.message = this.state.messages[this.state.currentMessage].id;
+		riderResponse.action = "UNDO";
+		var riderResponseJSON = JSON.stringify(riderResponse);
+		fetch("/dispatch/api/rider_response/", {
+		  headers: {
+			'X-CSRFToken': csrfToken,
+	      	'Accept': 'application/json',
+	      	'Content-Type': 'application/json',
+	      },
+		  //credentials: 'include',
+		  method: "POST",
+		  body: riderResponseJSON
+		})
+		.then(function(response) {
+			
+        	if (response.status !== 200) {
+          		alert('Looks like there was a problem. Status Code: ' + response.status);
+				return;
+			}
+			response.json().then(function(data) {
+				//console.log(data);
+				var messages = this.state.messages
+				messages[this.state.currentMessage] = data;
+				this.setState({feedback:null, disabled:null, showRefresh:null, messages:messages})
+			      }.bind(this));
+		}.bind(this)) 
 	}
 	getNextMessage() {
 		this.setState({disabled:'disabled', feedback:null, currentMessage: 0});
@@ -254,7 +320,7 @@ class DispatchScreen extends React.Component {
 		}.bind(this))
 	}
 	render(){
-		var currentMessage = this.state.messages[this.state.currentMessage]
+		var currentMessage = this.state.messages[this.state.currentMessage];
 		var message, messageNumber, messageStatus, showConfirm, showRefresh;
 		var showBack = "disabled";
 		var showForward = "disabled";
@@ -262,16 +328,15 @@ class DispatchScreen extends React.Component {
 		if(currentMessage) {
 			messageNumber = currentMessage.id;
 			
-			
-			
 			if ((currentMessage.status == MESSAGE_STATUS_DISPATCHING) || (currentMessage.status == MESSAGE_STATUS_SNOOZED) || (currentMessage.status == MESSAGE_STATUS_CONFIRMED)){
 				messageStatus = currentMessage.message_status_as_string;
 			}
 			
 			if ((currentMessage.message_type == MESSAGE_TYPE_DISPATCH) || (currentMessage.message_type== MESSAGE_TYPE_OFFICE)){
 				
-				if (!this.state.feedback){
+				if (currentMessage.status == MESSAGE_STATUS_DISPATCHING) {
 					showConfirm = true;
+					showRefresh = false;
 				}
 					
 			} else if (currentMessage.message_type == MESSAGE_TYPE_NOTHING ){
@@ -283,8 +348,6 @@ class DispatchScreen extends React.Component {
 		}
 		
 		if (this.state.showRefresh) {
-			console.log("ShowNext");
-			console.log(this.state.showRefresh);
 			showRefresh= true;
 		}
 		
@@ -305,7 +368,7 @@ class DispatchScreen extends React.Component {
 						<button disabled={showBack} onClick={this.showBackMessage.bind(this)} className="btn btn" value="Show Last"><i className="fas fa-caret-left"></i> Prev</button>
 				</div>
 				<div className="col text-center">
-					{showRefresh&& <button onClick={this.getNextMessage.bind(this)} className="btn btn-info" disabled={this.state.disabled} value="NEXT"><i className="fas fa-sync-alt"></i> Refresh</button>}
+					{showRefresh && <button onClick={this.getNextMessage.bind(this)} className="btn btn-info" disabled={this.state.disabled} value="NEXT"><i className="fas fa-sync-alt"></i> Refresh</button>}
 				</div>
 			
 				<div className="col text-right">		
@@ -320,12 +383,11 @@ class DispatchScreen extends React.Component {
 			
 			<div className="row">
 				<div className="col-md-6 text-center">
-					
 					{message}
 				</div>
 			</div>
 			<div className="row">
-					{this.state.feedback && <Feedback object={this.state.feedback} />}
+					{this.state.feedback && <Feedback object={this.state.feedback} undo={this.undo.bind(this)} />}
 					{this.state.messageStatus && <div className="alert alert-warning" role="alert">{messageStatus}</div>}
 			</div>
 			<div className="row bottom-navbar">
