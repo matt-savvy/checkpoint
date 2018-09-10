@@ -286,7 +286,7 @@ class DispatchScreen extends React.Component {
 			      }.bind(this));
 		}.bind(this)) 
 	}
-	getNextMessage() {
+	getNextMessage() {		
 		this.setState({disabled:'disabled', feedback:null, currentMessage: 0});
 		var csrfToken = getCookie('csrftoken');
 		var nextMessageRequest = {};
@@ -311,6 +311,14 @@ class DispatchScreen extends React.Component {
 			response.json().then(function(data) {
 				console.log(data);
 				var messages = this.state.messages;
+				
+				var recentMessage = this.state.messages[0];
+				if (recentMessage) {
+					if (recentMessage.message_type == MESSAGE_TYPE_NOTHING) {
+						messages.shift();
+					}
+				}
+				
 				messages.unshift(data);
 				this.setState({messages: messages, disabled:null});
 				
