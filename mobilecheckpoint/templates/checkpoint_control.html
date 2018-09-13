@@ -102,13 +102,14 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="{% static "js/jquery.js" %}"></script>
-    <script src="{% static "js/bootstrap.js" %}"></script>
-    <script src="{% static "js/underscore.js" %}"></script>
-    <script src="{% static "js/checkpoint.js" %}"></script>
     <script type="text/javascript">
     var checkpoint = {{checkpoint.pk}};
     </script>
+    <script src="{% static "js/jquery.js" %}"></script>
+    <script src="{% static "js/bootstrap.js" %}"></script>
+    <script src="{% static "js/underscore.js" %}"></script>
+    <script src="{% static "js/checkpoint_jquery.js" %}"></script>
+
     {% block javascript_imports %}
     {% endblock %}
   </body>

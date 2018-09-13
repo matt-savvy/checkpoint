@@ -415,7 +415,3 @@ class DispatchScreen extends React.Component {
 ReactDOM.render(
 	<DispatchScreen />, document.getElementById('react-area')
 ); 
-
-
-
-

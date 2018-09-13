@@ -151,6 +151,7 @@ urlpatterns = patterns('',
     url(r'^authorizedcheckpoints/update/(?P<pk>[0-9]+)/$', login_required(authorized_views.UpdateAuthorizedCheckpoints.as_view())),
     #Checkpoint Control
     url(r'^mobilecheckpoint/$', login_required(mobile_views.WorkerAuthorizedCheckpointView.as_view())),
+    url(r'^mobilecheckpoint/legacy/(?P<pk>[0-9]+)/$', login_required(mobile_views.MobileCheckpointControlLegacyView.as_view()), name="mobile_checkpoint-legacy"),
     url(r'^mobilecheckpoint/(?P<pk>[0-9]+)/$', login_required(mobile_views.MobileCheckpointControlView.as_view()), name="mobile_checkpoint"),
     #App API
     url(r'^oauth2/', include('provider.oauth2.urls', namespace = 'oauth2')),

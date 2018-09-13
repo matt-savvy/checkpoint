@@ -69,10 +69,11 @@ class RacerCheckpointView(APIView):
     permission_classes = (IsAuthenticated,)
     
     def post(self, request, *args, **kwargs):
-                
+        import pdb
+        ##pdb.set_trace()
         current_race = RaceControl.shared_instance().current_race
         
-        racer_number = request.DATA['racer_number']
+        racer_number = request.DATA.get('racer_number')
         checkpoint = request.DATA['checkpoint']
         
         #check for race entry object
@@ -82,7 +83,7 @@ class RacerCheckpointView(APIView):
             
             race_entry = RaceEntry.objects.filter(racer=racer).filter(race=current_race)
             available_runs = get_available_runs(race_entry, checkpoint)
-            
+            serialized_runs = RunSerializer(available_runs)
             serialized_racer = RacerSerializer(racer)
             
             return Response({'racer' : serialized_racer.data, 'runs' : serialized_runs.data, 'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)

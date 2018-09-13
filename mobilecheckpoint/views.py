@@ -6,6 +6,20 @@ from nacccusers.models import NACCCUser
 from nacccusers.auth import AuthorizedRaceOfficalMixin
 
 class MobileCheckpointControlView(TemplateView):
+    template_name = 'checkpoint_control_react.html'
+    
+    def render_to_response(self, context, **response_kwargs):
+        response = super(MobileCheckpointControlView, self).render_to_response(context, **response_kwargs)
+        checkpoint = get_object_or_404(Checkpoint, pk=self.kwargs['pk'])
+        response.set_cookie('checkpointID', checkpoint.pk)
+        return response
+    
+    def get_context_data(self, **kwargs):
+        checkpoint = get_object_or_404(Checkpoint, pk=kwargs['pk'])
+        context = {'checkpoint' : checkpoint}
+        return context
+        
+class MobileCheckpointControlLegacyView(TemplateView):
     template_name = 'checkpoint_control.html'
     
     def get_context_data(self, **kwargs):
