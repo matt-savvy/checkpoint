@@ -1,6 +1,7 @@
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 from rest_framework.test import APIRequestFactory
 from races.models import Race
+from nacccusers.models import NACCCUser
 from checkpoints.models import Checkpoint
 from racecontrol.models import RaceControl
 from jobs.models import Job
@@ -14,8 +15,10 @@ import sys
 from time import sleep
 from jobs.factories import JobFactory
 
-class RacerDetailView(APITestCase):
+class RacerCheckpointViewTestCase(APITestCase):
     def setUp(self):
+        import pdb
+        #pdb.set_trace()
         self.eastern = pytz.timezone('US/Eastern')
         self.now = datetime.datetime.now(tz=self.eastern)
         self.race = Race(race_name='Test Race', race_type=Race.RACE_TYPE_DISPATCH, race_start_time=self.now)
@@ -29,6 +32,14 @@ class RacerDetailView(APITestCase):
         self.drop_checkpoint.save()
         self.other_checkpoint = Checkpoint(checkpoint_number=3, checkpoint_name="Test Checkpoint 3")
         self.other_checkpoint.save()
+        
+        self.checkpoint_worker = NACCCUser()
+        self.checkpoint_worker.save()
+        self.checkpoint_worker.authorized_checkpoints.add(self.pick_checkpoint)
+        self.checkpoint_worker.save()
+        
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.checkpoint_worker)
         
         self.ready_now_job = Job(job_id=1, race=self.race, pick_checkpoint=self.pick_checkpoint, drop_checkpoint=self.drop_checkpoint, minutes_ready_after_start=0)
         self.ready_now_job.save()
@@ -45,7 +56,7 @@ class RacerDetailView(APITestCase):
         self.dq_entry = RaceEntry(racer=self.dq_racer, race=self.race, entry_status=RaceEntry.ENTRY_STATUS_DQD)
         self.dq_entry.save()
     
-        self.raceentry = RaceEntry(racer=self.racer, race=self.race)
+        self.raceentry = RaceEntry(racer=self.racer, race=self.race, entry_status=RaceEntry.ENTRY_STATUS_RACING)
         self.raceentry.save()
         
         self.cut_entry = RaceEntryFactory(race=self.race, entry_status=RaceEntry.ENTRY_STATUS_CUT)
@@ -60,13 +71,17 @@ class RacerDetailView(APITestCase):
         self.race.populate_runs(self.dnf_entry)
         
     def test_correct_job_available(self):
-        data = {'racer_number' : '320', 
+        runs = Run.objects.filter(race_entry=self.raceentry)
+        for run in runs:
+            run.status = Run.RUN_STATUS_ASSIGNED
+            run.save()
+        
+        racer_number = str(self.raceentry.racer.racer_number)
+        data = {'racer_number' : racer_number, 
                 'checkpoint': 1,
         }
-        response = self.client.post('/api/v1/pick/', data, format='json')
+        response = self.client.post('/api/v1/racer/', data, format='json')
         self.assertEqual(response.data, self.assertEqual(response.data, {'error' : False, 'error_title' : None, 'error_description' : None, 'available_jobs': None}))
-        
-        
         
 class PickTestCase(APITestCase):
     
@@ -113,7 +128,7 @@ class PickTestCase(APITestCase):
                 'checkpoint': 1,
                 'job_number' : 1
         }
-        response = self.client.post('/api/v1/pick/', data, format='json')
+        response = self.client.post('/api/v1/racer/', data, format='json')
         self.assertEqual(response.data, {'confirm_code' : None, 'error' : True, 'error_title' : 'Cannot Find Racer', 'error_description' : 'No racer found with racer number 999.'})
     
     def test_racer_at_correct_checkpoint(self):

@@ -6,7 +6,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CheckpointSerializer, RacerSerializer
-from ajax.serializers import JobSerializer
+from ajax.serializers import JobSerializer, RunSerializer
 from checkpoints.models import Checkpoint
 from racers.models import Racer
 from racecontrol.models import RaceControl
@@ -56,7 +56,7 @@ class CheckpointIdentificationView(APIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-class RacerDetailViewOld(generics.RetrieveAPIView):
+class RacerDetailView(generics.RetrieveAPIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
@@ -64,11 +64,12 @@ class RacerDetailViewOld(generics.RetrieveAPIView):
     model = Racer
     lookup_field = 'racer_number'
     
-class RacerDetailView(APIView):
+class RacerCheckpointView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
     def post(self, request, *args, **kwargs):
+                
         current_race = RaceControl.shared_instance().current_race
         
         racer_number = request.DATA['racer_number']
@@ -78,22 +79,17 @@ class RacerDetailView(APIView):
         racer = Racer.objects.filter(racer_number=racer_number).first()
         
         if racer:
-            import pdb
-            pdb.set_trace()
+            
             race_entry = RaceEntry.objects.filter(racer=racer).filter(race=current_race)
             available_runs = get_available_runs(race_entry, checkpoint)
-            available_jobs = []
-            for run in available_runs:
-                available_jobs.append(run.job)
             
             serialized_racer = RacerSerializer(racer)
-            serialized_jobs = JobSerializer(available_jobs)
-            return Response({'racer' : serialized_racer.data, 'runs' : serialized_jobs.data, 'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
+            
+            return Response({'racer' : serialized_racer.data, 'runs' : serialized_runs.data, 'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
             
         else:
             return Response({'error' : True, 'error_title' : 'Cannot Find Racer', 'error_description' : 'No racer found with racer number {}.'.format(str(racer_number))}, status=status.HTTP_200_OK)
-            
-        return 
+
     
 class PickView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)

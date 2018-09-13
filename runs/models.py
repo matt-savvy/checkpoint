@@ -50,7 +50,7 @@ class Run(models.Model):
     
     class Meta:
         ordering = ['job__minutes_ready_after_start', 'race_entry__starting_position']
-    
+        
     def __unicode__(self):
         return u"({}){}:{}".format(self.RUN_STATUS_CHOICES[self.status][1], self.race_entry.racer, self.job)
     

@@ -159,6 +159,6 @@ urlpatterns = patterns('',
     url(r'^api/v1/drop/$', app_views.DropView.as_view()),
     url(r'^api/v1/ping/$', app_views.PingView.as_view()),
     url(r'^api/v1/id/$', app_views.CheckpointIdentificationView.as_view()),
-    url(r'^api/v1/racer/$', app_views.RacerDetailView.as_view()),
-    url(r'^api/v1/racer/(?P<racer_number>[0-9]+)/$', app_views.RacerDetailViewOld.as_view()),
+    url(r'^api/v1/racer/$', app_views.RacerCheckpointView.as_view()),
+    url(r'^api/v1/racer/(?P<racer_number>[0-9]+)/$', app_views.RacerDetailView.as_view()),
 )

@@ -51,3 +51,9 @@ class JobSerializer(serializers.ModelSerializer):
         model = Job
         depth = 2
         fields = ('pick_checkpoint', 'drop_checkpoint',)
+        
+class RunSerializer(serializers.ModelSerializer):
+    job = JobSerializer()
+    class Meta:
+        model = Run
+        fields = ('id', 'job')
