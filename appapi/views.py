@@ -71,10 +71,6 @@ class RacerDetailView(APIView):
     def post(self, request, *args, **kwargs):
         current_race = RaceControl.shared_instance().current_race
         
-        ### FIX THIS 
-        from races.models import Race
-        current_race = Race.objects.get(race_name='test race one')
-        
         racer_number = request.DATA['racer_number']
         checkpoint = request.DATA['checkpoint']
         
@@ -82,7 +78,8 @@ class RacerDetailView(APIView):
         racer = Racer.objects.filter(racer_number=racer_number).first()
         
         if racer:
-            
+            import pdb
+            pdb.set_trace()
             race_entry = RaceEntry.objects.filter(racer=racer).filter(race=current_race)
             available_runs = get_available_runs(race_entry, checkpoint)
             available_jobs = []

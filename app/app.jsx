@@ -252,9 +252,7 @@ class DispatchScreen extends React.Component {
 			      }.bind(this));
 		}.bind(this)) 
 	}
-	undo () {
-		console.log("pretend we undid an action");
-		
+	undo () {		
 		this.setState({disabled:'disabled'});
 		
 		var csrfToken = getCookie('csrftoken');
@@ -348,7 +346,7 @@ class DispatchScreen extends React.Component {
 				}
 					
 			} else if (currentMessage.message_type == MESSAGE_TYPE_NOTHING ){
-				showRefresh= true;
+				showRefresh = true;
 				}
 			message = <Message message={currentMessage}/>
 		} else {

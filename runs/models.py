@@ -71,11 +71,15 @@ class Run(models.Model):
     
     def assign(self):
         time_now = datetime.datetime.now(tz=pytz.utc)
-        if time_now >= self.utc_time_ready and self.status == self.RUN_STATUS_DISPATCHING:
+        if self.utc_time_ready:
+            if not time_now >= self.utc_time_ready:
+                return
+        if self.status == self.RUN_STATUS_DISPATCHING:
             self.status = self.RUN_STATUS_ASSIGNED
             self.determination = self.DETERMINATION_NOT_PICKED
             self.utc_time_assigned = time_now
             self.save()
+            print "run assigned"
     
     def pick(self):
         if self.status == self.RUN_STATUS_ASSIGNED:

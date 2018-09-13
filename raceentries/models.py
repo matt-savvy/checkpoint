@@ -185,5 +185,4 @@ class RaceEntry(models.Model):
         return "%02d:%02d:%02d" % (h, m, s)
             
             
-            
 
