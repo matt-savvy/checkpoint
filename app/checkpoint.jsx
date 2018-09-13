@@ -40,29 +40,100 @@ class EnterRacer extends React.Component {
 		var racerNumber = e.target.value;
 		this.setState({entryField : racerNumber});
 	}
-	handleLookup(racerNumber) {
+	handleLookup() {
 		this.props.racerLookup(this.state.entryField);
+		this.setState({entryField:''});
 	}
 	handleSubmit(e) {
 		e.preventDefault();
-		this.props.racerLookup(this.state.entryField);
+		this.handleLookup();
+	
+	}
+	componentDidUpdate(){
+		if (this.state.entryField.length >= 3) {
+			this.handleLookup();
+		}
 	}
 	render() {
-		if (this.state.entryField.length >= 3) {
-			this.handleLookup()
-		}
 		
 		return (
 			<div className="row state-section" id="racer-number-section" style={{display:'flex'}}>
             		<div className="form-group">
                 		<label htmlFor="racer-number">Racer Number</label>
-                		<p className="text-danger" id="racer-error"></p>
                 		<input type="number" className="form-control" id="racer-number" placeholder="Racer #" onChange={this.handleEntry.bind(this)} value={this.state.entryField}/>
             		</div>
+				
             	<button type="button" className="btn btn-success" id="lookup-racer-button" onClick={this.handleLookup.bind(this)} data-loading-text="Loading...">Lookup Racer</button>
+				<p className="text-danger" id="racer-error">{this.props.error_description}</p>
 			</div>
 		)
 			
+	}
+}
+
+var DATA = {
+    "racer": {
+        "id": 1, 
+        "racer_number": "89", 
+        "first_name": "Ricky", 
+        "last_name": "Roma", 
+        "nick_name": "", 
+        "email": "matt@1-800-rad-dude.com", 
+        "city": "Philadelphia", 
+        "gender": "M", 
+        "category": 0, 
+        "shirt_size": "S", 
+        "paid": false, 
+        "paypal_tx": "", 
+        "team": "track flag", 
+        "company": "timecycle"
+    }, 
+    "error_description": null, 
+    "runs": [
+        {
+            "id": 1, 
+            "job": {
+                "pick_checkpoint": {
+                    "id": 1, 
+                    "checkpoint_number": 1, 
+                    "checkpoint_name": "Abus", 
+                    "notes": ""
+                }, 
+                "drop_checkpoint": {
+                    "id": 9, 
+                    "checkpoint_number": 9, 
+                    "checkpoint_name": "Indy NACCC", 
+                    "notes": ""
+                }
+            }
+        }
+    ], 
+    "error_title": null, 
+    "error": false
+}
+
+class Racer extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			mode : null
+		}
+	}
+	handleWrongRacer() {
+		this.props.wrongRacer();
+	}
+	render () {
+		console.log(this.props.racer);
+		return (
+			<div className="row state-section" id="pick-or-drop-section" style={{display:'flex'}}>
+			<h3 className="text-center" id="racer-name">#{this.props.racer.racer_number} {this.props.racer.first_name} {this.props.racer.nick_name}{this.props.racer.last_name}</h3>
+            
+			<p><button type="button" id="pick-button" className="btn btn-success btn-lg" >Pick Up</button>
+            <button type="button" id="drop-button" className="btn btn-success btn-lg" >Drop Off</button></p>
+            <hr />
+            <p className="text-center"><button type="button" id="wrong-racer-button" onClick={this.handleWrongRacer.bind(this)} className="btn btn-danger btn-sm">Wrong Racer</button></p>
+       	 </div>
+		)
 	}
 }
 
@@ -87,9 +158,13 @@ class Checkpoint extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			availablePickups:null,
-			racer:null,
+			racer:DATA.racer,
+			error:null,
+			error_description:null,
 		}
+	}
+	wrongRacer() {
+		this.setState({racer: null, availableRuns:null, error:null, error_description:null,})
 	}
 	racerLookup(racer){
 		console.log(racer)
@@ -118,6 +193,11 @@ class Checkpoint extends React.Component {
 			response.json().then(function(data) {
 				console.log(data);
 				
+				if (data.error){
+					this.setState({error_description : data.error_description})
+				} else {
+					this.setState({racer:data.racer, availableRuns:data.runs})
+				}
 		    }.bind(this));
 	
 		}.bind(this))
@@ -166,9 +246,13 @@ class Checkpoint extends React.Component {
 		}.bind(this))
 	}
 	render(){
-
+		if (this.state.racer) {
+			return (
+				<Racer racer={this.state.racer} wrongRacer={this.wrongRacer.bind(this)} error_description={this.state.error_description} />
+			)
+		}
 		return (
-			<EnterRacer racerLookup={this.racerLookup.bind(this)} />
+			<EnterRacer racerLookup={this.racerLookup.bind(this)} error_description={this.state.error_description} />
 		)
 	}
 }
