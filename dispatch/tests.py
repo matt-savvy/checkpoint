@@ -12,6 +12,8 @@ from runs.factories import RunFactory
 import datetime
 import pytz
 import pdb
+from django.conf import settings
+from django.db.models import Q
 
 class MessageTestCase(TestCase):
     def setUp(self):
@@ -44,7 +46,7 @@ class MessageTestCase(TestCase):
 
         self.assertTrue("Blank Message" in message.__unicode__())
         
-    def test_confirm_dispatch(self):
+    def test_confirm_message(self):
         self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_RACING
         self.race_entry.save()
         message = Message(race=self.race, race_entry=self.race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH)
@@ -332,6 +334,81 @@ class get_next_message_TestCase(TestCase):
         for run in next_message.runs.all():
             self.assertTrue(run in Run.objects.filter(race_entry=self.race_entry_one))
     
+    def test_get_next_message_when_rider_has_more_than_13_assigned_jobs(self):
+        Run.objects.all().delete()
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        runs = RunFactory.create_batch(settings.OPEN_RUN_LIMIT, race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
+        last_run = RunFactory(race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        print last_run
+        print next_message
+        self.assertFalse(last_run in next_message.runs.all())
+        self.assertNotEqual(next_message.race_entry, self.race_entry_one)
+    
+    def test_get_next_message_when_rider_has_more_than_13_picked_jobs(self):
+        Run.objects.all().delete()
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        runs = RunFactory.create_batch(settings.OPEN_RUN_LIMIT, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PICKED)
+        last_run = RunFactory(race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        print last_run
+        print next_message
+        self.assertFalse(last_run in next_message.runs.all())
+        self.assertNotEqual(next_message.race_entry, self.race_entry_one)
+    
+    def test_get_next_message_when_rider_has_more_than_13_assigned_or_picked_jobs(self):
+        Run.objects.all().delete()
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        RunFactory.create_batch(6, race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
+        RunFactory.create_batch(7, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PICKED)
+        last_run = RunFactory(race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        print last_run
+        print next_message
+        self.assertFalse(last_run in next_message.runs.all())
+        self.assertNotEqual(next_message.race_entry, self.race_entry_one)
+        
+    def test_get_next_message_when_rider_has_plenty_of_completed_jobs(self):
+        Run.objects.all().delete()
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        RunFactory.create_batch(6, race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
+        RunFactory.create_batch(13, race_entry=self.race_entry_one, status=Run.RUN_STATUS_COMPLETED)
+        last_run = RunFactory(race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        print last_run
+        print next_message
+        self.assertTrue(last_run in next_message.runs.all())
+    
+    def test_get_next_message_when_rider_will_pass_open_job_limit(self):
+        """we'll set them at 10 jobs and make sure that even though there are 5 that are pending for him coming up, we only give him 3 more"""
+        Run.objects.all().delete()
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
+        RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PICKED)
+        last_possible_runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        very_last_runs = last_possible_runs[:3]
+
+        denied_last_runs = last_possible_runs[3:5]
+        
+        next_message = get_next_message(self.race)
+        
+        self.assertEqual(Run.objects.filter(race_entry=self.race_entry_one).exclude(status=Run.RUN_STATUS_PENDING).count(), settings.OPEN_RUN_LIMIT)
+        
+        for run in very_last_runs:
+            self.assertTrue(run in next_message.runs.all())
+            
+        for run in denied_last_runs:
+            self.assertFalse(run in next_message.runs.all())
+        
         ##make sure we
         #only get jobs for the correct racer
         #only get jobs that are not already assigned, picked, or complete

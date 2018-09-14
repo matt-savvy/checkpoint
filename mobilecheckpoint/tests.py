@@ -86,6 +86,7 @@ class MobileCheckpointTestCase(TestCase):
         self.assertFalse(self.run_one in runs)
         
     def test_multiple_runs(self):
+        
         self.run_two_one.status = Run.RUN_STATUS_ASSIGNED
         self.run_two_one.save()
         self.run_two_two.status = Run.RUN_STATUS_ASSIGNED

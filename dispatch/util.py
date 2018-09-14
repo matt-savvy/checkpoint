@@ -6,12 +6,19 @@ from jobs.models import Job
 from django.db.models import Q
 import datetime
 import pytz
+from django.conf import settings
 
 def assign_runs(runs_to_assign, race_entry):
     message = Message(race=race_entry.race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH, status=Message.MESSAGE_STATUS_DISPATCHING)
     message.save()
     right_now = datetime.datetime.now(tz=pytz.utc)
     
+    current_count = run_count(race_entry)
+    if current_count + runs_to_assign.count() > 13:
+        
+        difference = settings.OPEN_RUN_LIMIT - current_count
+        runs_to_assign = runs_to_assign[:difference]
+        
     for run in runs_to_assign:
         message.runs.add(run)
         run.status = Run.RUN_STATUS_DISPATCHING    
@@ -22,6 +29,10 @@ def assign_runs(runs_to_assign, race_entry):
     #TODO assign dispatcher to message
     return message
 
+def run_count(race_entry):
+    current_run_count = Run.objects.filter(race_entry=race_entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_PICKED)).count()
+    return current_run_count
+    
 def get_next_message(race, dispatcher=None):
     if race.race_type != Race.RACE_TYPE_DISPATCH:
         message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
@@ -72,7 +83,6 @@ def get_next_message(race, dispatcher=None):
             return assign_runs(runs_to_assign, race_entry)
         else:
             #see if there are any jobs on the bonus manifest that they haven't already done
-            import pdb
             manifest = Manifest.objects.filter(race=race).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
             if manifest:
                 runs_done_by_racer = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_COMPLETED).filter(job__manifest=manifest)
@@ -95,13 +105,22 @@ def get_next_message(race, dispatcher=None):
             #there is no bonus manifest, the bonus manifest has no jobs that racer hasn't done, or it is after the bonus manifest cut off
             #so we cut the rider
                 
-            
+    
+    
     runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
     
-    if runs:
+    while runs.exists():
         race_entry = runs.first().race_entry
         runs_to_assign = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
-        return assign_runs(runs_to_assign, race_entry)
+        
+        if run_count(race_entry) < settings.OPEN_RUN_LIMIT:
+            
+            
+            return assign_runs(runs_to_assign, race_entry)
+        else:
+            for run in runs_to_assign:
+                run.utc_time_ready__lte = right_now + datetime.timedelta(minutes=5)
+                run.save()
     
     message = Message(race=race, message_type=Message.MESSAGE_TYPE_NOTHING)
     message.save()

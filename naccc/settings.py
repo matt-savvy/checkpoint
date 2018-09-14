@@ -198,6 +198,7 @@ PAYPAL_RECEIVER_EMAIL = "philabma@gmail.com"
 REGISTRATION_PRICE = "80.00"
 VOLUNTEER_PRICE = "20.00"
 LOGIN_REDIRECT_URL = "admin"
+OPEN_RUN_LIMIT = 13
 
 try:
     from .local_settings import *
