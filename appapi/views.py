@@ -80,14 +80,14 @@ class RacerCheckpointView(APIView):
         racer = Racer.objects.filter(racer_number=racer_number).first()
         
         if racer:
-            
             race_entry = RaceEntry.objects.filter(racer=racer).filter(race=current_race)
-            available_runs = get_available_runs(race_entry, checkpoint)
-            serialized_runs = RunSerializer(available_runs)
-            serialized_racer = RacerSerializer(racer)
+            if race_entry:
+                available_runs = get_available_runs(race_entry, checkpoint)
+                serialized_runs = RunSerializer(available_runs)
+                serialized_racer = RacerSerializer(racer)
             
-            return Response({'racer' : serialized_racer.data, 'runs' : serialized_runs.data, 'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
-            
+                return Response({'racer' : serialized_racer.data, 'runs' : serialized_runs.data, 'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
+                
         else:
             return Response({'error' : True, 'error_title' : 'Cannot Find Racer', 'error_description' : 'No racer found with racer number {}.'.format(str(racer_number))}, status=status.HTTP_200_OK)
 

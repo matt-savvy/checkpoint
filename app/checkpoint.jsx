@@ -41,7 +41,10 @@ class EnterRacer extends React.Component {
 		this.setState({entryField : racerNumber});
 	}
 	handleLookup() {
-		this.props.racerLookup(this.state.entryField);
+		if (this.state.entryField != ''){
+			this.props.racerLookup(this.state.entryField);
+		}
+		
 		this.setState({entryField:''});
 	}
 	handleSubmit(e) {
@@ -112,6 +115,27 @@ var DATA = {
     "error": false
 }
 
+class PickList extends React.Component {
+	handleCancel() {
+		//this.props.wrongRacer();
+		console.log("pretend we cancelled");
+	}
+	handlePick(e) {
+		console.log("pretend we picked " + e.target.value);
+	}
+	render() {
+		var PickList = this.props.runs.map(function(run){
+			return <p><button type="button" onClick={this.handlePick.bind(this)} key={run.id} value={run.id} className="btn btn-success btn-lg" >to {run.pick_checkpoint.checkpoint_name}</button></p>
+		});
+		
+		return (
+			<div>
+				PickList;
+			</div>
+		)
+	}
+}
+
 class Racer extends React.Component {
 	constructor(props) {
 		super(props);
@@ -123,11 +147,13 @@ class Racer extends React.Component {
 		this.props.wrongRacer();
 	}
 	render () {
-		console.log(this.props.racer);
+		
 		return (
 			<div className="row state-section" id="pick-or-drop-section" style={{display:'flex'}}>
-			<h3 className="text-center" id="racer-name">#{this.props.racer.racer_number} {this.props.racer.first_name} {this.props.racer.nick_name}{this.props.racer.last_name}</h3>
+			<h3 className="text-center" id="racer-name">#{this.props.racer.racer_number} {this.props.racer.first_name} {this.props.racer.nick_name} {this.props.racer.last_name}</h3>
             
+			<PickList runs={this.props.runs} />
+			
 			<p><button type="button" id="pick-button" className="btn btn-success btn-lg" >Pick Up</button>
             <button type="button" id="drop-button" className="btn btn-success btn-lg" >Drop Off</button></p>
             <hr />
@@ -159,6 +185,7 @@ class Checkpoint extends React.Component {
 		super(props);
 		this.state = {
 			racer:DATA.racer,
+			available_runs:DATA.runs,
 			error:null,
 			error_description:null,
 		}
@@ -167,7 +194,11 @@ class Checkpoint extends React.Component {
 		this.setState({racer: null, availableRuns:null, error:null, error_description:null,})
 	}
 	racerLookup(racer){
-		console.log(racer)
+		
+		if (String(racer).charAt(0) == '0') {
+			racer = racer.slice(1,3)
+		}
+		
 		var csrfToken = getCookie('csrftoken');
 		var racerRequest = {}
 		racerRequest.racer_number = racer;
@@ -190,9 +221,7 @@ class Checkpoint extends React.Component {
           		alert('Looks like there was a problem. Status Code: ' + response.status);
 				return;
 			}
-			response.json().then(function(data) {
-				console.log(data);
-				
+			response.json().then(function(data) {				
 				if (data.error){
 					this.setState({error_description : data.error_description})
 				} else {
@@ -247,8 +276,9 @@ class Checkpoint extends React.Component {
 	}
 	render(){
 		if (this.state.racer) {
+			
 			return (
-				<Racer racer={this.state.racer} wrongRacer={this.wrongRacer.bind(this)} error_description={this.state.error_description} />
+				<Racer racer={this.state.racer} wrongRacer={this.wrongRacer.bind(this)} runs={this.state.available_runs} error_description={this.state.error_description} />
 			)
 		}
 		return (
