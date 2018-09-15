@@ -25,3 +25,12 @@ class Job(models.Model):
     def abosolute_ready_time(self):
         if self.race.race_start_time:
             return self.race.race_start_time + datetime.timedelta(minutes=self.minutes_ready_after_start)
+    
+    @property
+    def service(self):
+        if self.minutes_due_after_start < 10:
+            return "DOUBLE RUSH"
+        elif self.minutes_due_after_start < 20:
+            return "RUSH"
+        else:
+            return "REGULAR"

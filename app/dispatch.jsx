@@ -136,8 +136,16 @@ class Message extends React.Component {
 		
 		if (this.props.message.runs){
 			runs = this.props.message.runs.map(function(run) {
-				return (<div key={"run " + run.id} >Pickup from <strong>{run.job.pick_checkpoint.checkpoint_name}</strong> 
+				var service, alertClass;
+				if ((run.job.service == "RUSH") || (run.job.service == "DOUBLE RUSH")){
+					console.log(run.job.service)
+					service = run.job.service;
+					alertClass = "alert-danger"
+				}
+				
+				return (<div key={"run " + run.id} className={alertClass} >Pickup from <strong>{run.job.pick_checkpoint.checkpoint_name}</strong> 
 					<br/> going to <strong>{run.job.drop_checkpoint.checkpoint_name}</strong>
+					{service && <p>{service}, due in {run.job.minutes_due_after_start} minutes!</p>}
 					<hr />
 					</div>)
 			});

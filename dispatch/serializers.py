@@ -5,9 +5,10 @@ from dispatch.models import Message
 
 class RunSerializer(serializers.ModelSerializer):
     job = JobSerializer()
+    localized_due_time = serializers.CharField(source='localized_due_time')
     class Meta:
         model = Run
-        fields = ('job', 'status', 'id', 'utc_due_time')
+        fields = ('job', 'status', 'id', 'localized_due_time')
 
 #TODO add message time in some kind of readable format
 class MessageSerializer(serializers.ModelSerializer):

@@ -88,7 +88,7 @@ class Message(models.Model):
         self.status = self.MESSAGE_STATUS_SNOOZED
         self.save()
         for run in self.runs.all():
-            run.status = Run.RUN_STATUS_DISPATCHING
+            run.status = Run.RUN_STATUS_PENDING
             run.save()
         #TODO add logging
         return self

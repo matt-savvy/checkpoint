@@ -61,7 +61,15 @@ class Run(models.Model):
     def determination_as_string(self):
         index = [i for i, v in enumerate(self.DETERMINATION_CHOICES) if v[0] == self.determination]
         return self.DETERMINATION_CHOICES[index[0]][1]
-        
+    
+    @property
+    def localized_due_time(self):
+        eastern = pytz.timezone('US/Eastern')
+        if self.utc_time_due:
+            return self.utc_time_due.astimezone(eastern).strftime('%I:%M %p')
+        else:
+            return "N/A"
+    
     def assign(self):
         time_now = datetime.datetime.now(tz=pytz.utc)
         if self.utc_time_ready:

@@ -191,8 +191,8 @@ class DropView(APIView):
                 
         #Check to make sure Racer hasn't already dropped off job
         if run.status == Run.RUN_STATUS_COMPLETED:
-            central = pytz.timezone('US/Central')
-            drop_time_localized = run.utc_time_dropped.astimezone(central).strftime('%I:%M %p')
+            eastern = pytz.timezone('US/Eastern')
+            drop_time_localized = run.utc_time_dropped.astimezone(eastern).strftime('%I:%M %p')
             return Response({'error' : True, 'error_title' : 'Job already dropped off', 'error_description' : 'The run was already dropped off at {}.'.format(str(drop_time_localized))}, status=status.HTTP_200_OK)
         
         run.drop()
