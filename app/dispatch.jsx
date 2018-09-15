@@ -160,6 +160,7 @@ class Message extends React.Component {
 		if (this.props.message.message_type == MESSAGE_TYPE_DISPATCH) {
 			return (
 				<div><h2>{this.props.message.message_type_as_string} {racerName} </h2>
+				<h4>{this.props.message.race_entry.racer.contact_info}</h4>
 				<hr width="50%" />
 				<br /><h3>{runs}</h3>
 				</div>

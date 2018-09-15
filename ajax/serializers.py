@@ -30,7 +30,7 @@ class RacerSerializer(serializers.ModelSerializer):
     category_as_string = serializers.CharField(source='category_as_string')
     class Meta:
         model = Racer
-        fields = ('racer_number', 'first_name', 'last_name', 'nick_name', 'city', 'gender', 'category', 'display_name', 'category_as_string')
+        fields = ('racer_number', 'first_name', 'last_name', 'nick_name', 'city', 'gender', 'category', 'display_name', 'category_as_string', 'contact_info')
 
 class RaceEntrySerializer(serializers.ModelSerializer):
     entry_status_as_string = serializers.CharField(source='entry_status_as_string')

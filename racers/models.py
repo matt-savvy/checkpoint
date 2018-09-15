@@ -49,6 +49,8 @@ class Racer(models.Model):
     paypal_tx = models.CharField(blank=True, max_length=100)
     team = models.CharField(blank=True, max_length=100)
     company = models.CharField(blank=True, max_length=100)
+    radio_number = models.CharField(blank=True, max_length=100)
+    contact_info = models.CharField(blank=True, max_length=100)
     
     class Meta:
         ordering = ['last_name']

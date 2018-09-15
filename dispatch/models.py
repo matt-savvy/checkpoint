@@ -73,8 +73,7 @@ class Message(models.Model):
         
         if self.message_type == self.MESSAGE_TYPE_DISPATCH:
             for run in self.runs.all():
-                run.status = Run.RUN_STATUS_ASSIGNED
-                run.save()
+                run.assign()
             
         elif self.message_type == self.MESSAGE_TYPE_OFFICE:
             self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_CUT
