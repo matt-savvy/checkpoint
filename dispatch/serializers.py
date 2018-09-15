@@ -7,7 +7,7 @@ class RunSerializer(serializers.ModelSerializer):
     job = JobSerializer()
     class Meta:
         model = Run
-        fields = ('job', 'status', 'id')
+        fields = ('job', 'status', 'id', 'utc_due_time')
 
 #TODO add message time in some kind of readable format
 class MessageSerializer(serializers.ModelSerializer):

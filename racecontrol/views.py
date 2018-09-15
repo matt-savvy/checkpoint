@@ -68,12 +68,12 @@ class RacerDetailAjaxView(AuthorizedRaceOfficalMixin, TemplateView):
             context['race_entry'] = race_entry[0]
             runs = Run.objects.filter(race_entry__race__pk=self.request.GET['race']).filter(race_entry__racer__racer_number=self.request.GET['racer'])
             context['runs'] = runs
-            central_tz = pytz.timezone('US/Central')
+            eastern_tz = pytz.timezone('US/Eastern')
             
             if race_entry[0].start_time:
-                start_time = race_entry[0].start_time.astimezone(central_tz)
+                start_time = race_entry[0].start_time.astimezone(eastern_tz)
                 context['start_time'] = datetime.datetime.strftime(start_time, '%I:%M %p')
-                context['due_back_time'] = datetime.datetime.strftime(race_entry[0].time_due_back(central_tz), '%I:%M %p')
+                context['due_back_time'] = datetime.datetime.strftime(race_entry[0].time_due_back(eastern_tz), '%I:%M %p')
             
             if race_entry[0].entry_status == RaceEntry.ENTRY_STATUS_RACING:
                 context['time_status'] = 'Current Elasped Time'
@@ -114,16 +114,16 @@ class RaceStatusView(AuthorizedRaceOfficalMixin, TemplateView):
         context['race'] = Race.objects.get(pk=kwargs['pk'])
         context['current_race'] = current_race
         
-        central = pytz.timezone('US/Central')
+        eastern = pytz.timezone('US/Eastern')
         if current_race.race_start_time:
             context['start_time_set'] = True
             context['start_time_set'] = True
-            race_start = current_race.race_start_time.astimezone(central)
+            race_start = current_race.race_start_time.astimezone(eastern)
             context['race_start_date'] = race_start.strftime('%Y-%m-%d')
             context['race_start_time'] = race_start.strftime('%H:%M')
         else:
             context['start_time_set'] = False
-            race_start = datetime.datetime.now(tz=central).astimezone(central)
+            race_start = datetime.datetime.now(tz=eastern).astimezone(eastern)
             context['race_start_date'] = race_start.strftime('%Y-%m-%d')
             context['race_start_time'] = race_start.strftime('%H:%M')
             context['start_time_set'] = False

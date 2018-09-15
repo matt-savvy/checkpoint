@@ -49,7 +49,7 @@ class StartRacerAjaxView(APIView):
         if len(race_entry) == 0:
             return Response({'detail' : 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
         if race_entry[0].start_racer():
-            tz = pytz.timezone('US/Central')
+            tz = pytz.timezone('US/Eastern')
             time_due_back_string = race_entry[0].time_due_back(tz).strftime('%I:%M %p')
             
             RaceLog(racer=race_entry[0].racer, race=race_entry[0].race, user=request.user, log="Racer started in race.", current_grand_total=race_entry[0].grand_total, current_number_of_runs=race_entry[0].number_of_runs_completed).save()
@@ -217,8 +217,8 @@ class SetRaceStartTime(APIView):
         race = Race.objects.get(pk=request.DATA['race'])
         date_string = request.DATA['start_time']
         start_time = datetime.datetime.strptime(date_string, '%Y-%m-%d %H:%M')
-        central = pytz.timezone('US/Central')
-        localized_start_time = central.localize(start_time)
+        eastern = pytz.timezone('US/Eastern')
+        localized_start_time = eastern.localize(start_time)
         race.race_start_time = localized_start_time
         race.save()
         return Response()
