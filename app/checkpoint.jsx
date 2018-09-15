@@ -1,6 +1,14 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 
+
+const MODE_PICK = "pick";
+const MODE_PICKED = "confirm";
+const MODE_DROP = "drop";
+const MODE_DROPPED = "dropped";
+const MODE_LOOKUP_RACER = "lookup";
+const MODE_RACER_ENTERED = "entered";
+
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -121,16 +129,25 @@ class PickList extends React.Component {
 		console.log("pretend we cancelled");
 	}
 	handlePick(e) {
-		console.log("pretend we picked " + e.target.value);
+		console.log(e.id);
+		console.log("pretend we picked " + e.id);
+		this.props.handlePick(e.id);
 	}
 	render() {
-		var PickList = this.props.runs.map(function(run){
-			return <p><button type="button" onClick={this.handlePick.bind(this)} key={run.id} value={run.id} className="btn btn-success btn-lg" >to {run.pick_checkpoint.checkpoint_name}</button></p>
-		});
+		var PickList;
+		
+		if (this.props.runs) {
+			PickList = this.props.runs.map((run) => 
+		 		<p key={run.id} ><button type="button" onClick={this.handlePick.bind(this, run)} key={run.id} value={run.id} className="btn btn-info btn-lg" >{run.job.drop_checkpoint.checkpoint_name}</button></p>
+			);
+		} else {
+			PickList = <div className="alert alert-danger"><h4>There is nothing for this racer to pick up at this checkpoint. Did you mean to drop off? </h4></div>
+		}
 		
 		return (
-			<div>
-				PickList;
+			<div className="row container">
+				<legend>Available Pickups</legend>
+				{PickList}
 			</div>
 		)
 	}
@@ -139,26 +156,37 @@ class PickList extends React.Component {
 class Racer extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			mode : null
-		}
 	}
 	handleWrongRacer() {
 		this.props.wrongRacer();
 	}
-	render () {
-		
+	handleMode(x) {
+		console.log("mode");
+		console.log(x.target.value);
+		this.props.changeMode(x.target.value);
+	}
+	handlePick(run) {
+		console.log("handle pick in racer component");
+		console.log(run);
+	}
+	render () {		
 		return (
 			<div className="row state-section" id="pick-or-drop-section" style={{display:'flex'}}>
 			<h3 className="text-center" id="racer-name">#{this.props.racer.racer_number} {this.props.racer.first_name} {this.props.racer.nick_name} {this.props.racer.last_name}</h3>
-            
-			<PickList runs={this.props.runs} />
 			
-			<p><button type="button" id="pick-button" className="btn btn-success btn-lg" >Pick Up</button>
-            <button type="button" id="drop-button" className="btn btn-success btn-lg" >Drop Off</button></p>
+			<button type="button" id="wrong-racer-button" onClick={this.handleWrongRacer.bind(this)} className="btn btn-danger btn-sm">CANCEL</button>
+			
+			{(this.props.mode == MODE_RACER_ENTERED) && <p><button onClick={this.handleMode.bind(this)} value={MODE_PICK} type="button" id="pick-button" className="btn btn-success btn-lg" >Pick Up</button>
+            <button onClick={this.handleMode.bind(this)} type="button" value={MODE_DROP} className="btn btn-success btn-lg" >Drop Off</button></p>}
+			
+			{(this.props.mode == MODE_PICK) && <PickList handlePick={this.handlePick.bind(this)} runs={this.props.runs} />}
+			
             <hr />
-            <p className="text-center"><button type="button" id="wrong-racer-button" onClick={this.handleWrongRacer.bind(this)} className="btn btn-danger btn-sm">Wrong Racer</button></p>
-       	 </div>
+			
+			
+			
+			
+		 </div>
 		)
 	}
 }
@@ -184,17 +212,20 @@ class Checkpoint extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			racer:DATA.racer,
-			available_runs:DATA.runs,
+			racer:null,
+			availableRuns:null,
 			error:null,
 			error_description:null,
+			mode:MODE_LOOKUP_RACER,
 		}
 	}
 	wrongRacer() {
-		this.setState({racer: null, availableRuns:null, error:null, error_description:null,})
+		this.setState({racer: null, availableRuns:null, error:null, error_description:null, mode:MODE_LOOKUP_RACER})
+	}
+	changeMode(mode) {
+		this.setState({mode:mode});
 	}
 	racerLookup(racer){
-		
 		if (String(racer).charAt(0) == '0') {
 			racer = racer.slice(1,3)
 		}
@@ -223,67 +254,28 @@ class Checkpoint extends React.Component {
 			}
 			response.json().then(function(data) {				
 				if (data.error){
-					this.setState({error_description : data.error_description})
+					this.setState({error_description : data.error_description, mode:MODE_LOOKUP_RACER});
 				} else {
-					this.setState({racer:data.racer, availableRuns:data.runs})
+					this.setState({racer:data.racer, availableRuns:data.runs, mode:MODE_RACER_ENTERED});
 				}
 		    }.bind(this));
 	
 		}.bind(this))
 		
 	}
-	
-	getNextMessage() {		
-		this.setState({disabled:'disabled', feedback:null, currentMessage: 0});
-		var csrfToken = getCookie('csrftoken');
-		var nextMessageRequest = {};
-		nextMessageRequest.race = this.state.raceID;
-		var nextMessageRequestJSON = JSON.stringify(nextMessageRequest);
-		fetch("/dispatch/api/next_message/", {
-		  headers: {
-			'X-CSRFToken': csrfToken,
-	      	'Accept': 'application/json',
-	      	'Content-Type': 'application/json',
-	      },
-		  //credentials: 'include',
-		  method: "POST",
-		  body: nextMessageRequestJSON
-		})
-		.then(function(response) {
-			
-        	if (response.status !== 200) {
-          		alert('Looks like there was a problem. Status Code: ' + response.status);
-				return;
-			}
-			response.json().then(function(data) {
-				console.log(data);
-				var messages = this.state.messages;
-				
-				var recentMessage = this.state.messages[0];
-				if (recentMessage) {
-					if (recentMessage.message_type == MESSAGE_TYPE_NOTHING) {
-						messages.shift();
-					}
-				}
-				
-				messages.unshift(data);
-				this.setState({messages: messages, disabled:null});
-				
-				
-			      }.bind(this));
-	
-		}.bind(this))
-	}
 	render(){
-		if (this.state.racer) {
-			
+		//<PickList pickJob={this.pickJob.bind(this)} runs={this.props.runs} />
+				
+		if (this.state.mode == MODE_LOOKUP_RACER) {
 			return (
-				<Racer racer={this.state.racer} wrongRacer={this.wrongRacer.bind(this)} runs={this.state.available_runs} error_description={this.state.error_description} />
+				<EnterRacer mode={this.state.mode} racerLookup={this.racerLookup.bind(this)} error_description={this.state.error_description} />
+			)
+		} else {
+			console.log("sanity");
+			return (
+				<Racer mode={this.state.mode} racer={this.state.racer} wrongRacer={this.wrongRacer.bind(this)} changeMode={this.changeMode.bind(this)} runs={this.state.availableRuns} error_description={this.state.error_description} />
 			)
 		}
-		return (
-			<EnterRacer racerLookup={this.racerLookup.bind(this)} error_description={this.state.error_description} />
-		)
 	}
 }
 
