@@ -97,69 +97,74 @@ class PickView(APIView):
     permission_classes = (IsAuthenticated,)
     
     def post(self, request, *args, **kwargs):
+        import pdb
+        
         current_race = RaceControl.shared_instance().current_race
-        racer_number = request.DATA['racer_number']
-        job_number = request.DATA['job_number']
-        checkpoint = request.DATA['checkpoint']
+        racer_number = request.DATA.get('racer_number')
+        run_number = request.DATA.get('run')
+        checkpoint = request.DATA.get('checkpoint')
         
-        #Check for job number
-        job_count = Job.objects.filter(job_id=job_number).filter(race=current_race).count()
-        if job_count == 0:
-            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Cannot Find Job', 'error_description' : 'No job found with job number {}.'.format(str(job_number))}, status=status.HTTP_200_OK)
+        run = Run.objects.filter(pk=run_number).filter(race_entry__racer__racer_number=racer_number).filter()
         
-        #Job is valid, get the job.
-        job = Job.objects.filter(job_id=job_number).filter(race=current_race).first()
+        #Check for run
+        if not run.exists():
+            pdb.set_trace()
+            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Cannot Find Job', 'error_description' : 'No job found.'}, status=status.HTTP_200_OK)
+        
+        #run is valid
+        run = run.first()
         
         #Check to make sure racer is at right checkpoint
-        if job.pick_checkpoint.pk != checkpoint:
-            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Wrong Checkpoint', 'error_description' : 'This pick up needs to be made at {}.'.format(str(job.pick_checkpoint.checkpoint_name))}, status=status.HTTP_200_OK)
+        if run.job.pick_checkpoint.pk != checkpoint:
+            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Wrong Checkpoint', 'error_description' : 'This pick up needs to be made at {}.'.format(str(run.job.pick_checkpoint.checkpoint_name))}, status=status.HTTP_200_OK)
                 
         #Make sure the racer is entered in the race
-        race_entry_count = RaceEntry.objects.filter(race=current_race).filter(racer__racer_number=racer_number).count()
+        race_entry = RaceEntry.objects.filter(race=current_race).filter(racer__racer_number=racer_number)
         
-        if race_entry_count == 0:
+        if not race_entry.exists():
             return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer not entered in race.', 'error_description' : 'No racer found with racer number {} is entered in this race.'.format(str(racer_number))}, status=status.HTTP_200_OK)
         
         #Racer is in race, grab her/his race entry
-        race_entry = RaceEntry.objects.filter(race=current_race).filter(racer__racer_number=racer_number).first()
+        race_entry = race_entry.first()
         
         #Check to make sure Racer is not DQ'd
         if race_entry.entry_status == RaceEntry.ENTRY_STATUS_DQD:
-            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer has been Disqualified', 'error_description' : 'Race #{} has been disqualified from the race. Have the racer report to HQ if they have any questions.'.format(str(racer_number))}, status=status.HTTP_200_OK)
+            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer has been Disqualified', 'error_description' : '#{} has been disqualified from the race. Have the racer report to HQ if they have any questions.'.format(str(racer_number))}, status=status.HTTP_200_OK)
         
-        #Check if Racer has done Job
-        run_count = Run.objects.filter(job=job).filter(race_entry=race_entry).count()
+        #Check if Racer has already picked or dropped this run
         
-        if run_count != 0:
-            previous_run = Run.objects.filter(job=job).filter(race_entry=race_entry).first()
-            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer already did job.', 'error_description' : 'The racer has already done job {}, the confirm code was {}'.format(str(job_number), str(previous_run.pk))}, status=status.HTTP_200_OK)
+        if run.status == Run.RUN_STATUS_PICKED:
+            pick_time_localized = localize_time(run.utc_time_picked)
+            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer already picked up job.', 'error_description' : 'The racer has already picked job {}, the confirm code was {} at {}'.format(str(run.job), str(run.pk), pick_time_localized)}, status=status.HTTP_200_OK)
+        elif run.status == Run.RUN_STATUS_COMPLETED:
+            drop_time_localized = localize_time(run.utc_time_dropped)
+            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer already delivered job.', 'error_description' : 'The racer has already done job {}, the confirm code was {}'.format(str(run.job), drop_time_localized)}, status=status.HTTP_200_OK)
         
-        #Check if job is ready
-        ready_time = current_race.race_start_time.astimezone(pytz.utc) + datetime.timedelta(minutes=job.minutes_ready_after_start)
-        
-        if datetime.datetime.now(tz=pytz.utc) <= ready_time:
-            central = pytz.timezone('US/Central')
-            ready_time_localized = ready_time.astimezone(central).strftime('%I:%M %p')
-            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Job is not ready yet.', 'error_description' : 'Job is ready until {}.'.format(ready_time_localized)}, status=status.HTTP_200_OK)
+        #check if job is ready
+        if datetime.datetime.now(tz=pytz.utc) <= run.utc_time_ready:            
+            ready_time_localized = localize_time(run.utc_time_ready)
+            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Job is not ready yet.', 'error_description' : 'Job is not ready until {}.'.format(ready_time_localized)}, status=status.HTTP_200_OK)
         
         #Check to see if job is still alive
-        due_time = current_race.race_start_time.astimezone(pytz.utc) + datetime.timedelta(minutes=job.minutes_due_after_start)
-        if datetime.datetime.now(tz=pytz.utc) > due_time:
-            central = pytz.timezone('US/Central')
-            due_time_localized = due_time.astimezone(central).strftime('%I:%M %p')
-            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Job is Dead.', 'error_description' : 'Job died at {}.'.format(due_time_localized)}, status=status.HTTP_200_OK)
+        #
+        #due_time = current_race.race_start_time.astimezone(pytz.utc) + datetime.timedelta(minutes=run.job.minutes_due_after_start)
+        #if datetime.datetime.now(tz=pytz.utc) > due_time:
+        #    due_time_localized = localize_time(due_time)
+        #    return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Job is Dead.', 'error_description' : 'Job died at {}.'.format(due_time_localized)}, status=status.HTTP_200_OK)
         
         #All checks have passed, lets create the run
-        run = Run()
-        run.pick(job, race_entry)
+        run.pick()
         
         try:
-            RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer picked up job #{}".format(str(job_number)), current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
+            RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer picked up run #{}".format(str(run.pk)), current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
         except:
             pass
         
         return Response({'confirm_code' : run.pk, 'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
-        
+
+def localize_time(utc_time):
+    eastern = pytz.timezone('US/Eastern')
+    return utc_time.astimezone(eastern).strftime('%I:%M %p')
 
 class DropView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)

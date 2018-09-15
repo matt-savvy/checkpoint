@@ -168,6 +168,7 @@ class Racer extends React.Component {
 	handlePick(run) {
 		console.log("handle pick in racer component");
 		console.log(run);
+		this.props.pick(run);
 	}
 	render () {		
 		return (
@@ -257,6 +258,41 @@ class Checkpoint extends React.Component {
 					this.setState({error_description : data.error_description, mode:MODE_LOOKUP_RACER});
 				} else {
 					this.setState({racer:data.racer, availableRuns:data.runs, mode:MODE_RACER_ENTERED});
+				}
+		    }.bind(this));
+	
+		}.bind(this))
+		
+	}
+	pick(run){
+		var csrfToken = getCookie('csrftoken');
+		var pickRequest = {}
+		pickRequest.racer = this.state.racer.id
+		pickRequest.run = run;
+		pickRequest.checkpoint = checkpoint;
+		var pickRequestJSON = JSON.stringify(pickRequest);
+		
+		fetch("/api/v1/pick/", {
+		  headers: {
+			'X-CSRFToken': csrfToken,
+	      	'Accept': 'application/json',
+	      	'Content-Type': 'application/json',
+	      },
+		  //credentials: 'include',
+		  method: "POST",
+		  body: pickRequestJSON
+		})
+		.then(function(response) {
+			
+        	if (response.status !== 200) {
+          		alert('Looks like there was a problem. Status Code: ' + response.status);
+				return;
+			}
+			response.json().then(function(data) {				
+				if (data.error){
+					this.setState({error_description : data.error_description, mode:MODE_LOOKUP_RACER});
+				} else {
+					this.setState({racer:data.racer, confirmCode:data.confirm, availableRuns:data.runs, mode:MODE_RACER_PICKED});
 				}
 		    }.bind(this));
 	

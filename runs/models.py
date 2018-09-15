@@ -44,6 +44,7 @@ class Run(models.Model):
     points_awarded = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
     utc_time_ready = models.DateTimeField(blank=True, null=True)
     utc_time_assigned = models.DateTimeField(blank=True, null=True)
+    utc_time_due = models.DateTimeField(blank=True, null=True)
     utc_time_picked = models.DateTimeField(blank=True, null=True)
     utc_time_dropped = models.DateTimeField(blank=True, null=True)
     completion_seconds = models.IntegerField(default=0)
@@ -60,15 +61,7 @@ class Run(models.Model):
     def determination_as_string(self):
         index = [i for i, v in enumerate(self.DETERMINATION_CHOICES) if v[0] == self.determination]
         return self.DETERMINATION_CHOICES[index[0]][1]
-    
-    #def pick(self, job, race_entry):
-    #    self.job = job
-    #    self.race_entry = race_entry
-    #    self.status = self.RUN_STATUS_PICKED
-    #    self.determination = self.DETERMINATION_NOT_DROPPED
-    #    self.utc_time_picked = datetime.datetime.now(tz=pytz.utc)
-    #    self.save()
-    
+        
     def assign(self):
         time_now = datetime.datetime.now(tz=pytz.utc)
         if self.utc_time_ready:
@@ -78,6 +71,7 @@ class Run(models.Model):
             self.status = self.RUN_STATUS_ASSIGNED
             self.determination = self.DETERMINATION_NOT_PICKED
             self.utc_time_assigned = time_now
+            self.utc_time_due = time_now + datetime.timedelta(self.job.minutes_due_after_start)
             self.save()
             print "run assigned"
     
@@ -87,6 +81,7 @@ class Run(models.Model):
             self.determination = self.DETERMINATION_NOT_DROPPED
             self.utc_time_picked = datetime.datetime.now(tz=pytz.utc)
             self.save()
+            print "run picked"
     
     def drop(self):
         if self.status == self.RUN_STATUS_PICKED:

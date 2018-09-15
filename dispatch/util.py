@@ -23,6 +23,7 @@ def assign_runs(runs_to_assign, race_entry):
         message.runs.add(run)
         run.status = Run.RUN_STATUS_DISPATCHING    
         run.utc_time_ready = right_now
+        ##TODO if job.deadline : add the job deadline to the run object and save that.
         run.save()
     message.save()
     

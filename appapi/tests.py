@@ -86,9 +86,10 @@ class RacerCheckpointViewTestCase(APITestCase):
 class PickTestCase(APITestCase):
     
     def setUp(self):
-        self.central = pytz.timezone('US/Central')
-        self.now = datetime.datetime.now(tz=self.central)
-        self.race = Race(race_name='Test Race', race_type=Race.RACE_TYPE_FINALS, race_start_time=self.now)
+        self.eastern = pytz.timezone('US/Eastern')
+    
+        self.now = datetime.datetime.now(tz=self.eastern)
+        self.race = Race(race_name='Test Race', race_type=Race.RACE_TYPE_DISPATCH, race_start_time=self.now)
         self.race.save()
         self.race_control = RaceControl(current_race=self.race)
         self.race_control.save()
@@ -121,52 +122,71 @@ class PickTestCase(APITestCase):
         
         self.raceentry = RaceEntry(racer=self.racer, race=self.race)
         self.raceentry.save()
-    
-    def test_incorrect_racer_number(self):
         
+        self.race.populate_runs(self.raceentry)
+        self.race.populate_runs(self.dq_entry)
+        
+        self.checkpoint_worker = NACCCUser()
+        self.checkpoint_worker.save()
+        self.checkpoint_worker.authorized_checkpoints.add(self.pick_checkpoint)
+        self.checkpoint_worker.save()
+        
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.checkpoint_worker)
+        
+        
+    def test_incorrect_racer_number(self):
         data = {'racer_number' : '999', 
                 'checkpoint': 1,
-                'job_number' : 1
+                'run_number' : 1
         }
         response = self.client.post('/api/v1/racer/', data, format='json')
         self.assertEqual(response.data, {'confirm_code' : None, 'error' : True, 'error_title' : 'Cannot Find Racer', 'error_description' : 'No racer found with racer number 999.'})
     
     def test_racer_at_correct_checkpoint(self):
-        data = {'racer_number' : '320', 
+        run = Run.objects.filter(race_entry__racer__racer_number=320).filter(job__job_id=1).first()
+        data = {'racer_number' : 320, 
                 'checkpoint': 3,
-                'job_number' : 1
+                'run' : run.id,
         }
         response = self.client.post('/api/v1/pick/', data, format='json')
         self.assertEqual(response.data, {'confirm_code' : None, 'error' : True, 'error_title' : 'Wrong Checkpoint', 'error_description' : 'This pick up needs to be made at Test Checkpoint 1.'})
     
     def test_incorrect_job_number(self):
+        run = Run.objects.order_by('pk').last()
+        run_pk = run.id + 5
         data = {'racer_number' : '320', 
                 'checkpoint': 1,
-                'job_number' : 5
+                'run' : run_pk,
         }
         response = self.client.post('/api/v1/pick/', data, format='json')
-        self.assertEqual(response.data, {'confirm_code' : None, 'error' : True, 'error_title' : 'Cannot Find Job', 'error_description' : 'No job found with job number 5.'})
+        self.assertEqual(response.data, {'confirm_code' : None, 'error' : True, 'error_title' : 'Cannot Find Job', 'error_description' : 'No job found.'})
     
     def test_job_is_not_ready(self):
-        data = {'racer_number' : '320', 
+        run = Run.objects.filter(race_entry__racer__racer_number=320).filter(job__job_id=1).first()
+        run.utc_time_ready = self.now + datetime.timedelta(minutes=self.test_minutes_offset)
+        run.save()
+        data = {'racer_number' : 320, 
                 'checkpoint': 1,
-                'job_number' : 2
+                'run' : run.id,
         }
         response = self.client.post('/api/v1/pick/', data, format='json')
         test_time = self.now + datetime.timedelta(minutes=self.test_minutes_offset)
-        test_time = test_time.astimezone(self.central).strftime('%I:%M %p')
-        self.assertEqual(response.data, {'confirm_code' : None, 'error' : True, 'error_title' : 'Job is not ready yet.', 'error_description' : 'Job is ready until {}.'.format(test_time)})
+        test_time = test_time.astimezone(self.eastern).strftime('%I:%M %p')
+        self.assertEqual(response.data, {'confirm_code' : None, 'error' : True, 'error_title' : 'Job is not ready yet.', 'error_description' : 'Job is not ready until {}.'.format(test_time)})
     
     def test_job_is_dead(self):
-        data = {'racer_number' : '320', 
+        run = Run.objects.filter(race_entry__racer__racer_number=320).filter(job__job_id=1).first()
+        run.utc_due_time = self.now - datetime.timedelta(minutes=5)
+        
+        data = {'racer_number' : 320, 
                 'checkpoint': 1,
-                'job_number' : 3
+                'run' : run.id,
         }
-        print "Sleeping for 70 seconds"
-        sleep(70)
+
         response = self.client.post('/api/v1/pick/', data, format='json')
         due_time = self.race.race_start_time.astimezone(pytz.utc) + datetime.timedelta(minutes=self.dead_job.minutes_due_after_start)
-        due_time_localized = due_time.astimezone(self.central).strftime('%I:%M %p')
+        due_time_localized = due_time.astimezone(self.eastern).strftime('%I:%M %p')
         self.assertEqual(response.data, {'confirm_code' : None, 'error' : True, 'error_title' : 'Job is Dead.', 'error_description' : 'Job died at {}.'.format(due_time_localized)})
         
     
@@ -201,8 +221,8 @@ class PickTestCase(APITestCase):
         
 class DropTestCase(APITestCase):
     def setUp(self):
-        self.central = pytz.timezone('US/Central')
-        self.now = datetime.datetime.now(tz=self.central)
+        self.eastern = pytz.timezone('US/Eastern')
+        self.now = datetime.datetime.now(tz=self.eastern)
         self.race = Race(race_name='Test Race', race_type=Race.RACE_TYPE_FINALS, race_start_time=self.now)
         self.race.save()
         self.race_control = RaceControl(current_race=self.race)
@@ -257,7 +277,7 @@ class DropTestCase(APITestCase):
                 'confirm_code' : 1
         }
         response = self.client.post('/api/v1/drop/', data, format='json')
-        drop_time = datetime.datetime.now(tz=self.central).strftime('%I:%M %p')
+        drop_time = datetime.datetime.now(tz=self.eastern).strftime('%I:%M %p')
         response = self.client.post('/api/v1/drop/', data, format='json')
         self.assertEqual(response.data, {'error' : True, 'error_title' : 'Job already dropped off', 'error_description' : 'The run was already dropped off at {}.'.format(drop_time)})
     
