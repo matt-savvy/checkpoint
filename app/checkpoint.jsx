@@ -68,14 +68,19 @@ class EnterRacer extends React.Component {
 	render() {
 		
 		return (
-			<div className="row state-section" id="racer-number-section" style={{display:'flex'}}>
-            		<div className="form-group">
+			<div className="row">
+				<div className="col">
+					<form onSubmit={this.handleSubmit.bind(this)} className="form">
+					<div className="form-group">
                 		<label htmlFor="racer-number">Racer Number</label>
                 		<input type="number" className="form-control" id="racer-number" placeholder="Racer #" onChange={this.handleEntry.bind(this)} value={this.state.entryField}/>
             		</div>
-				
-            	<button type="button" className="btn btn-success" id="lookup-racer-button" onClick={this.handleLookup.bind(this)} data-loading-text="Loading...">Lookup Racer</button>
-				<p className="text-danger" id="racer-error">{this.props.error_description}</p>
+
+						<button type="button" className="btn btn-lg btn-success" id="lookup-racer-button" onClick={this.handleLookup.bind(this)} data-loading-text="Loading...">Lookup Racer</button>
+			
+					</form>
+         		<p className="text-danger" id="racer-error">{this.props.error_description}</p>
+				</div>
 			</div>
 		)
 			
@@ -109,14 +114,22 @@ class EnterCode extends React.Component {
 		}
 		
 		return (
-			<div className="row state-section" id="racer-number-section" style={{display:'flex'}}>
-            		<div className="form-group">
-                		<label htmlFor="racer-number">Drop Code</label>
-                		<input type="number" className="form-control" id="racer-number" placeholder="Drop Code" onChange={this.handleEntry.bind(this)} value={this.state.entryField}/>
-            		</div>
+			<div className="row">
+				<div className="col">
+					<form onSubmit={this.handleSubmit.bind(this)} className="form">
+            			<div className="form-group">
+                			<label htmlFor="racer-number">Drop Code</label>
+                			<input type="number" className="form-control" id="racer-number" placeholder="Drop Code" onChange={this.handleEntry.bind(this)} value={this.state.entryField}/>
+            			</div>
+					
+						<button type="button" className="btn btn-success" id="enter-drop-code" onClick={this.handleLookup.bind(this)} data-loading-text="Loading...">Drop Job</button>
+					</form>
+				</div>
 				
-            	<button type="button" className="btn btn-success" id="enter-drop-code" onClick={this.handleLookup.bind(this)} data-loading-text="Loading...">Drop Job</button>
-				<p className="text-danger" id="drop-error">{this.props.error_description}</p>
+				<div className="row">
+					<p className="text-danger" id="drop-error">{this.props.error_description}</p>
+				</div>
+			
 			</div>
 		)
 			
@@ -142,26 +155,36 @@ class PickList extends React.Component {
 		
 		if (this.props.runs.length > 0) {
 			PickList = this.props.runs.map((run) => 
-		 		<p key={run.id} ><button type="button" onClick={this.handlePick.bind(this, run)} key={run.id} value={run.id} className="btn btn-info btn-lg" >{run.job.drop_checkpoint.checkpoint_name}</button></p>
+		 	<div className="col" key={run.id}>
+				<br />
+				<button type="button" onClick={this.handlePick.bind(this, run)} key={run.id} value={run.id} className="btn btn-info btn-lg" >{run.job.drop_checkpoint.checkpoint_name}</button>
+			</div>
 			);
 		} else {
 			return (
-				<div>
-					<div className="alert alert-danger"><h4>There is nothing for this racer to pick up at this checkpoint. Did you mean to drop off?</h4>
-				</div>
-				
-				<button className="btn btn-large-info" type="button" onClick={this.handleDropMode.bind(this)}>Drop Off</button>
-				
-				<button className="btn btn-large-info" type="button" onClick={this.handleCancel.bind(this)}>Next Racer</button>
+				<div className="text-center">
+					<div className="alert alert-danger">
+						<h4>There is nothing for this racer to pick up at this checkpoint. Did you mean to drop off?</h4>
+					</div>
+					<div className="row">
+						<div className="col">
+							<button className="btn btn-primary btn-lg" type="button" onClick={this.handleDropMode.bind(this)}>Drop Off</button>
+				        </div>
+						<div className="col">
+							<button className="btn btn-secondary btn-lg" type="button" onClick={this.handleCancel.bind(this)}>Next Racer</button>
+						</div>
+					</div>
 				
 				</div>
 			)
 		}
 		
 		return (
-			<div className="row container">
+			<div>
 				<legend>Available Pickups</legend>
-				{PickList}
+				<div className="row">
+					{PickList}
+				</div>
 			</div>
 		)
 	}
@@ -191,11 +214,17 @@ class NextActionDialog extends React.Component {
 	render () {
 		return (
 			<div className="row">
-			<button className="btn btn-large-info"  onClick={this.handleAnotherTransaction.bind(this, MODE_PICK)}>Pick Up</button>
-			<button className="btn btn-large-info" onClick={this.handleAnotherTransaction.bind(this, MODE_DROP)}>Drop Off</button>
+				<div className="col">
+					<button className="btn btn-large-info"  onClick={this.handleAnotherTransaction.bind(this, MODE_PICK)}>Pick Up</button>
+				</div>
 			
-			<hr />
-			<button className="btn btn-large-success" onClick={this.handleNextRacer.bind(this)}>Next Racer</button>
+				<div className="col">
+					<button className="btn btn-large-info" onClick={this.handleAnotherTransaction.bind(this, MODE_DROP)}>Drop Off</button>
+				</div>
+				
+				<div className="col">
+					<button className="btn btn-large-success" onClick={this.handleNextRacer.bind(this)}>Next Racer</button>
+				</div>
 			</div>
 		)
 	}
@@ -243,28 +272,40 @@ class Racer extends React.Component {
 	}
 	render () {		
 		return (
-			<div className="row state-section" id="pick-or-drop-section" style={{display:'flex'}}>
-			<h3 className="text-center" id="racer-name">#{this.props.racer.racer_number} {this.props.racer.first_name} {this.props.racer.nick_name} {this.props.racer.last_name}</h3>
+		<div>
+			<div className="row">
+				<div className="col">
+					<CancelButton mode={this.props.mode} nextRacer={this.props.nextRacer.bind(this)} />
 			
-			<CancelButton mode={this.props.mode} nextRacer={this.props.nextRacer.bind(this)} />
+					<h3 className="text-center">
+						#{this.props.racer.racer_number} {this.props.racer.first_name} {this.props.racer.nick_name} {this.props.racer.last_name} 
+						<br /> 
+						<small>
+						{this.props.racer.contact_info}
+						</small>	
+					</h3>
+				</div>
+			</div>
+						
+					{(this.props.mode == MODE_RACER_ENTERED) && 
+					<div className="row text-center">
+						<div className="col">
+							<button onClick={this.handleMode.bind(this, MODE_PICK)} value={MODE_PICK} type="button" id="pick-button" className="btn btn-success btn-lg" >Pick Up</button>
+            			</div>
+						<div className="col">
+							<button onClick={this.handleMode.bind(this, MODE_DROP)} type="button" value={MODE_DROP} className="btn btn-success btn-lg" >Drop Off</button>
+						</div>	
+					</div>
+					}
+				
+					{(this.props.mode == MODE_PICK) && <PickList nextRacer={this.props.nextRacer.bind(this)} changeMode={this.handleMode.bind(this)} handlePick={this.handlePick.bind(this)} runs={this.props.runs} />}
+					{(this.props.mode == MODE_PICKED) && <ConfirmCode confirmCode={this.props.confirmCode} />}
+					{(this.props.mode == MODE_DROPPED) && <div className="alert alert-success">Job successfully delivered.</div>}
+					{(this.props.mode == MODE_PICKED || this.props.mode == MODE_DROPPED) && <NextActionDialog anotherTransaction={this.props.anotherTransaction.bind(this)} nextRacer={this.handleNextRacer.bind(this)}/>}
 			
-			{(this.props.mode == MODE_RACER_ENTERED) && <p>
-				<button onClick={this.handleMode.bind(this, MODE_PICK)} value={MODE_PICK} type="button" id="pick-button" className="btn btn-success btn-lg" >Pick Up</button>
-            	<button onClick={this.handleMode.bind(this, MODE_DROP)} type="button" value={MODE_DROP} className="btn btn-success btn-lg" >Drop Off</button>
-			</p>}
-			
-			{(this.props.mode == MODE_PICK) && <PickList nextRacer={this.props.nextRacer.bind(this)} changeMode={this.handleMode.bind(this)} handlePick={this.handlePick.bind(this)} runs={this.props.runs} />}
-			{(this.props.mode == MODE_PICKED) && <ConfirmCode confirmCode={this.props.confirmCode} />}
-			{(this.props.mode == MODE_DROPPED) && <div className="alert alert-success">Job successfully delivered.</div>}
-			{(this.props.mode == MODE_PICKED || this.props.mode == MODE_DROPPED) && <NextActionDialog anotherTransaction={this.props.anotherTransaction.bind(this)} nextRacer={this.handleNextRacer.bind(this)}/>}
-			
-			<EnterCode mode={this.props.mode} drop={this.props.drop.bind(this)} error_description={this.props.error_description}/>
-            <hr />
-			
-			
-			
-			
-		 </div>
+					<EnterCode mode={this.props.mode} drop={this.props.drop.bind(this)} error_description={this.props.error_description}/>
+   			
+			</div>
 		)
 	}
 }
