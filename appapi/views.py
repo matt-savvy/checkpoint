@@ -91,7 +91,6 @@ class RacerCheckpointView(APIView):
         else:
             return Response({'error' : True, 'error_title' : 'Cannot Find Racer', 'error_description' : 'No racer found with racer number {}.'.format(str(racer_number))}, status=status.HTTP_200_OK)
 
-    
 class PickView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)

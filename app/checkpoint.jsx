@@ -180,20 +180,20 @@ class NextActionDialog extends React.Component {
 	constructor(props) {
 		super(props);
 	}
-	handleAnotherTransaction(e){
-		this.props.anotherTransaction(e.target.value);
+	handleAnotherTransaction(x){
+		this.props.anotherTransaction(x);
 	}
 	handleNextRacer(e){
 		this.props.nextRacer();
 	}
 	render () {
 		return (
-			<div>
-			<button className="btn btn-large-info" value={MODE_PICK} onClick={this.handleAnotherTransaction.bind(this)}>Pick Up</button>
-			<button className="btn btn-large-info" value={MODE_DROP} onClick={this.handleAnotherTransaction.bind(this)}>Drop Off</button>
+			<div className="row">
+			<button className="btn btn-large-info"  onClick={this.handleAnotherTransaction.bind(this, MODE_PICK)}>Pick Up</button>
+			<button className="btn btn-large-info" onClick={this.handleAnotherTransaction.bind(this, MODE_DROP)}>Drop Off</button>
 			
 			<hr />
-			<button className="btn btn-large-success" value={MODE_} onClick={this.handleNextRacer.bind(this)}>Next Racer</button>
+			<button className="btn btn-large-success" onClick={this.handleNextRacer.bind(this)}>Next Racer</button>
 			</div>
 		)
 	}
@@ -232,9 +232,9 @@ class Racer extends React.Component {
 			</p>}
 			
 			{(this.props.mode == MODE_PICK) && <PickList nextRacer={this.props.nextRacer.bind(this)} changeMode={this.handleMode.bind(this)} handlePick={this.handlePick.bind(this)} runs={this.props.runs} />}
-			{(this.props.mode == MODE_PICKED) && <ConfirmCode code={this.props.confirmCode} />}
+			{(this.props.mode == MODE_PICKED) && <ConfirmCode confirmCode={this.props.confirmCode} />}
 			
-			{(this.props.mode == MODE_PICKED || this.props.mode == MODE_DROPPED) && <NextActionDialog anotherTransaction={this.props.anotherTransaction} nextRacer={this.handleNextRacer.bind(this)}/>}
+			{(this.props.mode == MODE_PICKED || this.props.mode == MODE_DROPPED) && <NextActionDialog anotherTransaction={this.props.anotherTransaction.bind(this)} nextRacer={this.handleNextRacer.bind(this)}/>}
 			
             <hr />
 			
@@ -247,41 +247,24 @@ class Racer extends React.Component {
 }
 
 class Checkpoint extends React.Component {
-	componentWillMount(){
-	  /*fetch('/exercises/api/list')
-	    .then(function(response) {
-	        	if (response.status !== 200) {
-	          		console.log('Looks like there was a problem. Status Code: ' + response.status);
-					return;
-				}
-	    		response.json().then(function(data) {
-  					this.setState({
-  						exercises : data
-  					});
-	     	 	}.bind(this));
-		}.bind(this))
-	    .catch(function(err) {
-	      console.log('Fetch Error :-S', err);
-	    });*/ 
-	}
 	constructor(props) {
 		super(props);
 		this.state = {
 			racer:null,
-			availableRuns:null,
+			availableRuns:[],
 			error:null,
 			error_description:null,
 			mode:MODE_LOOKUP_RACER,
 		}
 	}
 	nextRacer() {
-		this.setState({racer: null, availableRuns:null, error:null, error_description:null, mode:MODE_LOOKUP_RACER})
+		this.setState({racer: null, availableRuns:[], error:null, error_description:null, mode:MODE_LOOKUP_RACER})
 	}
 	changeMode(mode) {
 		this.setState({mode:mode});
 	}
-	anotherTransaction() {
-		this.setState({mode:MODE_RACER_ENTERED, availableRuns:null});
+	anotherTransaction(x) {
+		this.setState({mode:x});
 	}
 	racerLookup(racer){
 		if (String(racer).charAt(0) == '0') {
@@ -328,8 +311,16 @@ class Checkpoint extends React.Component {
 		pickRequest.racer_number = this.state.racer.racer_number
 		pickRequest.run = run;
 		pickRequest.checkpoint = Number(checkpoint);
-		
 		var pickRequestJSON = JSON.stringify(pickRequest);
+		
+		//remove the run we're picking from the list anyway
+		var availableRuns;
+		if (this.state.availableRuns.length > 1) {
+			availableRuns = this.state.availableRuns.splice(this.state.availableRuns.indexOf(run), 1);
+		} else {
+			availableRuns = [];
+		}
+
 		console.log(pickRequestJSON);
 		fetch("/api/v1/pick/", {
 		  headers: {
@@ -353,12 +344,11 @@ class Checkpoint extends React.Component {
 				if (data.error){
 					this.setState({error_description : data.error_description, mode:MODE_LOOKUP_RACER});
 				} else {
-					this.setState({confirmCode:data.confirm, mode:MODE_PICKED});
+					this.setState({confirmCode:data.confirm_code, mode:MODE_PICKED, availableRuns:availableRuns});
 				}
-		    }.bind(this));
+		    }.bind(this).bind(availableRuns));
 	
-		}.bind(this))
-		
+		}.bind(this).bind(availableRuns));
 	}
 	render(){				
 		if (this.state.mode == MODE_LOOKUP_RACER) {
