@@ -94,7 +94,10 @@ class Run(models.Model):
     def drop(self):
         if self.status == self.RUN_STATUS_PICKED:
             self.utc_time_dropped = datetime.datetime.now(tz=pytz.utc)
-            self.completion_seconds = (self.utc_time_dropped - self.utc_time_picked).seconds
+            try:
+                self.completion_seconds = (self.utc_time_dropped - self.utc_time_picked).seconds
+            except:
+                pass
             self.status = self.RUN_STATUS_COMPLETED
         
             if not self.race_entry.race.race_start_time:
@@ -103,7 +106,10 @@ class Run(models.Model):
                 return
         
             race = self.race_entry.race
-            job_due_time = race.race_start_time.astimezone(pytz.utc) + datetime.timedelta(minutes=self.job.minutes_due_after_start)
+            if not self.utc_time_due:
+                job_due_time = race.race_start_time.astimezone(pytz.utc) + datetime.timedelta(minutes=self.job.minutes_due_after_start)
+            else:
+                job_due_time = self.utc_time_due
             if self.utc_time_dropped <= job_due_time:
                 self.determination = self.DETERMINATION_OK
                 self.points_awarded = self.job.points
