@@ -122,14 +122,10 @@ class EnterCode extends React.Component {
                 			<input type="number" className="form-control" id="racer-number" placeholder="Drop Code" onChange={this.handleEntry.bind(this)} value={this.state.entryField}/>
             			</div>
 					
-						<button type="button" className="btn btn-success" id="enter-drop-code" onClick={this.handleLookup.bind(this)} data-loading-text="Loading...">Drop Job</button>
-					</form>
-				</div>
-				
-				<div className="row">
+						<button type="button" className="btn btn-lg btn-success" id="enter-drop-code" onClick={this.handleLookup.bind(this)} data-loading-text="Loading...">Drop Job</button>
+					</form>				
 					<p className="text-danger" id="drop-error">{this.props.error_description}</p>
 				</div>
-			
 			</div>
 		)
 			
@@ -196,7 +192,10 @@ class ConfirmCode extends React.Component {
 	}
 	render () {
 		return (
-			<h3>Drop Code : {this.props.confirmCode}</h3>
+			<div className="alert alert-success">
+				<p>Job is marked as picked up.</p>
+				<h3>Drop Code : {this.props.confirmCode}</h3>
+			</div>
 		)
 	}
 }
@@ -215,15 +214,15 @@ class NextActionDialog extends React.Component {
 		return (
 			<div className="row">
 				<div className="col">
-					<button className="btn btn-large-info"  onClick={this.handleAnotherTransaction.bind(this, MODE_PICK)}>Pick Up</button>
+					<button className="btn btn-primary"  onClick={this.handleAnotherTransaction.bind(this, MODE_PICK)}>Pick Up</button>
 				</div>
 			
 				<div className="col">
-					<button className="btn btn-large-info" onClick={this.handleAnotherTransaction.bind(this, MODE_DROP)}>Drop Off</button>
+					<button className="btn btn-secondary" onClick={this.handleAnotherTransaction.bind(this, MODE_DROP)}>Drop Off</button>
 				</div>
 				
 				<div className="col">
-					<button className="btn btn-large-success" onClick={this.handleNextRacer.bind(this)}>Next Racer</button>
+					<button className="btn btn-info" onClick={this.handleNextRacer.bind(this)}>Next Racer</button>
 				</div>
 			</div>
 		)
@@ -361,7 +360,7 @@ class Checkpoint extends React.Component {
 				if (data.error){
 					this.setState({error_description : data.error_description, mode:MODE_LOOKUP_RACER});
 				} else {
-					this.setState({racer:data.racer, availableRuns:data.runs, mode:MODE_RACER_ENTERED});
+					this.setState({racer:data.racer, availableRuns:data.runs, mode:MODE_RACER_ENTERED, error_description : null});
 				}
 		    }.bind(this));
 	
@@ -408,7 +407,7 @@ class Checkpoint extends React.Component {
 				if (data.error){
 					this.setState({error_description : data.error_description, mode:MODE_LOOKUP_RACER});
 				} else {
-					this.setState({confirmCode:data.confirm_code, mode:MODE_PICKED, availableRuns:availableRuns});
+					this.setState({confirmCode:data.confirm_code, mode:MODE_PICKED, availableRuns:availableRuns, error_description : null});
 				}
 		    }.bind(this).bind(availableRuns));
 	
