@@ -99,16 +99,17 @@ class PickView(APIView):
     def post(self, request, *args, **kwargs):
         import pdb
         
+        
         current_race = RaceControl.shared_instance().current_race
         racer_number = request.DATA.get('racer_number')
         run_number = request.DATA.get('run')
         checkpoint = request.DATA.get('checkpoint')
         
+        #pdb.set_trace()
         run = Run.objects.filter(pk=run_number).filter(race_entry__racer__racer_number=racer_number).filter()
         
         #Check for run
         if not run.exists():
-            pdb.set_trace()
             return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Cannot Find Job', 'error_description' : 'No job found.'}, status=status.HTTP_200_OK)
         
         #run is valid

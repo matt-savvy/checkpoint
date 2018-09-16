@@ -125,23 +125,35 @@ var DATA = {
 
 class PickList extends React.Component {
 	handleCancel() {
-		//this.props.wrongRacer();
-		console.log("pretend we cancelled");
+		this.props.nextRacer();
 	}
 	handlePick(e) {
 		console.log(e.id);
 		console.log("pretend we picked " + e.id);
 		this.props.handlePick(e.id);
 	}
+	handleDropMode(){
+		this.props.changeMode(MODE_DROP);
+	}
 	render() {
 		var PickList;
 		
-		if (this.props.runs) {
+		if (this.props.runs.length > 0) {
 			PickList = this.props.runs.map((run) => 
 		 		<p key={run.id} ><button type="button" onClick={this.handlePick.bind(this, run)} key={run.id} value={run.id} className="btn btn-info btn-lg" >{run.job.drop_checkpoint.checkpoint_name}</button></p>
 			);
 		} else {
-			PickList = <div className="alert alert-danger"><h4>There is nothing for this racer to pick up at this checkpoint. Did you mean to drop off? </h4></div>
+			return (
+				<div>
+					<div className="alert alert-danger"><h4>There is nothing for this racer to pick up at this checkpoint. Did you mean to drop off?</h4>
+				</div>
+				
+				<button className="btn btn-large-info" type="button" onClick={this.handleDropMode.bind(this)}>Drop Off</button>
+				
+				<button className="btn btn-large-info" type="button" onClick={this.handleCancel.bind(this)}>Next Racer</button>
+				
+				</div>
+			)
 		}
 		
 		return (
@@ -153,17 +165,54 @@ class PickList extends React.Component {
 	}
 }
 
+class ConfirmCode extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	render () {
+		return (
+			<h3>Drop Code : {this.props.confirmCode}</h3>
+		)
+	}
+}
+
+class NextActionDialog extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	handleAnotherTransaction(e){
+		this.props.anotherTransaction(e.target.value);
+	}
+	handleNextRacer(e){
+		this.props.nextRacer();
+	}
+	render () {
+		return (
+			<div>
+			<button className="btn btn-large-info" value={MODE_PICK} onClick={this.handleAnotherTransaction.bind(this)}>Pick Up</button>
+			<button className="btn btn-large-info" value={MODE_DROP} onClick={this.handleAnotherTransaction.bind(this)}>Drop Off</button>
+			
+			<hr />
+			<button className="btn btn-large-success" value={MODE_} onClick={this.handleNextRacer.bind(this)}>Next Racer</button>
+			</div>
+		)
+	}
+}
+
+
 class Racer extends React.Component {
 	constructor(props) {
 		super(props);
 	}
-	handleWrongRacer() {
-		this.props.wrongRacer();
+	handleNextRacer() {
+		this.props.nextRacer();
 	}
 	handleMode(x) {
 		console.log("mode");
-		console.log(x.target.value);
-		this.props.changeMode(x.target.value);
+		console.log(x)
+		this.props.changeMode(x)
+		//console.log(e.target.value);
+		//this.props.changeMode(e.target.value);
 	}
 	handlePick(run) {
 		console.log("handle pick in racer component");
@@ -175,12 +224,17 @@ class Racer extends React.Component {
 			<div className="row state-section" id="pick-or-drop-section" style={{display:'flex'}}>
 			<h3 className="text-center" id="racer-name">#{this.props.racer.racer_number} {this.props.racer.first_name} {this.props.racer.nick_name} {this.props.racer.last_name}</h3>
 			
-			<button type="button" id="wrong-racer-button" onClick={this.handleWrongRacer.bind(this)} className="btn btn-danger btn-sm">CANCEL</button>
+			<button type="button" id="wrong-racer-button" onClick={this.handleNextRacer.bind(this)} className="btn btn-danger btn-sm">CANCEL</button>
 			
-			{(this.props.mode == MODE_RACER_ENTERED) && <p><button onClick={this.handleMode.bind(this)} value={MODE_PICK} type="button" id="pick-button" className="btn btn-success btn-lg" >Pick Up</button>
-            <button onClick={this.handleMode.bind(this)} type="button" value={MODE_DROP} className="btn btn-success btn-lg" >Drop Off</button></p>}
+			{(this.props.mode == MODE_RACER_ENTERED) && <p>
+				<button onClick={this.handleMode.bind(this, MODE_PICK)} value={MODE_PICK} type="button" id="pick-button" className="btn btn-success btn-lg" >Pick Up</button>
+            	<button onClick={this.handleMode.bind(this, MODE_DROP)} type="button" value={MODE_DROP} className="btn btn-success btn-lg" >Drop Off</button>
+			</p>}
 			
-			{(this.props.mode == MODE_PICK) && <PickList handlePick={this.handlePick.bind(this)} runs={this.props.runs} />}
+			{(this.props.mode == MODE_PICK) && <PickList nextRacer={this.props.nextRacer.bind(this)} changeMode={this.handleMode.bind(this)} handlePick={this.handlePick.bind(this)} runs={this.props.runs} />}
+			{(this.props.mode == MODE_PICKED) && <ConfirmCode code={this.props.confirmCode} />}
+			
+			{(this.props.mode == MODE_PICKED || this.props.mode == MODE_DROPPED) && <NextActionDialog anotherTransaction={this.props.anotherTransaction} nextRacer={this.handleNextRacer.bind(this)}/>}
 			
             <hr />
 			
@@ -220,11 +274,14 @@ class Checkpoint extends React.Component {
 			mode:MODE_LOOKUP_RACER,
 		}
 	}
-	wrongRacer() {
+	nextRacer() {
 		this.setState({racer: null, availableRuns:null, error:null, error_description:null, mode:MODE_LOOKUP_RACER})
 	}
 	changeMode(mode) {
 		this.setState({mode:mode});
+	}
+	anotherTransaction() {
+		this.setState({mode:MODE_RACER_ENTERED, availableRuns:null});
 	}
 	racerLookup(racer){
 		if (String(racer).charAt(0) == '0') {
@@ -265,13 +322,15 @@ class Checkpoint extends React.Component {
 		
 	}
 	pick(run){
+		console.log("begin the pick request");
 		var csrfToken = getCookie('csrftoken');
 		var pickRequest = {}
-		pickRequest.racer = this.state.racer.id
+		pickRequest.racer_number = this.state.racer.racer_number
 		pickRequest.run = run;
-		pickRequest.checkpoint = checkpoint;
-		var pickRequestJSON = JSON.stringify(pickRequest);
+		pickRequest.checkpoint = Number(checkpoint);
 		
+		var pickRequestJSON = JSON.stringify(pickRequest);
+		console.log(pickRequestJSON);
 		fetch("/api/v1/pick/", {
 		  headers: {
 			'X-CSRFToken': csrfToken,
@@ -288,28 +347,27 @@ class Checkpoint extends React.Component {
           		alert('Looks like there was a problem. Status Code: ' + response.status);
 				return;
 			}
-			response.json().then(function(data) {				
+			response.json().then(function(data) {
+				console.log(data)
+							
 				if (data.error){
 					this.setState({error_description : data.error_description, mode:MODE_LOOKUP_RACER});
 				} else {
-					this.setState({racer:data.racer, confirmCode:data.confirm, availableRuns:data.runs, mode:MODE_RACER_PICKED});
+					this.setState({confirmCode:data.confirm, mode:MODE_PICKED});
 				}
 		    }.bind(this));
 	
 		}.bind(this))
 		
 	}
-	render(){
-		//<PickList pickJob={this.pickJob.bind(this)} runs={this.props.runs} />
-				
+	render(){				
 		if (this.state.mode == MODE_LOOKUP_RACER) {
 			return (
 				<EnterRacer mode={this.state.mode} racerLookup={this.racerLookup.bind(this)} error_description={this.state.error_description} />
 			)
 		} else {
-			console.log("sanity");
 			return (
-				<Racer mode={this.state.mode} racer={this.state.racer} wrongRacer={this.wrongRacer.bind(this)} changeMode={this.changeMode.bind(this)} runs={this.state.availableRuns} error_description={this.state.error_description} />
+				<Racer mode={this.state.mode} racer={this.state.racer} nextRacer={this.nextRacer.bind(this)} changeMode={this.changeMode.bind(this)} runs={this.state.availableRuns} error_description={this.state.error_description} pick={this.pick.bind(this)} confirmCode={this.state.confirmCode} anotherTransaction={this.anotherTransaction.bind(this)} />
 			)
 		}
 	}
