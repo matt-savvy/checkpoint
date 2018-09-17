@@ -284,6 +284,7 @@ class PostResultsStreamAjaxView(APIView):
         standings = RaceEntry.objects.filter(race__pk=race_id).filter(
             ~Q(entry_status=RaceEntry.ENTRY_STATUS_ENTERED) |
             ~Q(entry_status=RaceEntry.ENTRY_STATUS_DQD) |
+            ~Q(entry_status=RaceEntry.ENTRY_STATUS_CUT) |
             ~Q(entry_status=RaceEntry.ENTRY_STATUS_DNF))
         standings = standings.order_by('grand_total')
         serialized_standings = []

@@ -19,7 +19,7 @@ import pytz
 class MobileCheckpointTestCase(TestCase):
     def setUp(self):
         right_now = datetime.datetime.now(tz=pytz.utc)
-        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH, race_start_time=right_now)
+        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_FINALS, race_start_time=right_now)
         self.racer_one = RacerFactory()
         self.racer_two = RacerFactory()
         self.checkpoint_one = CheckpointFactory()

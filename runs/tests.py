@@ -10,7 +10,7 @@ import pytz
 class RunTestCase(TestCase):
     def setUp(self):
         self.right_now = datetime.datetime.now(tz=pytz.utc) 
-        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH, race_start_time=self.right_now)
+        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_FINALS, race_start_time=self.right_now)
         self.job = JobFactory(race=self.race, minutes_ready_after_start=0, minutes_due_after_start=20)
         self.race_entry_one = RaceEntryFactory(race=self.race)
         self.race_entry_two = RaceEntryFactory(race=self.race)

@@ -21,7 +21,7 @@ class RacerCheckpointViewTestCase(APITestCase):
         #pdb.set_trace()
         self.eastern = pytz.timezone('US/Eastern')
         self.now = datetime.datetime.now(tz=self.eastern)
-        self.race = Race(race_name='Test Race', race_type=Race.RACE_TYPE_DISPATCH, race_start_time=self.now)
+        self.race = Race(race_name='Test Race', race_type=Race.RACE_TYPE_DISPATCH_FINALS, race_start_time=self.now)
         self.race.save()
         self.race_control = RaceControl(current_race=self.race)
         self.race_control.save()
@@ -89,7 +89,7 @@ class PickTestCase(APITestCase):
         self.eastern = pytz.timezone('US/Eastern')
     
         self.now = datetime.datetime.now(tz=self.eastern)
-        self.race = Race(race_name='Test Race', race_type=Race.RACE_TYPE_DISPATCH, race_start_time=self.now)
+        self.race = Race(race_name='Test Race', race_type=Race.RACE_TYPE_DISPATCH_FINALS, race_start_time=self.now)
         self.race.save()
         self.race_control = RaceControl(current_race=self.race)
         self.race_control.save()

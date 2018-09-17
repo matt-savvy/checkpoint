@@ -23,7 +23,6 @@ def assign_runs(runs_to_assign, race_entry):
         message.runs.add(run)
         run.status = Run.RUN_STATUS_DISPATCHING    
         run.utc_time_ready = right_now
-        print run
         run.save()
     message.save()
     
@@ -35,22 +34,26 @@ def run_count(race_entry):
     return current_run_count
     
 def get_next_message(race, dispatcher=None):
-    if race.race_type != Race.RACE_TYPE_DISPATCH:
+    if race.race_type not in [Race.RACE_TYPE_DISPATCH_PRELIMS, Race.RACE_TYPE_DISPATCH_FINALS]:
         message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
         message.save()
-        return message
+        error = "This race type does not require a dispatcher."
+        return message, error
     
     right_now = datetime.datetime.now(tz=pytz.utc)
-    if race.race_start_time > right_now:
-        message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
-        message.save()
-        return message
+    if race.race_type == Race.RACE_TYPE_DISPATCH_FINALS and race.race_start_time:
+        if race.race_start_time > right_now:
+            message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
+            message.save()
+            error = "Race has not started yet!"
+            return message, error
     
     #TODO .filter(dispatcher=dispatcher)
     
     ## are there any SNOOZED messages IN THIS RACE that already exist?
     snoozed_message = Message.objects.filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(race_entry__race=race).filter(message_time__lte=right_now).first()
     if snoozed_message:
+        print "found snoozed message"
         snoozed_message.status = Message.MESSAGE_STATUS_DISPATCHING
         snoozed_message.save()
         return snoozed_message
@@ -58,12 +61,14 @@ def get_next_message(race, dispatcher=None):
     
     old_unconfirmed_messages = Message.objects.filter(Q(status=Message.MESSAGE_STATUS_DISPATCHING) | Q(status=Message.MESSAGE_STATUS_NONE)).filter(race_entry__race=race).filter(message_time__lte=right_now - datetime.timedelta(minutes=2))
     if old_unconfirmed_messages.first():
+        print "found unconfirmed"
         return old_unconfirmed_messages.first()
     
     ##are there any clear racers? they get top priority
     race_entry = race.find_clear_racer()
 
-    if race_entry:        
+    if race_entry:
+        print "found clear racer"
         if race_entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:            
             #they haven't already gotten that message, send them a cut message right away
             message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
@@ -105,9 +110,8 @@ def get_next_message(race, dispatcher=None):
             return message
             #there is no bonus manifest, the bonus manifest has no jobs that racer hasn't done, or it is after the bonus manifest cut off
             #so we cut the rider
-                
     
-    
+    print "grabbing runs"
     runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
     
     while runs.exists():
@@ -115,10 +119,9 @@ def get_next_message(race, dispatcher=None):
         runs_to_assign = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
         
         if run_count(race_entry) < settings.OPEN_RUN_LIMIT:
-            
-            
             return assign_runs(runs_to_assign, race_entry)
         else:
+            print "above the run cap"
             for run in runs_to_assign:
                 run.utc_time_ready__lte = right_now + datetime.timedelta(minutes=5)
                 run.save()

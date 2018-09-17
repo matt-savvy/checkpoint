@@ -18,7 +18,7 @@ from django.db.models import Q
 class MessageTestCase(TestCase):
     def setUp(self):
         right_now = datetime.datetime.now(tz=pytz.utc)
-        self.race = RaceFactory(race_start_time=right_now, race_type=Race.RACE_TYPE_DISPATCH)
+        self.race = RaceFactory(race_start_time=right_now, race_type=Race.RACE_TYPE_DISPATCH_FINALS)
         self.race_entry = RaceEntryFactory(race=self.race)
         self.jobs = JobFactory.create_batch(3, race=self.race, minutes_ready_after_start=0)
         self.runs_one = self.race.populate_runs(self.race_entry)
@@ -53,7 +53,8 @@ class MessageTestCase(TestCase):
         message.save()
         for run in Run.objects.all():
             message.runs.add(run)
-            
+        message.save()
+        message = get_next_message(self.race) 
         message.confirm()
         self.assertEqual(message.runs.first().status, Run.RUN_STATUS_ASSIGNED)
         self.assertEqual(message.status, Message.MESSAGE_STATUS_CONFIRMED)
@@ -72,7 +73,7 @@ class MessageTestCase(TestCase):
 class get_next_message_TestCase(TestCase):
     def setUp(self):
         right_now = datetime.datetime.now(tz=pytz.utc)
-        self.race = RaceFactory(race_start_time=right_now, race_type=Race.RACE_TYPE_DISPATCH)
+        self.race = RaceFactory(race_start_time=right_now, race_type=Race.RACE_TYPE_DISPATCH_FINALS)
         self.race_entry = RaceEntryFactory(race=self.race)
         self.jobs_first = JobFactory.create_batch(3, race=self.race, minutes_ready_after_start=0)
         self.jobs_second = JobFactory.create_batch(3, race=self.race, minutes_ready_after_start=10)
@@ -83,10 +84,11 @@ class get_next_message_TestCase(TestCase):
         self.runs_one = self.race.populate_runs(self.race_entry_one)
         self.runs_two = self.race.populate_runs(self.race_entry_two)
         
-    def test_race_has_started(self):
+    def test_race_has_not_started(self):
         right_now = datetime.datetime.now(tz=pytz.utc)
-        self.race = RaceFactory(race_start_time=right_now + datetime.timedelta(minutes=60))
+        self.race = RaceFactory(race_start_time=right_now + datetime.timedelta(minutes=60), race_type=Race.RACE_TYPE_DISPATCH_FINALS)
         next_message = get_next_message(self.race)
+
         self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_ERROR)
         
     def test_get_next_message_only_does_past_messages(self):
@@ -342,8 +344,7 @@ class get_next_message_TestCase(TestCase):
         last_run = RunFactory(race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
         
         next_message = get_next_message(self.race)
-        print last_run
-        print next_message
+        
         self.assertFalse(last_run in next_message.runs.all())
         self.assertNotEqual(next_message.race_entry, self.race_entry_one)
     
@@ -355,8 +356,7 @@ class get_next_message_TestCase(TestCase):
         last_run = RunFactory(race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
         
         next_message = get_next_message(self.race)
-        print last_run
-        print next_message
+
         self.assertFalse(last_run in next_message.runs.all())
         self.assertNotEqual(next_message.race_entry, self.race_entry_one)
     
@@ -369,8 +369,7 @@ class get_next_message_TestCase(TestCase):
         last_run = RunFactory(race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
         
         next_message = get_next_message(self.race)
-        print last_run
-        print next_message
+
         self.assertFalse(last_run in next_message.runs.all())
         self.assertNotEqual(next_message.race_entry, self.race_entry_one)
         
@@ -383,8 +382,7 @@ class get_next_message_TestCase(TestCase):
         last_run = RunFactory(race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
         
         next_message = get_next_message(self.race)
-        print last_run
-        print next_message
+
         self.assertTrue(last_run in next_message.runs.all())
     
     def test_get_next_message_when_rider_will_pass_open_job_limit(self):

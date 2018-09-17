@@ -1,7 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 
-
 const MODE_PICK = "pick";
 const MODE_PICKED = "confirm";
 const MODE_DROP = "drop";

@@ -47,10 +47,7 @@ class Message(models.Model):
         if self.message_type == self.MESSAGE_TYPE_OFFICE:
             return u"{} - Come to the Office".format(self.race_entry.racer)
         if self.message_type == self.MESSAGE_TYPE_DISPATCH:
-            #dispatch_string = ""
-            #for run in self.runs.all():
             dispatch_string = "assign runs"
-            #    dispatch_string = "{} | {}".format(dispatch_string, run)
             return u"{} - {}".format(self.race_entry.racer, dispatch_string)  
         if self.message_type == self.MESSAGE_TYPE_ERROR:
             return u"ERROR"
@@ -66,7 +63,6 @@ class Message(models.Model):
         return self.MESSAGE_STATUS_CHOICES[self.status][1]
     
     def confirm(self):
-        #TODO add utc_time_assigned to confirmed runs
         self.status = self.MESSAGE_STATUS_CONFIRMED
         self.confirmed_time = datetime.datetime.now(tz=pytz.utc)
         self.save()
@@ -74,6 +70,7 @@ class Message(models.Model):
         if self.message_type == self.MESSAGE_TYPE_DISPATCH:
             for run in self.runs.all():
                 run.assign()
+                
             
         elif self.message_type == self.MESSAGE_TYPE_OFFICE:
             self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_CUT
@@ -87,7 +84,7 @@ class Message(models.Model):
         self.status = self.MESSAGE_STATUS_SNOOZED
         self.save()
         for run in self.runs.all():
-            run.status = Run.RUN_STATUS_PENDING
+            run.status = Run.RUN_STATUS_DISPATCHING
             run.save()
         #TODO add logging
         return self

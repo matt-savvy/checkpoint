@@ -139,8 +139,6 @@ class MassStartView(AuthorizedRaceOfficalMixin, TemplateView):
         context['current_race'] = current_race
         return context        
 
-
-
 class RacerRunEntryView(AuthorizedRaceOfficalMixin, View):
     def get(self, request, *args, **kwargs):
         try:
@@ -152,7 +150,6 @@ class RacerRunEntryView(AuthorizedRaceOfficalMixin, View):
         context['runs'] = Run.objects.filter(race_entry__race__pk=self.kwargs['race']).filter(race_entry__racer__racer_number=self.kwargs['racer']).order_by('job__job_id')
         return render(request, 'racer_run_entry.html', context)
 
-
 class StandingsView(AuthorizedRaceOfficalMixin, ListView):
     model = RaceEntry
     template_name = "standings.html"
@@ -160,4 +157,5 @@ class StandingsView(AuthorizedRaceOfficalMixin, ListView):
 
     def get_queryset(self):
         race = get_object_or_404(Race, pk=self.kwargs['pk'])
-        return RaceEntry.objects.filter(race=race).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_FINISHED) | Q(entry_status=RaceEntry.ENTRY_STATUS_PROCESSING)).order_by('-grand_total')
+        return RaceEntry.objects.filter(race=race).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_FINISHED) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT)| Q(entry_status=RaceEntry.ENTRY_STATUS_PROCESSING)).order_by('-grand_total')
+

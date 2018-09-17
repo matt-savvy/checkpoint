@@ -6,12 +6,14 @@ class Race(models.Model):
     
     RACE_TYPE_PRELIMS = 0
     RACE_TYPE_FINALS = 1
-    RACE_TYPE_DISPATCH = 2
+    RACE_TYPE_DISPATCH_PRELIMS = 2
+    RACE_TYPE_DISPATCH_FINALS = 3
     
     RACE_TYPE_CHOICES = (
         (RACE_TYPE_PRELIMS, 'Prelims'),
         (RACE_TYPE_FINALS, 'Finals'),
-        (RACE_TYPE_DISPATCH, 'Dispatch')
+        (RACE_TYPE_DISPATCH_PRELIMS, 'Dispatched Individual Heats'),
+        (RACE_TYPE_DISPATCH_FINALS, 'Dispatched Group Finals')
     )
     
     """(Race description)"""
@@ -26,38 +28,48 @@ class Race(models.Model):
     def get_absolute_url(self):
         return "/races/details/" + str(self.id) + "/"
     
+    @property
+    def dispatch_race(self):
+        if self.race_type == self.RACE_TYPE_DISPATCH_PRELIMS or self.race_type == self.RACE_TYPE_DISPATCH_FINALS:
+            return True
+        return False
+    
     def find_clear_racer(self):
         from raceentries.models import RaceEntry
         from runs.models import Run
         from dispatch.models import Message
-
+        
         race_entries = RaceEntry.objects.filter(race=self).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT))
         for race_entry in race_entries:
+            ##do they have any assigned jobs or jobs that are currently being dispatched?
             run_count = Run.objects.filter(race_entry=race_entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_DISPATCHING)).count()
             
-            #befre we do say they're clear, let's make sure a message for them isn't already on someone's screen
-            current_message = Message.objects.filter(race=self).filter(race_entry=race_entry).filter(status=Message.MESSAGE_STATUS_DISPATCHING)
+            if run_count == 0:
+                #befre we do say they're clear, let's make sure a message for them isn't already on someone's screen
+                current_message = Message.objects.filter(race_entry=race_entry).filter(status=Message.MESSAGE_STATUS_DISPATCHING).exists()
             
-            #if they're clear AND cut, we see if they have already 10-4'd a request to come to the office
-            already_confirmed_cut = Message.objects.filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED).exists()
+                #if they're clear AND cut, we see if they have already 10-4'd a request to come to the office
+                already_confirmed_cut = Message.objects.filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED).exists()
             
-            if not current_message and run_count == 0 and not already_confirmed_cut:
-                return race_entry
-        return 
+                if not current_message and not already_confirmed_cut:
+                    return race_entry
+            
+        return
     
     def populate_runs(self, race_entry):
         from raceentries.models import RaceEntry
         from jobs.models import Job
         from runs.models import Run
         runs = []
-        
-        if self.race_type == self.RACE_TYPE_DISPATCH:
+
+        if self.dispatch_race:
             jobs = Job.objects.filter(race=self)
             
             for job in jobs:
                 run = Run(job=job, race_entry=race_entry, status=Run.RUN_STATUS_PENDING)
-                if self.race_start_time:
-                    run.utc_time_ready = self.race_start_time + datetime.timedelta(minutes=job.minutes_ready_after_start)
+                if self.race_type == self.RACE_TYPE_DISPATCH_FINALS:
+                    if self.race_start_time:
+                        run.utc_time_ready = self.race_start_time + datetime.timedelta(minutes=job.minutes_ready_after_start)
                 run.save()
                 runs.append(run)
         return runs

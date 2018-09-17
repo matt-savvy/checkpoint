@@ -13,90 +13,6 @@ const MESSAGE_STATUS_DISPATCHING = 1
 const MESSAGE_STATUS_SNOOZED     = 2
 const MESSAGE_STATUS_CONFIRMED   = 3
 
-/*var TESTMESSAGES = [{
-    "id": 1, 
-    "race_entry": {
-        "entry_status_as_string": "Racing", 
-        "racer": {
-            "racer_number": "89", 
-            "first_name": "Ricky", 
-            "last_name": "Roma", 
-            "nick_name": "", 
-            "city": "Philadelphia", 
-            "gender": "M", 
-            "category": 0, 
-            "display_name": "Ricky Roma", 
-            "category_as_string": "Working Messenger"
-        }, 
-        "id": 1, 
-        "race": {
-            "id": 1, 
-            "race_name": "test race one", 
-            "race_type": 2, 
-            "time_limit": 200, 
-            "race_start_time": "2018-09-08T17:14:02Z"
-        }, 
-        "entry_date": "2018-04-15T02:39:08.739Z", 
-        "entry_status": 1, 
-        "starting_position": null, 
-        "start_time": "2018-09-07T21:57:26Z", 
-        "end_time": null, 
-        "final_time": 0, 
-        "dq_time": null, 
-        "dq_reason": "", 
-        "points_earned": "6.9", 
-        "supplementary_points": "0", 
-        "deductions": "0", 
-        "grand_total": "6.9", 
-        "number_of_runs_completed": 2, 
-        "scratch_pad": ""
-    }, 
-    "runs": [
-        {
-            "job": {
-                "pick_checkpoint": {
-                    "id": 1, 
-                    "checkpoint_number": 1, 
-                    "checkpoint_name": "Abus", 
-                    "notes": ""
-                }, 
-                "drop_checkpoint": {
-                    "id": 9, 
-                    "checkpoint_number": 9, 
-                    "checkpoint_name": "Indy NACCC", 
-                    "notes": ""
-                }
-            }, 
-            "status": 4, 
-            "id": 1
-        }, 
-        {
-            "job": {
-                "pick_checkpoint": {
-                    "id": 7, 
-                    "checkpoint_number": 7, 
-                    "checkpoint_name": "Trash Bags", 
-                    "notes": ""
-                }, 
-                "drop_checkpoint": {
-                    "id": 3, 
-                    "checkpoint_number": 3, 
-                    "checkpoint_name": "R.E.Load", 
-                    "notes": ""
-                }
-            }, 
-            "status": 4, 
-            "id": 2
-        }
-    ], 
-    "message_type": 0, 
-    "message_type_as_string": "Dispatching Jobs", 
-    "status": 1, 
-    "message_status_as_string": "Dispatching / On screen", 
-    "message_time": null
-}];*/
-var TESTMESSAGES = [];
-
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -183,7 +99,7 @@ class Message extends React.Component {
 			return (
 				<div><h2>Error</h2>
 				<hr width="50%" />
-				<br /><h3>Reload the page and try again.</h3>
+				<br /><h3>{this.props.error_description}</h3>
 				</div>
 			)
 		}
@@ -256,8 +172,8 @@ class DispatchScreen extends React.Component {
 			response.json().then(function(data) {
 				console.log(data);
 				var messages = this.state.messages
-				messages[this.state.currentMessage] = data;
-				this.setState({feedback:data, disabled:null, showRefresh:true, messages:messages})
+				messages[this.state.currentMessage] = data.message;
+				this.setState({feedback:data.message, disabled:null, showRefresh:true, messages:messages})
 			      }.bind(this));
 		}.bind(this)) 
 	}
@@ -288,13 +204,13 @@ class DispatchScreen extends React.Component {
 			response.json().then(function(data) {
 				//console.log(data);
 				var messages = this.state.messages
-				messages[this.state.currentMessage] = data;
+				messages[this.state.currentMessage] = data.message;
 				this.setState({feedback:null, disabled:null, showRefresh:null, messages:messages})
 			      }.bind(this));
 		}.bind(this)) 
 	}
 	getNextMessage() {		
-		this.setState({disabled:'disabled', feedback:null, currentMessage: 0});
+		this.setState({disabled:'disabled', feedback:null, currentMessage: 0, error_description:null});
 		var csrfToken = getCookie('csrftoken');
 		var nextMessageRequest = {};
 		nextMessageRequest.race = this.state.raceID;
@@ -326,8 +242,8 @@ class DispatchScreen extends React.Component {
 					}
 				}
 				
-				messages.unshift(data);
-				this.setState({messages: messages, disabled:null});
+				messages.unshift(data.message);
+				this.setState({messages: messages, disabled:null, error_description: data.error_description});
 				
 				
 			      }.bind(this));
@@ -357,7 +273,7 @@ class DispatchScreen extends React.Component {
 			} else if (currentMessage.message_type == MESSAGE_TYPE_NOTHING ){
 				showRefresh = true;
 				}
-			message = <Message message={currentMessage}/>
+			message = <Message message={currentMessage} error_description={this.state.error_description}/>
 		} else {
 			showRefresh= true;
 		}

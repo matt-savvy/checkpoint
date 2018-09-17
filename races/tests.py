@@ -6,11 +6,12 @@ from jobs.factories import JobFactory
 from runs.models import Run
 from faker import Faker
 import datetime
+import pytz
 fake = Faker()
 
 class RaceTestCase(TestCase):
     def setUp(self):
-        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH)
+        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_FINALS)
         self.race_entry_one = RaceEntryFactory()
         self.race_entry_two = RaceEntryFactory()
         self.jobs_first = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0)
@@ -53,10 +54,10 @@ class RaceTestCase(TestCase):
         runs = Run.objects.filter(race_entry=self.race_entry_one)
         self.assertEqual(runs.count(), 12)
 
-
 class ClearRacerTestCase(TestCase):
     def setUp(self):
-        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH)
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_FINALS, race_start_time=right_now)
         self.race_entry_one = RaceEntryFactory(race=self.race)
         self.race_entry_one.start_racer()
                 
@@ -150,6 +151,22 @@ class ClearRacerTestCase(TestCase):
             run.save()
         racer = self.race.find_clear_racer()
         self.assertEqual(racer, self.race_entry_one)
+        
+    def test_dispatch_prelims(self):
+        race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_PRELIMS)
+        self.assertTrue(race.dispatch_race)
+    
+    def test_dispatch_finals(self):
+        race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_FINALS)
+        self.assertTrue(race.dispatch_race)
+    
+    def test_prelims(self):
+        race = RaceFactory(race_type=Race.RACE_TYPE_PRELIMS)
+        self.assertFalse(race.dispatch_race)
+    
+    def test_finals(self):
+        race = RaceFactory(race_type=Race.RACE_TYPE_FINALS)
+        self.assertFalse(race.dispatch_race)
         
 class ManifestTestCase(TestCase):
     def setUp(self):

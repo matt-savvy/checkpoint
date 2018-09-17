@@ -22,11 +22,19 @@ class NextMessage(APIView):
     
     def post(self, request, *args, **kwargs):
         current_race = RaceControl.shared_instance().current_race
-        
+        error = None
         next_message = get_next_message(current_race)
         
+        try:
+            error = next_message[1]
+            next_message = next_message[0]
+        except:
+            error = None
+            next_message
+        
         if next_message:
-            return Response(MessageSerializer(next_message).data, status=status.HTTP_200_OK)
+            #return Response(MessageSerializer(next_message).data, status=status.HTTP_200_OK)
+            return Response({'message': MessageSerializer(next_message).data, 'error_description' : error}, status=status.HTTP_200_OK)
             #return Response({'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
             
         return
