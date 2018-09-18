@@ -81,7 +81,6 @@ class Run(models.Model):
             self.utc_time_assigned = time_now
             self.utc_time_due = time_now + datetime.timedelta(self.job.minutes_due_after_start)
             self.save()
-            print "run assigned"
     
     def pick(self):
         if self.status == self.RUN_STATUS_ASSIGNED:
@@ -89,7 +88,6 @@ class Run(models.Model):
             self.determination = self.DETERMINATION_NOT_DROPPED
             self.utc_time_picked = datetime.datetime.now(tz=pytz.utc)
             self.save()
-            print "run picked"
     
     def drop(self):
         if self.status == self.RUN_STATUS_PICKED:

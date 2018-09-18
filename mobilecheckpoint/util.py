@@ -1,7 +1,4 @@
-from checkpoints.models import Checkpoint
-from racers.models import Racer
 from raceentries.models import RaceEntry
-from jobs.models import Job
 from runs.models import Run
 from django.db.models import Q
 

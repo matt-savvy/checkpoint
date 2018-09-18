@@ -86,7 +86,6 @@ class MobileCheckpointTestCase(TestCase):
         self.assertFalse(self.run_one in runs)
         
     def test_multiple_runs(self):
-        
         self.run_two_one.status = Run.RUN_STATUS_ASSIGNED
         self.run_two_one.save()
         self.run_two_two.status = Run.RUN_STATUS_ASSIGNED
@@ -95,8 +94,6 @@ class MobileCheckpointTestCase(TestCase):
         self.run_two_three.save()
         
         runs = get_available_runs(race_entry=self.race_entry_two, checkpoint=self.checkpoint_two)
-        
-        
         
         self.assertFalse(self.run_one in runs)
         self.assertFalse(self.run_two_one in runs)
