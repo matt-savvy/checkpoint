@@ -1,6 +1,6 @@
 from django.db import models
 from racers.models import Racer
-from races.models import Race
+from races.models import Race, Manifest
 import datetime
 from django.utils.timezone import utc
 from runs.models import Run
@@ -47,6 +47,7 @@ class RaceEntry(models.Model):
     number_of_runs_completed = models.IntegerField(default=0)
         
     scratch_pad = models.TextField(blank=True)
+    manifest = models.ForeignKey(Manifest, blank=True, null=True)
     
     class Meta:
         unique_together = (("racer", "race"), ("race", "starting_position"))
@@ -87,6 +88,8 @@ class RaceEntry(models.Model):
             self.deductions = '0.00'
             self.grand_total = '0.00'
             self.save()
+            if self.race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS:
+                self.race.populate_runs(self)
             return True
         return False
     

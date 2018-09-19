@@ -20,8 +20,8 @@ class JobFactory(factory.DjangoModelFactory):
     pick_checkpoint = factory.SubFactory(CheckpointFactory)
     drop_checkpoint = factory.SubFactory(CheckpointFactory)
     points = factory.Faker('pydecimal', left_digits=2, right_digits=2, positive=True)
-    minutes_ready_after_start = 0
-    minutes_due_after_start = 9999
+    minutes_ready_after_start = factory.Faker('pyint')
+    minutes_due_after_start = factory.Faker('pyint')
     
     class Meta:
         model = Job

@@ -78,7 +78,7 @@ class EnterRacersView(AuthorizedRaceOfficalMixin, View):
                         re.race = race
                         re.racer = Racer.objects.get(pk=int(racer_id))
                         re.save()
-                        if race.dispatch_race:
+                        if race.race_type == Race.RACE_TYPE_DISPATCH_FINALS:
                             race.populate_runs(re)
                         RaceLog(racer=re.racer, race=race, user=request.user, log="Racer entered in race", current_grand_total=re.grand_total, current_number_of_runs=re.number_of_runs_completed).save()
                     except IntegrityError as ex:

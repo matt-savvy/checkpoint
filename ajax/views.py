@@ -45,15 +45,23 @@ class StartRacerAjaxView(APIView):
     def post(self, request):
         racer_number = self.request.DATA['racer']
         race_id = self.request.DATA['race']
-        race_entry = RaceEntry.objects.filter(race__pk=race_id).filter(racer__racer_number=racer_number)
+        race_entry = RaceEntry.objects.filter(race__pk=race_id).filter(racer__racer_number=racer_number).first()
         if len(race_entry) == 0:
             return Response({'detail' : 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
-        if race_entry[0].start_racer():
+        if race_entry.start_racer():
             tz = pytz.timezone('US/Eastern')
-            time_due_back_string = race_entry[0].time_due_back(tz).strftime('%I:%M %p')
+            time_due_back_string = race_entry.time_due_back(tz).strftime('%I:%M %p')
             
-            RaceLog(racer=race_entry[0].racer, race=race_entry[0].race, user=request.user, log="Racer started in race.", current_grand_total=race_entry[0].grand_total, current_number_of_runs=race_entry[0].number_of_runs_completed).save()
+            RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer started in race.", current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
             
+            if race_entry.race.dispatch_race:
+                runs = Run.objects.filter(race_entry=race_entry)
+                runs_to_assign = runs.filter(utc_time_ready__lte=race_entry.start_time)
+                from dispatch.util import assign_runs
+                from dispatch.serializers import MessageSerializer
+                message = assign_runs(runs_to_assign, race_entry)
+                return Response({'message': MessageSerializer(message).data, 'error_description' : error, 'due_back' : time_due_back_string}, status=status.HTTP_200_OK)
+                
             return Response({'due_back' : time_due_back_string})
         return Response(status=status.HTTP_400_BAD_REQUEST)
         

@@ -1,5 +1,6 @@
 from django.db import models
 import datetime
+import pytz
 from django.db.models import Q
 
 class Race(models.Model):
@@ -63,13 +64,18 @@ class Race(models.Model):
         runs = []
 
         if self.dispatch_race:
-            jobs = Job.objects.filter(race=self)
+            jobs = Job.objects.filter(race=self).filter(manifest=race_entry.manifest)
             
             for job in jobs:
                 run = Run(job=job, race_entry=race_entry, status=Run.RUN_STATUS_PENDING)
                 if self.race_type == self.RACE_TYPE_DISPATCH_FINALS:
                     if self.race_start_time:
-                        run.utc_time_ready = self.race_start_time + datetime.timedelta(minutes=job.minutes_ready_after_start)
+                        ready_time = self.race_start_time
+                    else:
+                        ready_time = datetime.datetime.now(tz=pytz.utc)
+                elif self.race_type == self.RACE_TYPE_DISPATCH_PRELIMS:
+                    ready_time = race_entry.start_time    
+                run.utc_time_ready = ready_time + datetime.timedelta(minutes=job.minutes_ready_after_start)
                 run.save()
                 runs.append(run)
         return runs
