@@ -71,7 +71,6 @@ class Message(models.Model):
             for run in self.runs.all():
                 run.assign()
                 
-            
         elif self.message_type == self.MESSAGE_TYPE_OFFICE:
             self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_CUT
             self.race_entry.save()

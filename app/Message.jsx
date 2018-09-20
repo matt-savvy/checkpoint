@@ -36,8 +36,6 @@ class Message extends React.Component {
 			racerName = "#" + this.props.message.race_entry.racer.racer_number.toString() + " " + this.props.message.race_entry.racer.display_name;
 		}
 		
-		console.log(this.props.message.message_type);
-		//debugger;
 		if (this.props.message.message_type == MESSAGE_TYPE_DISPATCH) {
 			return (
 				<div><h2>{this.props.message.message_type_as_string} {racerName} </h2>

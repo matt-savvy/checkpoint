@@ -1,6 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Message = require('Message');
+var Feedback = require('Feedback');
 const raceID = getCookie('raceID');
 
 const MESSAGE_TYPE_DISPATCH = 0
@@ -29,40 +30,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-
-class Feedback extends React.Component {
-	handleUndo() {
-		this.props.undo();
-	}
-	render() {
-		var alertClass = "alert alert-success bottom-alert";
-		return (
-				<div className={alertClass} role="alert">
-					{this.props.object.message_status_as_string}
-					<span className="text-right"><a href="#" onClick={this.handleUndo.bind(this)}>Undo</a></span>
-				</div>		
-		)
-	}
-}
-
 class DispatchScreen extends React.Component {
-	componentWillMount(){
-	  /*fetch('/exercises/api/list')
-	    .then(function(response) {
-	        	if (response.status !== 200) {
-	          		console.log('Looks like there was a problem. Status Code: ' + response.status);
-					return;
-				}
-	    		response.json().then(function(data) {
-  					this.setState({
-  						exercises : data
-  					});
-	     	 	}.bind(this));
-		}.bind(this))
-	    .catch(function(err) {
-	      console.log('Fetch Error :-S', err);
-	    });*/ 
-	}
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -107,10 +75,12 @@ class DispatchScreen extends React.Component {
 				return;
 			}
 			response.json().then(function(data) {
+				console.log("rider response");
 				console.log(data);
 				var messages = this.state.messages
-				messages[this.state.currentMessage] = data.message;
-				this.setState({feedback:data.message, disabled:null, showRefresh:true, messages:messages})
+				messages
+				messages[this.state.currentMessage] = data;
+				this.setState({feedback:data, disabled:null, showRefresh:true, messages:messages})
 			      }.bind(this));
 		}.bind(this)) 
 	}
@@ -141,7 +111,7 @@ class DispatchScreen extends React.Component {
 			response.json().then(function(data) {
 				//console.log(data);
 				var messages = this.state.messages
-				messages[this.state.currentMessage] = data.message;
+				messages[this.state.currentMessage] = data;
 				this.setState({feedback:null, disabled:null, showRefresh:null, messages:messages})
 			      }.bind(this));
 		}.bind(this)) 
@@ -193,7 +163,11 @@ class DispatchScreen extends React.Component {
 		var showBack = "disabled";
 		var showForward = "disabled";
 		
-		if(currentMessage) {
+		if (this.state.showRefresh) {
+			showRefresh = true;
+		}
+		
+		if (currentMessage) {
 			messageNumber = currentMessage.id;
 			
 			if ((currentMessage.status == MESSAGE_STATUS_DISPATCHING) || (currentMessage.status == MESSAGE_STATUS_SNOOZED) || (currentMessage.status == MESSAGE_STATUS_CONFIRMED)){
@@ -212,12 +186,10 @@ class DispatchScreen extends React.Component {
 				}
 			message = <Message message={currentMessage} error_description={this.state.error_description}/>
 		} else {
-			showRefresh= true;
+			showRefresh = true;
 		}
 		
-		if (this.state.showRefresh) {
-			showRefresh= true;
-		}
+		
 		
 		if (this.state.messages[this.state.currentMessage+1]) {
 			showBack = null;

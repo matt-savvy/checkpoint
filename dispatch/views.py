@@ -65,6 +65,7 @@ class RiderResponse(APIView):
                     run.run_status = Run.RUN_STATUS_DISPATCHING
                     run.save()
             #TODO log this undo
+        
         return Response(MessageSerializer(message).data, status=status.HTTP_200_OK)
         
 class MessageListView(AuthorizedRaceOfficalMixin, ListView):
