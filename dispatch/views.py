@@ -82,15 +82,33 @@ class DispatchView(AuthorizedRaceOfficalMixin, TemplateView):
     def render_to_response(self, context, **response_kwargs):
         response = super(DispatchView, self).render_to_response(context, **response_kwargs)
         current_race = RaceControl.shared_instance().current_race
-        print current_race
         response.set_cookie('raceID', current_race.pk)
         return response
 
-class RacerLookupView(APIView,):
+class StartViewDispatch(AuthorizedRaceOfficalMixin, TemplateView):
+    template_name = "start_racer_react.html"
+    
+    method_decorator(ensure_csrf_cookie)
+    def dispatch(self, request, *args, **kwargs):
+        return super(StartViewDispatch, self).dispatch(request, *args, **kwargs)
+        
+    def render_to_response(self, context, **response_kwargs):
+        response = super(StartViewDispatch, self).render_to_response(context, **response_kwargs)
+        current_race = RaceControl.shared_instance().current_race
+        response.set_cookie('raceID', current_race.pk)
+        return response
+
+class RacerLookupView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
-    def get(self, request, *args, **kwargs):        
-        race_entry = RaceEntry.objects.filter(race=self.kwargs['race']).filter(racer__racer_number=kwargs['racer']).first()
-        return Response(RaceEntrySerializer(race_entry).data, status=status.HTTP_200_OK)
+    def get(self, request, *args, **kwargs):
+        current_race = RaceControl.shared_instance().current_race
+        
+        race_entry = RaceEntry.objects.filter(race=current_race).filter(racer__racer_number=kwargs['racer']).first()
+
+        if race_entry:
+            return Response(RaceEntrySerializer(race_entry).data, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
     

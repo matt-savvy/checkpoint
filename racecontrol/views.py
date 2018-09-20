@@ -87,9 +87,6 @@ class RacerDetailAjaxView(AuthorizedRaceOfficalMixin, TemplateView):
 class StartView(AuthorizedRaceOfficalMixin, TemplateView):
     template_name = "start_racer.html"
 
-class StartViewDispatch(AuthorizedRaceOfficalMixin, TemplateView):
-    template_name = "start_racer_react.html"
-
 class FinishView(AuthorizedRaceOfficalMixin, TemplateView):
     template_name = "finish_racer.html"
 

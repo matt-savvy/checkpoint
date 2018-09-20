@@ -15,6 +15,10 @@ const MESSAGE_STATUS_DISPATCHING = 1
 const MESSAGE_STATUS_SNOOZED     = 2
 const MESSAGE_STATUS_CONFIRMED   = 3
 
+const MODE_LOOKUP_RACER = "lookup";
+const MODE_RACER_FOUND = "found";
+const MODE_RACER_CONFIRMED = "confirmed";
+
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -31,6 +35,40 @@ function getCookie(name) {
     return cookieValue;
 }
 
+class Racer extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+	handleNextRacer() {
+		this.props.reset();
+	}
+	render () {		
+		return (
+		<div>
+			<div className="row">
+				<div className="col">
+					
+			{this.props.mode == MODE_RACER_FOUND && <button type="button" id="wrong-racer-button" onClick={this.handleNextRacer.bind(this)} className="btn btn-danger btn-sm">RESET</button>}
+		
+			
+					<h3 className="text-center">
+						#{this.props.racer.racer.racer_number} {this.props.racer.racer.first_name} {this.props.racer.racer.nick_name} {this.props.racer.racer.last_name} 
+						<br /> 
+						<small>
+						{this.props.racer.racer.contact_info}
+						</small>	
+					</h3>
+				</div>
+			</div>	
+					
+		</div>
+		)
+	}
+}
+
+
+
+
 class StartRacerScreen extends React.Component {
 	constructor(props) {
 		super(props);
@@ -38,8 +76,10 @@ class StartRacerScreen extends React.Component {
 			raceID:raceID,
 			feedback: null,
 			disabled: null,
+			mode : MODE_LOOKUP_RACER,
 			currentMessage:null,
 			currentRacer:null,
+			showConfirm:false,
 		}
 	}
 	riderResponse(e) {
@@ -106,90 +146,64 @@ class StartRacerScreen extends React.Component {
 			      }.bind(this));
 		}.bind(this)) 
 	}
-	getNextMessage() {		
+	racerLookup(racer) {		
 		this.setState({disabled:'disabled', feedback:null, currentMessage: null, error_description:null});
-		var csrfToken = getCookie('csrftoken');
-		var nextMessageRequest = {};
-		nextMessageRequest.race = this.state.raceID;
-		var nextMessageRequestJSON = JSON.stringify(nextMessageRequest);
-		fetch("/dispatch/api/next_message/", {
+		var url = "/dispatch/start/" + racer + "/"
+		fetch(url, {
 		  headers: {
-			'X-CSRFToken': csrfToken,
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
-		  //credentials: 'include',
-		  method: "POST",
-		  body: nextMessageRequestJSON
+		  method: "GET",
 		})
 		.then(function(response) {
+			console.log(response);
 			
-        	if (response.status !== 200) {
+        	if (response.status == 500) {
           		alert('Looks like there was a problem. Status Code: ' + response.status);
 				return;
-			}
-			response.json().then(function(data) {
-				console.log(data);
-				var messages = this.state.messages;
-				
-				var recentMessage = this.state.messages[0];
-				if (recentMessage) {
-					if (recentMessage.message_type == MESSAGE_TYPE_NOTHING) {
-						messages.shift();
+			} else if (response.status == 404) {
+				console.log("here");
+				this.setState({currentRacer: null, mode: MODE_LOOKUP_RACER, currentMessage: null, disabled:null, error_description: "Racer not found with this number."});
+				return;
+			} else {
+				response.json().then(function(data) {
+					console.log("promise");
+					if ((response.status == 200) && (data.racer)) {
+						console.log(data);
+					 	this.setState({currentRacer: data, mode: MODE_RACER_FOUND, currentMessage: null, disabled:null, error_description: null});
 					}
-				}
-				
-				messages.unshift(data.message);
-				this.setState({messages: messages, disabled:null, error_description: data.error_description});
-				
-				
-			      }.bind(this));
+					
+				}.bind(this));
+			}
+			
 	
 		}.bind(this))
 	}
+	reset() {
+		this.setState({currentRacer:null, mode:MODE_LOOKUP_RACER, currentMessage:null, disabled:null, error_description:null})
+	}
 	render(){
-		var currentMessage = this.state.messages[this.state.currentMessage];
-		var message, messageNumber, messageStatus, showConfirm, showRefresh;
-		var showBack = "disabled";
-		var showForward = "disabled";
-		
-		if(currentMessage) {
+		var currentMessage = this.state.currentMessage;
+		var showConfirm = this.state.showConfirm;
+
+		if (currentMessage) {
 			messageNumber = currentMessage.id;
 			
-			if ((currentMessage.status == MESSAGE_STATUS_DISPATCHING) || (currentMessage.status == MESSAGE_STATUS_SNOOZED) || (currentMessage.status == MESSAGE_STATUS_CONFIRMED)){
+			if ((currentMessage.status == MESSAGE_STATUS_DISPATCHING) || (currentMessage.status == MESSAGE_STATUS_CONFIRMED)){
 				messageStatus = currentMessage.message_status_as_string;
 			}
-			
-			if ((currentMessage.message_type == MESSAGE_TYPE_DISPATCH) || (currentMessage.message_type== MESSAGE_TYPE_OFFICE)){
-				
-				if (currentMessage.status == MESSAGE_STATUS_DISPATCHING) {
-					showConfirm = true;
-					showRefresh = false;
-				}
-					
-			} else if (currentMessage.message_type == MESSAGE_TYPE_NOTHING ){
-				showRefresh = true;
-				}
-			message = <Message message={currentMessage} error_description={this.state.error_description}/>
-		} else {
-			showRefresh= true;
 		}
-		
-		if (this.state.showRefresh) {
-			showRefresh= true;
-		}
-		
-		if (this.state.messages[this.state.currentMessage+1]) {
-			showBack = null;
-		}
-		if (this.state.messages[this.state.currentMessage-1]) {
-			showForward = null;
-		}
-		
 
-		return (
-			<EnterRacer />
-		)
+		if (this.state.mode == MODE_LOOKUP_RACER) {
+			return (
+				<EnterRacer racerLookup={this.racerLookup.bind(this)} error_description={this.state.error_description}/>
+			)
+		} else if (this.state.mode == MODE_RACER_FOUND) {
+			return (
+				<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode} currentMessage={this.state.currentMessage}/>	
+			)
+		}
 		
 		return (
 		<div className="container">
