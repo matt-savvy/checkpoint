@@ -48,6 +48,14 @@ class StartRacerAjaxView(APIView):
         race_entry = RaceEntry.objects.filter(race__pk=race_id).filter(racer__racer_number=racer_number).first()
         if not race_entry:
             return Response({'detail' : 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
+            
+        if self.request.DATA.get('unstart'):
+            race_entry.unstart_racer()
+            RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer un-started in race.", current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
+            
+            return Response({'error_description' : "Racer un-started"}, status=status.HTTP_200_OK)
+            
+             
         if race_entry.start_racer():
             tz = pytz.timezone('US/Eastern')
             time_due_back_string = race_entry.time_due_back(tz).strftime('%I:%M %p')

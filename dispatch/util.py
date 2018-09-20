@@ -59,9 +59,9 @@ def get_next_message(race, dispatcher=None):
         snoozed_message.status = Message.MESSAGE_STATUS_DISPATCHING
         snoozed_message.save()
         return snoozed_message
-    ## are there any messages marked DISPATCHING IN THIS RACE that are older than two minutes? maybe someone closed the tab and now it's in purgatory
+    ## are there any messages marked DISPATCHING IN THIS RACE that are older than three minutes? maybe someone closed the tab and now it's in purgatory
     
-    old_unconfirmed_messages = Message.objects.filter(Q(status=Message.MESSAGE_STATUS_DISPATCHING) | Q(status=Message.MESSAGE_STATUS_NONE)).filter(race_entry__race=race).filter(message_time__lte=right_now - datetime.timedelta(minutes=2))
+    old_unconfirmed_messages = Message.objects.filter(Q(status=Message.MESSAGE_STATUS_DISPATCHING) | Q(status=Message.MESSAGE_STATUS_NONE)).filter(race_entry__race=race).filter(message_time__lte=right_now - datetime.timedelta(minutes=3))
     if old_unconfirmed_messages.first():
         print "found unconfirmed"
         return old_unconfirmed_messages.first()

@@ -148,14 +148,16 @@ class StartRacerScreen extends React.Component {
 			showConfirm:false,
 		}
 	}
-	startRacer() {
+	startRacer(unstart) {
 		console.log("starting racer");
+		console.log("unstart" + unstart);
 		this.setState({disabled:'disabled'});
 		
 		var csrfToken = getCookie('csrftoken');
 		var racerRequest = {};
 		racerRequest.racer = this.state.currentRacer.racer.racer_number;
 		racerRequest.race = raceID;
+		racerRequest.unstart = unstart;
 		var racerRequestJSON = JSON.stringify(racerRequest);
 		fetch("/ajax/startracer/", {
 		  headers: {
@@ -176,8 +178,13 @@ class StartRacerScreen extends React.Component {
 			response.json().then(function(data) {
 				console.log(data);
 				
+				if(!data.message) {
+					this.setState({feedback:data.error_description, disabled:null, mode:MODE_RACER_FOUND, showConfirm:true, currentMessage:null})
+				} else {
 				this.setState({feedback:null, currentMessage: data.message, disabled:null, mode: MODE_RACER_STARTED, showConfirm:true, dueTime:data.due_back})
-			      }.bind(this));
+				}
+				
+				}.bind(this));
 		}.bind(this)) 
 	}
 	riderResponse(e) {
@@ -207,6 +214,36 @@ class StartRacerScreen extends React.Component {
 			response.json().then(function(data) {
 				console.log(data);
 				this.setState({feedback:"Confirmed", disabled:null, showConfirm:false, currentMessage:data, mode:MODE_RACER_CONFIRMED})
+			      }.bind(this));
+		}.bind(this)) 
+	}
+	undo () {		
+		this.setState({disabled:'disabled'});
+		
+		var csrfToken = getCookie('csrftoken');
+		var riderResponse = {};
+		riderResponse.message = this.state.currentMessage.id;
+		riderResponse.action = "UNDO";
+		var riderResponseJSON = JSON.stringify(riderResponse);
+		fetch("/dispatch/api/rider_response/", {
+		  headers: {
+			'X-CSRFToken': csrfToken,
+	      	'Accept': 'application/json',
+	      	'Content-Type': 'application/json',
+	      },
+		  //credentials: 'include',
+		  method: "POST",
+		  body: riderResponseJSON
+		})
+		.then(function(response) {
+			
+        	if (response.status !== 200) {
+          		alert('Looks like there was a problem. Status Code: ' + response.status);
+				return;
+			}
+			response.json().then(function(data) {
+				console.log(data);
+				this.setState({feedback:null, currentMessage: data, disabled:null, mode: MODE_RACER_STARTED, showConfirm:true, dueTime:data.due_back})
 			      }.bind(this));
 		}.bind(this)) 
 	}
@@ -278,6 +315,7 @@ class StartRacerScreen extends React.Component {
 		} else if (this.state.mode == MODE_RACER_FOUND) {
 			return (
 				<div>
+					{this.state.feedback && <div className="alert alert-warning" role="alert"> {this.state.feedback}</div>}
 					<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode}/>	
 					<Checklist disable={this.state.disabled} racer={this.state.currentRacer} startRacer={this.startRacer.bind(this)}/>
 				</div>
@@ -285,7 +323,9 @@ class StartRacerScreen extends React.Component {
 		} else if (this.state.mode == MODE_RACER_STARTED) {
 			return (
 				<div>
-					<div className="alert alert-warning" role="alert">Racer Started. Due back {this.state.dueTime}</div>
+					<div className="alert alert-warning" role="alert">Racer Started. Due back {this.state.dueTime}
+						<span className="float-right"><a href="#" onClick={this.startRacer.bind(this, true)}>Un-Start Racer</a></span>
+					</div>
 						
 						<Message message={currentMessage} runs={currentMessage.runs} />
 						{showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-success btn-lg" disabled={this.state.disabled} value="CONFIRM"><i className="fas fa-check-circle"></i> Confirmed</button>}
@@ -295,7 +335,10 @@ class StartRacerScreen extends React.Component {
 		} else if (this.state.mode == MODE_RACER_CONFIRMED) {
 			return (
 				<div>
-					<div className="alert alert-success" role="alert">Racer Confirmed. Due back {this.state.dueTime}</div>
+					<div className="alert alert-success" role="alert">Racer Confirmed. Due back {this.state.dueTime}
+					
+						<span className="float-right"><a href="#" onClick={this.undo.bind(this)}>Undo</a></span>
+					</div>
 					<Message message={currentMessage} />
 					<button onClick={this.reset.bind(this)} className="btn btn-info btn-lg" disabled={this.state.disabled} value="NEXT RACER"><i className="fas fa-arrow-circle-right"></i> Next Racer</button>
 		

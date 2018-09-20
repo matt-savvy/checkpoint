@@ -23,6 +23,11 @@ class Command(BaseCommand):
        entries = RaceEntry.objects.filter(race=current_race)
        for entry in entries:
            entry.entry_status = RaceEntry.ENTRY_STATUS_ENTERED
+           entry.start_time = None
+           entry.end_time = None
+           entry.dq_time = None
+           entry.dq_reason = ""
+           entry.scratch_pad = ""
            entry.save()
            
        runs = Run.objects.filter(race_entry__in=entries).delete()

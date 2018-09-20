@@ -80,7 +80,6 @@ class RaceEntry(models.Model):
         return 'Did Not Finish'
     
     def start_racer(self):
-        #TODO if qualifiers, populate_runs for their race, then create a message for their first few jobs that is assigned to a specific dispatcher
         if self.entry_status == self.ENTRY_STATUS_ENTERED:
             self.entry_status = self.ENTRY_STATUS_RACING
             self.start_time = datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -101,6 +100,11 @@ class RaceEntry(models.Model):
             self.deductions = '0.00'
             self.grand_total = '0.00'
             self.save()
+            if self.race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS:
+                Run.objects.filter(race_entry=self).delete()
+            if self.race.dispatch_race:
+                from dispatch.models import Message
+                Message.objects.filter(race_entry=self).delete()   
             return True
         return False
     

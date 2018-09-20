@@ -43,6 +43,7 @@ class Message extends React.Component {
 				<div><h2>{this.props.message.message_type_as_string} {racerName} </h2>
 				<h4>{this.props.message.race_entry.racer.contact_info}</h4>
 				<hr width="50%" />
+				<h4 className="text-center">{runs.length} Jobs</h4>
 				<br /><h3>{runs}</h3>
 				</div>
 			) 
