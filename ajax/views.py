@@ -43,10 +43,12 @@ class RaceEntryAjaxView(APIView):
         
 class StartRacerAjaxView(APIView):
     def post(self, request):
+        import pdb
+        pdb.set_trace()
         racer_number = self.request.DATA['racer']
         race_id = self.request.DATA['race']
         race_entry = RaceEntry.objects.filter(race__pk=race_id).filter(racer__racer_number=racer_number).first()
-        if len(race_entry) == 0:
+        if not race_entry:
             return Response({'detail' : 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
         if race_entry.start_racer():
             tz = pytz.timezone('US/Eastern')
@@ -60,7 +62,7 @@ class StartRacerAjaxView(APIView):
                 from dispatch.util import assign_runs
                 from dispatch.serializers import MessageSerializer
                 message = assign_runs(runs_to_assign, race_entry)
-                return Response({'message': MessageSerializer(message).data, 'error_description' : error, 'due_back' : time_due_back_string}, status=status.HTTP_200_OK)
+                return Response({'message': MessageSerializer(message).data, 'error_description' : None, 'due_back' : time_due_back_string}, status=status.HTTP_200_OK)
                 
             return Response({'due_back' : time_due_back_string})
         return Response(status=status.HTTP_400_BAD_REQUEST)

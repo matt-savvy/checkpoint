@@ -17,6 +17,7 @@ const MESSAGE_STATUS_CONFIRMED   = 3
 
 const MODE_LOOKUP_RACER = "lookup";
 const MODE_RACER_FOUND = "found";
+const MODE_RACER_STARTED = "started";
 const MODE_RACER_CONFIRMED = "confirmed";
 
 function getCookie(name) {
@@ -34,6 +35,70 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+class Checklist extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			infoCorrect:false,
+			helmet:false,
+			radio:false,
+		}
+	}
+    handleInputChange(event) {
+      var target = event.target;
+      var value = target.type === 'checkbox' ? target.checked : target.value;
+      var name = target.name;
+
+      this.setState({
+        [name]: value
+      });
+    }
+	handleStartRacer(){
+		console.log("started racer");
+		this.props.startRacer();
+	}
+	render() {
+		var disabled = true;
+		
+		if (this.state.infoCorrect && this.state.helmet && this.state.radio) {
+			disabled = false;
+		}
+		
+		return (				
+			<div>
+				<div className="form-check">
+					<input onChange={this.handleInputChange.bind(this)} className="form-check-input" type="checkbox" checked={this.state.infoCorrect} id="infoCorrect" name="infoCorrect" />
+					<label className="form-check-label" htmlFor="infoCorrect">
+  		  				<h3>Racer Info Correct?</h3>
+ 		   			</label>
+				</div>
+			
+				<div className="form-check">
+					<input onChange={this.handleInputChange.bind(this)} className="form-check-input" type="checkbox" checked={this.state.helmet} id="helmet" name="helmet" />
+					<label className="form-check-label" htmlFor="helmet">
+  		  				<h3>Helmet?</h3>
+ 		   			</label>
+				</div>
+				
+				
+				<div className="form-check">
+					<input onChange={this.handleInputChange.bind(this)} className="form-check-input" type="checkbox" checked={this.state.radio} id="radio" name="radio" />
+					<label className="form-check-label" htmlFor="radio">
+  		  				<h3>Radio Check?</h3>
+ 		   			</label>
+				</div>
+			
+				<p>
+					<button className="btn btn-lg btn-info" disabled={disabled} onClick={this.handleStartRacer.bind(this)}>Start Racer</button> 
+				</p>
+				
+			</div>
+		)
+			
+	}
+}
+
 
 class Racer extends React.Component {
 	constructor(props) {
@@ -67,13 +132,10 @@ class Racer extends React.Component {
 }
 
 
-
-
 class StartRacerScreen extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			raceID:raceID,
 			feedback: null,
 			disabled: null,
 			mode : MODE_LOOKUP_RACER,
@@ -82,15 +144,16 @@ class StartRacerScreen extends React.Component {
 			showConfirm:false,
 		}
 	}
-	riderResponse(e) {
-		console.log(e.target.value);
+	startRacer() {
+		console.log("starting racer");
 		this.setState({disabled:'disabled'});
+		
 		var csrfToken = getCookie('csrftoken');
-		var riderResponse = {};
-		riderResponse.message = this.state.messages[this.state.currentMessage].id;
-		riderResponse.action = e.target.value;
-		var riderResponseJSON = JSON.stringify(riderResponse);
-		fetch("/dispatch/api/rider_response/", {
+		var racerRequest = {};
+		racerRequest.racer = this.state.currentRacer.racer.racer_number;
+		racerRequest.race = raceID;
+		var racerRequestJSON = JSON.stringify(racerRequest);
+		fetch("/ajax/startracer/", {
 		  headers: {
 			'X-CSRFToken': csrfToken,
 	      	'Accept': 'application/json',
@@ -98,7 +161,7 @@ class StartRacerScreen extends React.Component {
 	      },
 		  //credentials: 'include',
 		  method: "POST",
-		  body: riderResponseJSON
+		  body: racerRequestJSON
 		})
 		.then(function(response) {
 			
@@ -108,47 +171,14 @@ class StartRacerScreen extends React.Component {
 			}
 			response.json().then(function(data) {
 				console.log(data);
-				var messages = this.state.messages
-				messages[this.state.currentMessage] = data.message;
-				this.setState({feedback:data.message, disabled:null, showRefresh:true, messages:messages})
-			      }.bind(this));
-		}.bind(this)) 
-	}
-	undo () {		
-		this.setState({disabled:'disabled'});
-		
-		var csrfToken = getCookie('csrftoken');
-		var riderResponse = {};
-		riderResponse.message = this.state.messages[this.state.currentMessage].id;
-		riderResponse.action = "UNDO";
-		var riderResponseJSON = JSON.stringify(riderResponse);
-		fetch("/dispatch/api/rider_response/", {
-		  headers: {
-			'X-CSRFToken': csrfToken,
-	      	'Accept': 'application/json',
-	      	'Content-Type': 'application/json',
-	      },
-		  //credentials: 'include',
-		  method: "POST",
-		  body: riderResponseJSON
-		})
-		.then(function(response) {
-			
-        	if (response.status !== 200) {
-          		alert('Looks like there was a problem. Status Code: ' + response.status);
-				return;
-			}
-			response.json().then(function(data) {
-				//console.log(data);
-				var messages = this.state.messages
-				messages[this.state.currentMessage] = data.message;
-				this.setState({feedback:null, disabled:null, showRefresh:null, messages:messages})
+				
+				this.setState({feedback:null, currentMessage: data.message, disabled:null, mode: MODE_RACER_STARTED, showConfirm:true, dueTime:data.due_time})
 			      }.bind(this));
 		}.bind(this)) 
 	}
 	racerLookup(racer) {		
 		this.setState({disabled:'disabled', feedback:null, currentMessage: null, error_description:null});
-		var url = "/dispatch/start/" + racer + "/"
+		var url = "/dispatch/start/lookup/" + racer + "/"
 		fetch(url, {
 		  headers: {
 	      	'Accept': 'application/json',
@@ -188,8 +218,6 @@ class StartRacerScreen extends React.Component {
 		var showConfirm = this.state.showConfirm;
 
 		if (currentMessage) {
-			messageNumber = currentMessage.id;
-			
 			if ((currentMessage.status == MESSAGE_STATUS_DISPATCHING) || (currentMessage.status == MESSAGE_STATUS_CONFIRMED)){
 				messageStatus = currentMessage.message_status_as_string;
 			}
@@ -201,7 +229,17 @@ class StartRacerScreen extends React.Component {
 			)
 		} else if (this.state.mode == MODE_RACER_FOUND) {
 			return (
-				<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode} currentMessage={this.state.currentMessage}/>	
+				<div>
+					<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode}/>	
+					<Checklist racer={this.state.currentRacer} startRacer={this.startRacer.bind(this)}/>
+				</div>
+			)
+		} else if (this.state.mode == MODE_RACER_STARTED) {
+			console.log("racer started!")
+			return (
+				<div>
+				<Message />	
+				</div>
 			)
 		}
 		
