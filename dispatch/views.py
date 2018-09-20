@@ -12,6 +12,7 @@ from nacccusers.auth import AuthorizedRaceOfficalMixin
 from .models import Message
 from runs.models import Run
 from dispatch.serializers import MessageSerializer, RunSerializer
+from races.models import Race
 from racecontrol.models import RaceControl
 from .util import get_next_message
 from raceentries.models import RaceEntry
@@ -91,10 +92,12 @@ class StartViewDispatch(AuthorizedRaceOfficalMixin, TemplateView):
     method_decorator(ensure_csrf_cookie)
     def dispatch(self, request, *args, **kwargs):
         return super(StartViewDispatch, self).dispatch(request, *args, **kwargs)
-        
+    
     def render_to_response(self, context, **response_kwargs):
         response = super(StartViewDispatch, self).render_to_response(context, **response_kwargs)
         current_race = RaceControl.shared_instance().current_race
+        context['current_race'] = current_race
+        context['correct_race_type'] = current_race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS 
         response.set_cookie('raceID', current_race.pk)
         return response
 

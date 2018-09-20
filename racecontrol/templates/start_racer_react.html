@@ -26,8 +26,18 @@
   
   <body role="document">
     <div class="container theme-showcase" role="main">
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+          <div class="container">
+            <a class="navbar-brand">{{current_race}}</a>
+          </div>
+        </nav>
+		{% if correct_race_type %}
 		<div id="react-area">
-	</div>
+		</div>
+		{% else %}
+			
+			<h2>This race type does not use this control.</h2>
+		{% endif %}
 		
 <br/><br/>
 
@@ -35,7 +45,8 @@
 
 	{% load staticfiles %}
 	<script src="{% static 'js/jquery.js' %}"></script>
-	<script src="{% static 'js/start_racer.js' %}"></script>
-    
+	{% if correct_race_type %}
+		<script src="{% static 'js/start_racer.js' %}"></script>
+    {% endif %}
     <script src="{% static 'js/bootstrap.js' %}"></script>
 	</html>

@@ -15,6 +15,8 @@ const MESSAGE_STATUS_DISPATCHING = 1
 const MESSAGE_STATUS_SNOOZED     = 2
 const MESSAGE_STATUS_CONFIRMED   = 3
 
+const ENTRY_STATUS_ENTERED = 0
+
 const MODE_LOOKUP_RACER = "lookup";
 const MODE_RACER_FOUND = "found";
 const MODE_RACER_STARTED = "started";
@@ -62,7 +64,9 @@ class Checklist extends React.Component {
 		var disabled = true;
 		
 		if (this.state.infoCorrect && this.state.helmet && this.state.radio) {
-			disabled = false;
+			if (!this.props.disabled) {
+				disabled = false;
+			}
 		}
 		
 		return (				
@@ -231,16 +235,23 @@ class StartRacerScreen extends React.Component {
 					console.log("promise");
 					if ((response.status == 200) && (data.racer)) {
 						console.log(data);
-					 	this.setState({currentRacer: data, mode: MODE_RACER_FOUND, currentMessage: null, disabled:null, error_description: null});
+						
+						if (data.entry_status == ENTRY_STATUS_ENTERED) {
+							console.log("status is good to race");
+						 	this.setState({currentRacer: data, mode: MODE_RACER_FOUND, currentMessage: null, disabled:null, error_description: null});
+						} else {
+							console.log("racer is already something");
+							var error = data.racer.display_name + " is already " + data.entry_status_as_string;
+						 	this.setState({currentRacer: data, mode: MODE_LOOKUP_RACER, currentMessage: null, disabled:"disabled", error_description: error});
+						}
+					 	
 					}
-					
 				}.bind(this));
 			}
 			
 	
 		}.bind(this))
 	}
-
 	reset() {
 		
 		this.setState({currentRacer:null, mode:MODE_LOOKUP_RACER, currentMessage:null, disabled:null, error_description:null})
@@ -250,19 +261,25 @@ class StartRacerScreen extends React.Component {
 		}
 		
 	}
+	handleLastRacer(){
+		this.setState({currentRacer:null, mode:MODE_RACER_CONFIRMED, currentMessage:this.state.lastMessage, disabled:null, error_description:null})
+	}
 	render(){
 		var currentMessage = this.state.currentMessage;
 		var showConfirm = this.state.showConfirm;
 
 		if (this.state.mode == MODE_LOOKUP_RACER) {
 			return (
-				<EnterRacer racerLookup={this.racerLookup.bind(this)} error_description={this.state.error_description}/>
+				<div>
+					{this.state.lastMessage && <button type="button" id="wrong-racer-button" onClick={this.handleLastRacer.bind(this)} className="btn btn" value="Show Last"><i className="fas fa-caret-left"></i> Prev</button>}
+					<EnterRacer racerLookup={this.racerLookup.bind(this)} error_description={this.state.error_description}/>
+				</div>
 			)
 		} else if (this.state.mode == MODE_RACER_FOUND) {
 			return (
 				<div>
 					<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode}/>	
-					<Checklist racer={this.state.currentRacer} startRacer={this.startRacer.bind(this)}/>
+					<Checklist disable={this.state.disabled} racer={this.state.currentRacer} startRacer={this.startRacer.bind(this)}/>
 				</div>
 			)
 		} else if (this.state.mode == MODE_RACER_STARTED) {
