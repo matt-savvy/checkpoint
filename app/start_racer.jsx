@@ -172,7 +172,37 @@ class StartRacerScreen extends React.Component {
 			response.json().then(function(data) {
 				console.log(data);
 				
-				this.setState({feedback:null, currentMessage: data.message, disabled:null, mode: MODE_RACER_STARTED, showConfirm:true, dueTime:data.due_time})
+				this.setState({feedback:null, currentMessage: data.message, disabled:null, mode: MODE_RACER_STARTED, showConfirm:true, dueTime:data.due_back})
+			      }.bind(this));
+		}.bind(this)) 
+	}
+	riderResponse(e) {
+		console.log(e.target.value);
+		this.setState({disabled:'disabled'});
+		var csrfToken = getCookie('csrftoken');
+		var riderResponse = {};
+		riderResponse.message = this.state.currentMessage.id;
+		riderResponse.action = e.target.value;
+		var riderResponseJSON = JSON.stringify(riderResponse);
+		fetch("/dispatch/api/rider_response/", {
+		  headers: {
+			'X-CSRFToken': csrfToken,
+	      	'Accept': 'application/json',
+	      	'Content-Type': 'application/json',
+	      },
+		  //credentials: 'include',
+		  method: "POST",
+		  body: riderResponseJSON
+		})
+		.then(function(response) {
+			
+        	if (response.status !== 200) {
+          		alert('Looks like there was a problem. Status Code: ' + response.status);
+				return;
+			}
+			response.json().then(function(data) {
+				console.log(data);
+				this.setState({feedback:"Confirmed", disabled:null, showConfirm:false, currentMessage:data, mode:MODE_RACER_CONFIRMED})
 			      }.bind(this));
 		}.bind(this)) 
 	}
@@ -210,18 +240,19 @@ class StartRacerScreen extends React.Component {
 	
 		}.bind(this))
 	}
+
 	reset() {
+		
 		this.setState({currentRacer:null, mode:MODE_LOOKUP_RACER, currentMessage:null, disabled:null, error_description:null})
+		if (this.state.currentMessage) {
+			var lastMessage = this.state.currentMessage;
+			this.setState({lastMessage : lastMessage})
+		}
+		
 	}
 	render(){
 		var currentMessage = this.state.currentMessage;
 		var showConfirm = this.state.showConfirm;
-
-		if (currentMessage) {
-			if ((currentMessage.status == MESSAGE_STATUS_DISPATCHING) || (currentMessage.status == MESSAGE_STATUS_CONFIRMED)){
-				messageStatus = currentMessage.message_status_as_string;
-			}
-		}
 
 		if (this.state.mode == MODE_LOOKUP_RACER) {
 			return (
@@ -235,56 +266,28 @@ class StartRacerScreen extends React.Component {
 				</div>
 			)
 		} else if (this.state.mode == MODE_RACER_STARTED) {
-			console.log("racer started!")
 			return (
 				<div>
-				<Message />	
-				</div>
-			)
-		}
-		
-		return (
-		<div className="container">
-			<div className="row">
-				<div className="col text-left">
-						<button disabled={showBack} onClick={this.showBackMessage.bind(this)} className="btn btn" value="Show Last"><i className="fas fa-caret-left"></i> Prev</button>
-				</div>
-				<div className="col text-center">
-					{showRefresh && <button onClick={this.getNextMessage.bind(this)} className="btn btn-info" disabled={this.state.disabled} value="NEXT"><i className="fas fa-sync-alt"></i> Refresh</button>}
-				</div>
-			
-				<div className="col text-right">		
-						<button disabled={showForward} onClick={this.showNextMessage.bind(this)} className="btn btn" value="Show Next"><i className="fas fa-caret-right"></i> Next</button>
-				</div>
-			
-			</div>
-			<div className="row">
-				<br />{messageNumber && <span>Message ID #{messageNumber}</span>}
-			</div>
-			
-			
-			<div className="row">
-				<div className="col-md-6 text-center">
-					{message}
-				</div>
-			</div>
-			<div className="row">
-					{this.state.feedback && <Feedback object={this.state.feedback} undo={this.undo.bind(this)} />}
-					{this.state.messageStatus && <div className="alert alert-warning" role="alert">{messageStatus}</div>}
-			</div>
-			<div className="row bottom-navbar">
-				<div className="col text-left">
-					{showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-danger btn-sm" disabled={this.state.disabled}  value="SNOOZE"><i className="fas fa-user-slash"></i> No Response</button>}
+					<div className="alert alert-warning" role="alert">Racer Started. Due back {this.state.dueTime}</div>
+						
+						<Message message={currentMessage} runs={currentMessage.runs} />
+						{showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-success btn-lg" disabled={this.state.disabled} value="CONFIRM"><i className="fas fa-check-circle"></i> Confirmed</button>}
 				</div>
 				
-				<div className="col text-right">
-					{showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-success btn-sm" disabled={this.state.disabled} value="CONFIRM"><i className="fas fa-check-circle"></i> Confirmed</button>}
-				</div>
-			</div>
-
+			)
+		} else if (this.state.mode == MODE_RACER_CONFIRMED) {
+			return (
+				<div>
+					<div className="alert alert-success" role="alert">Racer Confirmed. Due back {this.state.dueTime}</div>
+					<Message message={currentMessage} />
+					<button onClick={this.reset.bind(this)} className="btn btn-info btn-lg" disabled={this.state.disabled} value="NEXT RACER"><i className="fas fa-arrow-circle-right"></i> Next Racer</button>
 		
-		</div>
-		)
+				</div>
+			)
+		} else {
+			return null;
+		}
+		
 	}
 }
 

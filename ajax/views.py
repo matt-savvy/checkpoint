@@ -43,8 +43,6 @@ class RaceEntryAjaxView(APIView):
         
 class StartRacerAjaxView(APIView):
     def post(self, request):
-        import pdb
-        pdb.set_trace()
         racer_number = self.request.DATA['racer']
         race_id = self.request.DATA['race']
         race_entry = RaceEntry.objects.filter(race__pk=race_id).filter(racer__racer_number=racer_number).first()

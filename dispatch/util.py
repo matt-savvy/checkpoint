@@ -9,9 +9,11 @@ import pytz
 from django.conf import settings
 
 def assign_runs(runs_to_assign, race_entry):
-    message = Message(race=race_entry.race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH, status=Message.MESSAGE_STATUS_DISPATCHING)
-    message.save()
     right_now = datetime.datetime.now(tz=pytz.utc)
+    
+    message = Message(race=race_entry.race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH, status=Message.MESSAGE_STATUS_DISPATCHING, message_time=right_now)
+    message.save()
+    
     
     current_count = run_count(race_entry)
     if current_count + runs_to_assign.count() > 13:

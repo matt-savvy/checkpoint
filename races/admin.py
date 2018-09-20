@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import Race
+from .models import Race, Manifest
 import pprint
 from django.contrib.sessions.models import Session
 
 admin.site.register(Race)
-
+admin.site.register(Manifest)
 
 class SessionAdmin(admin.ModelAdmin):
     def _session_data(self, obj):
