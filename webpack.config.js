@@ -1,7 +1,8 @@
 module.exports = {
 	entry: {
 		'dispatch' : './app/dispatch.jsx',
-		'checkpoint' : './app/checkpoint.jsx'
+		'checkpoint' : './app/checkpoint.jsx',
+		'start_racer' : './app/start_racer.jsx'
 	},
 	output: {
 		path : __dirname,
@@ -10,6 +11,10 @@ module.exports = {
 	resolve: {
 		modules: [__dirname, 'node_modules'],
 		alias: {
+			Message: './Message.jsx',
+			Racer: './Racer.jsx',
+			EnterRacer: './EnterRacer.jsx',
+			Feedback: './Feedback.jsx',
 		},
 		extensions: ['*', '.js', '.jsx']
 	},

@@ -6,7 +6,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CheckpointSerializer, RacerSerializer
-from ajax.serializers import JobSerializer, RunSerializer
+from ajax.serializers import JobSerializer, RunSerializer, RaceEntrySerializer
 from checkpoints.models import Checkpoint
 from racers.models import Racer
 from racecontrol.models import RaceControl
@@ -63,7 +63,7 @@ class RacerDetailView(generics.RetrieveAPIView):
     serializer_class = RacerSerializer
     model = Racer
     lookup_field = 'racer_number'
-    
+
 class RacerCheckpointView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)

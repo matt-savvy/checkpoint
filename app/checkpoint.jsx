@@ -1,5 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
+var EnterRacer = require('EnterRacer');
 
 const MODE_PICK = "pick";
 const MODE_PICKED = "confirm";
@@ -34,57 +35,6 @@ $.ajaxSetup({
 });
 
 const checkpoint = getCookie('checkpointID');
-
-
-class EnterRacer extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			entryField:'',
-		}
-	}
-	handleEntry(e){
-		var racerNumber = e.target.value;
-		this.setState({entryField : racerNumber});
-	}
-	handleLookup() {
-		if (this.state.entryField != ''){
-			this.props.racerLookup(this.state.entryField);
-		}
-		
-		this.setState({entryField:''});
-	}
-	handleSubmit(e) {
-		e.preventDefault();
-		this.handleLookup();
-	
-	}
-	componentDidUpdate(){
-		if (this.state.entryField.length >= 3) {
-			this.handleLookup();
-		}
-	}
-	render() {
-		
-		return (
-			<div className="row">
-				<div className="col">
-					<form onSubmit={this.handleSubmit.bind(this)} className="form">
-					<div className="form-group">
-                		<label htmlFor="racer-number">Racer Number</label>
-                		<input type="number" className="form-control" id="racer-number" placeholder="Racer #" onChange={this.handleEntry.bind(this)} value={this.state.entryField}/>
-            		</div>
-
-						<button type="button" className="btn btn-lg btn-success" id="lookup-racer-button" onClick={this.handleLookup.bind(this)} data-loading-text="Loading...">Lookup Racer</button>
-			
-					</form>
-         		<p className="text-danger" id="racer-error">{this.props.error_description}</p>
-				</div>
-			</div>
-		)
-			
-	}
-}
 
 class EnterCode extends React.Component {
 	constructor(props) {
@@ -244,66 +194,6 @@ class CancelButton extends React.Component {
 		
 		return (
 			<button type="button" id="wrong-racer-button" onClick={this.handleNextRacer.bind(this)} className="btn btn-danger btn-sm">CANCEL</button>
-		)
-	}
-}
-
-
-class Racer extends React.Component {
-	constructor(props) {
-		super(props);
-	}
-	handleNextRacer() {
-		this.props.nextRacer();
-	}
-	handleMode(x) {
-		console.log("mode");
-		console.log(x)
-		this.props.changeMode(x)
-		//console.log(e.target.value);
-		//this.props.changeMode(e.target.value);
-	}
-	handlePick(run) {
-		console.log("handle pick in racer component");
-		console.log(run);
-		this.props.pick(run);
-	}
-	render () {		
-		return (
-		<div>
-			<div className="row">
-				<div className="col">
-					<CancelButton mode={this.props.mode} nextRacer={this.props.nextRacer.bind(this)} />
-			
-					<h3 className="text-center">
-						#{this.props.racer.racer_number} {this.props.racer.first_name} {this.props.racer.nick_name} {this.props.racer.last_name} 
-						<br /> 
-						<small>
-						{this.props.racer.contact_info}
-						</small>	
-					</h3>
-				</div>
-			</div>
-						
-					{(this.props.mode == MODE_RACER_ENTERED) && 
-					<div className="row text-center">
-						<div className="col">
-							<button onClick={this.handleMode.bind(this, MODE_PICK)} value={MODE_PICK} type="button" id="pick-button" className="btn btn-success btn-lg" >Pick Up</button>
-            			</div>
-						<div className="col">
-							<button onClick={this.handleMode.bind(this, MODE_DROP)} type="button" value={MODE_DROP} className="btn btn-success btn-lg" >Drop Off</button>
-						</div>	
-					</div>
-					}
-				
-					{(this.props.mode == MODE_PICK) && <PickList nextRacer={this.props.nextRacer.bind(this)} changeMode={this.handleMode.bind(this)} handlePick={this.handlePick.bind(this)} runs={this.props.runs} />}
-					{(this.props.mode == MODE_PICKED) && <ConfirmCode confirmCode={this.props.confirmCode} />}
-					{(this.props.mode == MODE_DROPPED) && <div className="alert alert-success">Job successfully delivered.</div>}
-					{(this.props.mode == MODE_PICKED || this.props.mode == MODE_DROPPED) && <NextActionDialog anotherTransaction={this.props.anotherTransaction.bind(this)} nextRacer={this.handleNextRacer.bind(this)}/>}
-			
-					<EnterCode mode={this.props.mode} drop={this.props.drop.bind(this)} error_description={this.props.error_description}/>
-   			
-			</div>
 		)
 	}
 }

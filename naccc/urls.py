@@ -95,6 +95,9 @@ urlpatterns = patterns('',
     url(r'^racecontrol/ajax/racerdetail$', login_required(racecontrol_views.RacerDetailAjaxView.as_view())),
     url(r'^racecontrol/ajax/racing/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.CurrentRacingView.as_view())),
     url(r'^racecontrol/ajax/notraced/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.NotRacedView.as_view())),
+    
+    
+    
     url(r'^racecontrol/ajax/start/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.StartView.as_view())),
     url(r'^racecontrol/ajax/dq/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.DQView.as_view())),
     url(r'^racecontrol/ajax/award/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.AwardView.as_view())),
@@ -112,7 +115,8 @@ urlpatterns = patterns('',
     url(r'^dispatch/$', login_required(dispatch_views.DispatchView.as_view())),
     
     
-    
+    url(r'^racecontrol/start_racer/$', login_required(racecontrol_views.StartViewDispatch.as_view())),
+    url(r'^dispatch/start/(?P<race>[0-9]+)/(?P<racer>[0-9]+)/$', login_required(dispatch_views.RacerLookupView.as_view())),
     url(r'^dispatch/messages/(?P<race>[0-9]+)/$', login_required(dispatch_views.MessageListView.as_view())),
     #Ajax Views
     url(r'^ajax/racer/(?P<racer_number>[0-9]+)/$', login_required(ajax_views.RacerAjaxView.as_view())),

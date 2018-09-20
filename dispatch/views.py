@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.authentication import OAuth2Authentication, SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -14,6 +14,8 @@ from runs.models import Run
 from dispatch.serializers import MessageSerializer, RunSerializer
 from racecontrol.models import RaceControl
 from .util import get_next_message
+from raceentries.models import RaceEntry
+from ajax.serializers import RaceEntrySerializer
 
 
 class NextMessage(APIView):
@@ -83,3 +85,12 @@ class DispatchView(AuthorizedRaceOfficalMixin, TemplateView):
         print current_race
         response.set_cookie('raceID', current_race.pk)
         return response
+
+class RacerLookupView(APIView,):
+    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    
+    def get(self, request, *args, **kwargs):        
+        race_entry = RaceEntry.objects.filter(race=self.kwargs['race']).filter(racer__racer_number=kwargs['racer']).first()
+        return Response(RaceEntrySerializer(race_entry).data, status=status.HTTP_200_OK)
+    

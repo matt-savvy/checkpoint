@@ -1,6 +1,8 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Message = require('Message');
+var Feedback = require('Feedback');
+var EnterRacer = require('EnterRacer');
 const raceID = getCookie('raceID');
 
 const MESSAGE_TYPE_DISPATCH = 0
@@ -29,58 +31,16 @@ function getCookie(name) {
     return cookieValue;
 }
 
-
-class Feedback extends React.Component {
-	handleUndo() {
-		this.props.undo();
-	}
-	render() {
-		var alertClass = "alert alert-success bottom-alert";
-		return (
-				<div className={alertClass} role="alert">
-					{this.props.object.message_status_as_string}
-					<span className="text-right"><a href="#" onClick={this.handleUndo.bind(this)}>Undo</a></span>
-				</div>		
-		)
-	}
-}
-
-class DispatchScreen extends React.Component {
-	componentWillMount(){
-	  /*fetch('/exercises/api/list')
-	    .then(function(response) {
-	        	if (response.status !== 200) {
-	          		console.log('Looks like there was a problem. Status Code: ' + response.status);
-					return;
-				}
-	    		response.json().then(function(data) {
-  					this.setState({
-  						exercises : data
-  					});
-	     	 	}.bind(this));
-		}.bind(this))
-	    .catch(function(err) {
-	      console.log('Fetch Error :-S', err);
-	    });*/ 
-	}
+class StartRacerScreen extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			raceID:raceID,
 			feedback: null,
 			disabled: null,
-			showRefresh: true,
-			currentMessage:0,
-			messages : [],
+			currentMessage:null,
+			currentRacer:null,
 		}
-	}
-	showBackMessage() {
-		var lastMessage = this.state.currentMessage + 1;
-		this.setState({currentMessage: lastMessage, feedback: null});
-	}
-	showNextMessage() {
-		var lastMessage = this.state.currentMessage - 1;
-		this.setState({currentMessage: lastMessage, feedback: null});
 	}
 	riderResponse(e) {
 		console.log(e.target.value);
@@ -147,7 +107,7 @@ class DispatchScreen extends React.Component {
 		}.bind(this)) 
 	}
 	getNextMessage() {		
-		this.setState({disabled:'disabled', feedback:null, currentMessage: 0, error_description:null});
+		this.setState({disabled:'disabled', feedback:null, currentMessage: null, error_description:null});
 		var csrfToken = getCookie('csrftoken');
 		var nextMessageRequest = {};
 		nextMessageRequest.race = this.state.raceID;
@@ -227,7 +187,9 @@ class DispatchScreen extends React.Component {
 		}
 		
 
-		
+		return (
+			<EnterRacer />
+		)
 		
 		return (
 		<div className="container">
@@ -275,5 +237,5 @@ class DispatchScreen extends React.Component {
 }
 
 ReactDOM.render(
-	<DispatchScreen />, document.getElementById('react-area')
+	<StartRacerScreen />, document.getElementById('react-area')
 ); 
