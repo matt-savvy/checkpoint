@@ -25,6 +25,8 @@ class Command(BaseCommand):
                     print("{} {}".format(session.pk, volunteer_json))
             selection = raw_input("choose session number : ")
             try:
+                import pdb
+                pdb.set_trace()
                 sess = Session.objects.get(pk=selection)
                 decoded_data = sess.get_decoded()
                 stream = BytesIO(decoded_data['volunteer_json'])
@@ -34,7 +36,7 @@ class Command(BaseCommand):
                 volunteer_last_name = data['last_name']
                 volunteer = Volunteer.objects.filter(first_name=volunteer_first_name).filter(last_name=volunteer_last_name).first()
                 if volunteer:
-                    print "existing volunteer found {}, {}".format(volunteer, volunteer.city)
+                    print "existing volunteer found {}, {}".format(volunteer_first_name, volunteer.city)
                     you_sure = raw_input("are you sure? y / n").lower()
                     if you_sure != "y":
                         print "quitting"
