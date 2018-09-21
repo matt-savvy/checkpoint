@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from volunteers.models import Volunteer
+from racers.models import Volunteer
 from importlib import import_module
 from ajax.serializers import RegistrationSerializer
 from rest_framework.renderers import JSONRenderer
