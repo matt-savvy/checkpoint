@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from racers.models import Volunteer
 from importlib import import_module
-from ajax.serializers import RegistrationSerializer
+from ajax.serializers import VolunteerSerializer
 from rest_framework.renderers import JSONRenderer
 from django.contrib.sessions.models import Session
 from django.contrib.sessions.backends.db import SessionStore 
