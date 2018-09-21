@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 else:
                     new_volunteer = new_serializer.create(new_serializer.data)
                     
-                print("{} {} {}".format(new_volunteer, new_volunteer.city))
+                print("{} {}".format(new_volunteer, new_volunteer.city))
                 save = raw_input("save? y / n : ").lower()
                 if save == "y":
                     paypal_tx = raw_input("enter paypal transaction ID number (if applicable): ")
