@@ -17,8 +17,7 @@ from races.models import Race
 from racecontrol.models import RaceControl
 from .util import get_next_message
 from raceentries.models import RaceEntry
-from ajax.serializers import RaceEntrySerializer
-
+from ajax.serializers import RaceEntrySerializer, RacerSerializer
 
 class NextMessage(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
@@ -162,11 +161,27 @@ class RadioAPIView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
-    def get(self, request, *args, **kwargs):           
+    def get_numbers(self):
         radio_numbers = range(8, 90)
         existing_numbers = Racer.objects.values_list('radio_number', flat=True)
         available_numbers = ["radio {}".format(str(x)) for x in radio_numbers]
         available_numbers = [x for x in available_numbers if x not in existing_numbers]
         
-        print available_numbers
+        return available_numbers 
+        
+    def post(self, request, *args, **kwargs):
+        import pdb
+        #pdb.set_trace()
+        racer = self.request.DATA.get('racer')
+        radio = self.request.DATA.get('radio')
+        
+        racer_obj = RaceEntry.objects.get(pk=racer).racer
+        racer_obj.radio_number = radio
+        racer_obj.contact_info = radio
+        racer_obj.save()
+        available_numbers = self.get_numbers()
+        return Response({'available_radios' : available_numbers, 'racer' : RacerSerializer(racer_obj).data}, status=status.HTTP_200_OK)
+    
+    def get(self, request, *args, **kwargs):           
+        available_numbers = self.get_numbers()
         return Response({'available_radios' : available_numbers}, status=status.HTTP_200_OK)

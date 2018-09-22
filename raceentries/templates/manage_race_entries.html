@@ -12,7 +12,7 @@
     <p>
         <a href="/raceentries/advance/{{race.id}}/" class="btn btn-default">Advance From Race Results</a>
 		
-		<a href="{% url 'enter-single-racer' %}" class="btn btn-default">Enter Single Racer</a>
+		<a href="{% url 'assign-radios' %}" class="btn btn-default">Assign Radios</a>
     </p>
 </div>
 <div class="row">
@@ -74,7 +74,7 @@
             {% for entry in race_entries %}
             <tr>
                 <td><input type="checkbox" name="remove-from-race[]" value="{{entry.id}}" class='entered-in-race-checkboxes'></td>
-                <td><a href="/raceentries/update/{{entry.id}}">{{entry.racer.racer_number}}</a></td>
+                <td><a href="/nunya/raceentries/raceentry/{{entry.id}}">{{entry.racer.racer_number}}</a></td>
                 <td>{{entry.racer.last_name}}</td>
                 <td>{{entry.racer.first_name}}</td>
                 <td>{{entry.racer.gender}}</td>
