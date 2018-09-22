@@ -193,5 +193,10 @@ class RaceEntry(models.Model):
         h, m = divmod(m, 60)
         return "%02d:%02d:%02d" % (h, m, s)
             
-            
-
+    @property
+    def localized_start_time(self):
+        eastern = pytz.timezone('US/Eastern')
+        if self.start_time:
+            return self.start_time.astimezone(eastern).strftime('%I:%M %p')
+        else:
+            return "N/A"

@@ -170,8 +170,6 @@ class RadioAPIView(APIView):
         return available_numbers 
         
     def post(self, request, *args, **kwargs):
-        import pdb
-        #pdb.set_trace()
         racer = self.request.DATA.get('racer')
         radio = self.request.DATA.get('radio')
         

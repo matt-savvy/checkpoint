@@ -34,6 +34,7 @@ class RacerSerializer(serializers.ModelSerializer):
 
 class RaceEntrySerializer(serializers.ModelSerializer):
     entry_status_as_string = serializers.CharField(source='entry_status_as_string')
+    localized_start_time = serializers.CharField(source='localized_start_time')
     racer = RacerSerializer()
     class Meta:
         model = RaceEntry

@@ -183,7 +183,7 @@ class DispatchControl extends React.Component {
 					{this.state.feedback && <div className="alert alert-warning" role="alert"> {this.state.feedback}</div>}
 					{this.state.currentRacer && <p className="text-center"><button onClick={this.refresh.bind(this)} className="btn btn-primary"><i className="fa fa-refresh" aria-hidden="true"></i> Refresh</button></p>}
 					<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode}/>
-					<h3 className="text-center">{this.state.currentRacer.entry_status_as_string}</h3>
+					<h3 className="text-center">{this.state.currentRacer.entry_status_as_string} {this.state.currentRacer.localized_start_time && <small>Racing since {this.state.currentRacer.localized_start_time}</small>}</h3>
 					<RunTable runs={openRuns} label="OPEN"/>
 					<RunTable runs={pendingRuns} label="PENDING"/>
 					<RunTable runs={completeRuns} label="COMPLETE"/>
@@ -195,8 +195,6 @@ class DispatchControl extends React.Component {
 		
 	}
 }
-
-
 
 ReactDOM.render(
 	<DispatchControl />, document.getElementById('react-area')
