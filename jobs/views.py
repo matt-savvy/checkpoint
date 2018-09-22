@@ -4,6 +4,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib import messages
 from django.views.generic import View
+from .forms import JobForm
 import datetime
 import pytz
 
@@ -42,7 +43,8 @@ class JobDetailView(DetailView):
 class JobCreateView(CreateView):
     template_name = 'create_job.html'
     model = Job
-    
+    form_class = JobForm
+
     def get_success_url(self):
         messages.success(self.request, 'Job was successfully created.')
         if 'save-another' in self.request.POST:
@@ -52,6 +54,8 @@ class JobCreateView(CreateView):
 class JobUpdateView(UpdateView):
     template_name = 'update_job.html'
     model = Job
+    form_class = JobForm
+    
     
 class JobDeleteView(DeleteView):
     model = Job

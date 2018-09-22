@@ -12,7 +12,7 @@ class Job(models.Model):
     drop_checkpoint = models.ForeignKey(Checkpoint, related_name="drop")
     points = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
     minutes_ready_after_start = models.IntegerField(default=0)
-    minutes_due_after_start = models.IntegerField(default=9999)
+    minutes_due_after_start = models.IntegerField(default=180)
     manifest = models.ForeignKey(Manifest, blank=True, null=True)
     
     def __unicode__(self):
