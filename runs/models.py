@@ -118,5 +118,17 @@ class Run(models.Model):
         
             self.save()
             
+    @property       
+    def late(self):
+        if not self.utc_time_due:
+            return False
             
+        if self.status == self.RUN_STATUS_ASSIGNED or self.status == self.RUN_STATUS_PICKED:
+            right_now = datetime.datetime.now(tz=pytz.utc)
+            if right_now > self.utc_time_due:
+                return True
+        if self.status == self.RUN_STATUS_COMPLETED:
+            if not self.utc_time_dropped <= self.utc_time_due:
+                return True
+        return False
     

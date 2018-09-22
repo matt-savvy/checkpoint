@@ -67,3 +67,63 @@ class RunTestCase(TestCase):
         run.pick()
         run.drop()
         self.assertEqual(run.status, Run.RUN_STATUS_COMPLETED)
+        
+    def test_late(self):
+        ru = self.runs[0]
+        ru.utc_time_due = self.right_now - datetime.timedelta(minutes=5)
+        ru.status = Run.RUN_STATUS_ASSIGNED
+        ru.save()
+        self.assertTrue(ru.late)
+    
+    def test_not_late(self):
+        ru = self.runs[0]
+        ru.utc_time_due = self.right_now + datetime.timedelta(minutes=5)
+        ru.status = Run.RUN_STATUS_ASSIGNED
+        ru.save()
+        self.assertFalse(ru.late)
+    
+    def test_not_late_no_start_time(self):
+        ru = self.runs[0]
+        ru.race_entry.race.start_time = None
+        ru.race_entry.race.save()
+        ru.utc_time_due = self.right_now - datetime.timedelta(minutes=5)
+        ru.status = Run.RUN_STATUS_ASSIGNED
+        ru.save()
+        
+        self.assertTrue(ru.late)
+        
+    def test_late_no_start_time(self):
+        ru = self.runs[0]
+        ru.race_entry.race.start_time = None
+        ru.race_entry.race.save()
+        ru.utc_time_due = self.right_now - datetime.timedelta(minutes=5)
+        ru.status = Run.RUN_STATUS_ASSIGNED
+        ru.save()
+        
+        self.assertTrue(ru.late)
+    
+    def test_not_late_no_due_time(self):
+        "cant be late if there's no due time"
+        ru = self.runs[0]
+        ru.utc_time_due = None
+        ru.save()
+        ru.status = Run.RUN_STATUS_ASSIGNED
+        self.assertFalse(ru.late)
+        
+    def test_complete_late(self):
+        ru = self.runs[0]
+        ru.utc_time_due = self.right_now - datetime.timedelta(minutes=5)
+        ru.utc_time_dropped = self.right_now
+        ru.status = Run.RUN_STATUS_COMPLETED
+        ru.save()
+        self.assertTrue(ru.late)
+    
+    def test_complete_not_late(self):
+        ru = self.runs[0]
+        ru.utc_due_time = self.right_now + datetime.timedelta(minutes=5)
+        ru.utc_time_dropped = self.right_now 
+        ru.status = Run.RUN_STATUS_COMPLETED
+        ru.save()
+        self.assertFalse(ru.late)
+    
+        

@@ -51,10 +51,11 @@ class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         depth = 2
-        fields = ('pick_checkpoint', 'drop_checkpoint', 'service', 'minutes_due_after_start')
+        fields = ('pick_checkpoint', 'drop_checkpoint', 'service', 'minutes_due_after_start', 'manifest')
         
 class RunSerializer(serializers.ModelSerializer):
     job = JobSerializer()
+    status_as_string = serializers.CharField(source='status_as_string')
     class Meta:
         model = Run
-        fields = ('id', 'job')
+        fields = ('id', 'job', 'status_as_string')
