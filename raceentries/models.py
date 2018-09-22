@@ -3,6 +3,7 @@ from racers.models import Racer
 from races.models import Race, Manifest
 import datetime
 from django.utils.timezone import utc
+from racecontrol.models import RaceControl
 from runs.models import Run
 import decimal
 import pytz
@@ -28,6 +29,7 @@ class RaceEntry(models.Model):
     
     """(RaceEntry description)"""
     racer = models.ForeignKey(Racer)
+    #race = models.ForeignKey(Race, related_name="raceentry", default=RaceControl.shared_instance().current_race)
     race = models.ForeignKey(Race)
     entry_date = models.DateTimeField(auto_now_add=True)
     entry_status = models.IntegerField(choices=ENTRY_STATUS_CHOICES, default=ENTRY_STATUS_ENTERED)

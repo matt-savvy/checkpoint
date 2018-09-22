@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block container %}
+
+<div class="page-header">
+  <h1>Enter Racer <small>PHL NACCC</small></h1>
+</div>
+
+        {% if form.errors %}
+        {% for error in form.errors  %}
+            <div class="alert alert-warning alert-dismissable message-alert">
+              <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+              {{ error }}
+            </div>
+        {% endfor %}
+        {% endif %}
+
+<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    {% for field in form %}
+        <div class="form-group">
+            <label for="{{field.name}}">{{field.label}}</label>
+            {{field.errors}}
+            {{field|add_class:"form-control"}}
+         </div>
+        
+    {% endfor %}
+    <input class="btn btn-success" type="submit" name="save" value="Save Entry" />
+    <input class="btn btn-success" type="submit" name="save-another" value="Save and Enter Another Racer" />
+</form>
+
+{% endblock %}

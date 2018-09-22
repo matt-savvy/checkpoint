@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block container %}
+
+<div class="page-header">
+  <h1>Add Racers <small>NACCC PHL NACCC</small></h1>
+</div>
+
+<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    {% for field in form %}
+        <div class="form-group">
+            <label for="{{field.name}}">{{field.label}}</label>
+            {{field.errors}}
+            {{field|add_class:"form-control"}}
+         </div>
+        
+    {% endfor %}
+    <input class="btn btn-success" type="submit" name="save" value="Save Racer" />
+    <input class="btn btn-success" type="submit" name="save-another" value="Save and Create Another Racer" />
+</form>
+
+{% endblock %}

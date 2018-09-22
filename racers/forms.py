@@ -43,4 +43,3 @@ class RegisterForm(forms.ModelForm):
         available_numbers_tup = tuple([(element, str(element)) for element in available_numbers])
         self.fields['racer_number'].choices = available_numbers_tup
         
-        

@@ -73,6 +73,18 @@ class RacerListViewPublic(ListView):
     
     def get_queryset(self):
         return Racer.objects.filter(paid=True)
+        
+    def get_context_data(self, **kwargs):
+        context = super(RacerListViewPublic, self).get_context_data(**kwargs)
+        racers = context['object_list']
+        racers = list(racers)
+        for racer in racers:
+            racer.racer_number = int(racer.racer_number)
+        racers = list(racers)
+        racers.sort(key=lambda x: x.racer_number)
+        print racers
+        context['racers'] = racers
+        return context
 
 class RacerDetailView(AuthorizedRaceOfficalMixin, DetailView):
     template_name = 'racer_detail.html'

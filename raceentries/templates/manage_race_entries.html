@@ -11,6 +11,8 @@
 <div>
     <p>
         <a href="/raceentries/advance/{{race.id}}/" class="btn btn-default">Advance From Race Results</a>
+		
+		<a href="{% url 'enter-single-racer' %}" class="btn btn-default">Enter Single Racer</a>
     </p>
 </div>
 <div class="row">
@@ -22,19 +24,23 @@
       <div class="table-responsive">
       <table class="table table-striped">
         <tr>
-            <th><input type="checkbox" id="select-all-not-entered"></th>
+            <th>{% if race.race_type != race.RACE_TYPE_DISPATCH_FINALS %}<input type="checkbox" id="select-all-not-entered">{% endif %}</th>
             <th>Racer Number</th>
             <th>Last Name</th>
             <th>First Name</th>
             <th>Gender</th>
+			<th>Radio Number</th>
+			<th>Contact Info</th>
         </tr>
         {% for racer in not_in_race %}
         <tr>
-            <td><input type="checkbox" name="enter-in-race[]" value="{{racer.id}}" class='not-in-race-checkboxes'></td>
+            <td>{% if race.race_type != race.RACE_TYPE_DISPATCH_FINALS %}<input type="checkbox" name="enter-in-race[]" value="{{racer.id}}" class='not-in-race-checkboxes'>{% endif %}</td>
             <td>{{racer.racer_number}}</td>
             <td>{{racer.last_name}}</td>
             <td>{{racer.first_name}}</td>
             <td>{{racer.gender}}</td>
+			<td>{{racer.radio_number}}</td>
+			<td>{{racer.contact_info}}</td>
         </tr> 
         {% empty %}
         <tr>
@@ -42,7 +48,9 @@
         </tr>
         {% endfor %}
       </table>
+	  {% if race.race_type != race.RACE_TYPE_DISPATCH_FINALS %}
       <button type="submit" class="btn btn-default btn-success" name="enter-racers">Enter Racer(s) in Race</button>
+	  {% endif %}
       </form>
       </div>
   </div>
@@ -59,6 +67,9 @@
                 <th>Last Name</th>
                 <th>First Name</th>
                 <th>Gender</th>
+				<th>Radio Number</th>
+				<th>Contact Info</th>
+				
             </tr>
             {% for entry in race_entries %}
             <tr>
@@ -67,6 +78,8 @@
                 <td>{{entry.racer.last_name}}</td>
                 <td>{{entry.racer.first_name}}</td>
                 <td>{{entry.racer.gender}}</td>
+				<td>{{entry.racer.radio_number}}</td>
+				<td>{{entry.racer.contact_info}}</td>
             </tr> 
             {% empty %}
             <tr>
