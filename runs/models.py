@@ -79,7 +79,7 @@ class Run(models.Model):
             self.status = self.RUN_STATUS_ASSIGNED
             self.determination = self.DETERMINATION_NOT_PICKED
             self.utc_time_assigned = time_now
-            self.utc_time_due = time_now + datetime.timedelta(self.job.minutes_due_after_start)
+            self.utc_time_due = time_now + datetime.timedelta(minutes=self.job.minutes_due_after_start)
             self.save()
     
     def pick(self):
@@ -125,9 +125,11 @@ class Run(models.Model):
             
         if self.status == self.RUN_STATUS_ASSIGNED or self.status == self.RUN_STATUS_PICKED:
             right_now = datetime.datetime.now(tz=pytz.utc)
+            print right_now
+            print self.utc_time_due
             if right_now > self.utc_time_due:
                 return True
-        if self.status == self.RUN_STATUS_COMPLETED:
+        elif self.status == self.RUN_STATUS_COMPLETED:
             if not self.utc_time_dropped <= self.utc_time_due:
                 return True
         return False

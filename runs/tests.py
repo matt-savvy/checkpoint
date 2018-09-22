@@ -42,7 +42,8 @@ class RunTestCase(TestCase):
         run_obj = self.runs[0]
         run_obj.assign()
         twenty_mins_from_now = self.right_now + datetime.timedelta(minutes=20)
-        self.assertIsNotNone(run_obj.utc_time_due)  
+        self.assertIsNotNone(run_obj.utc_time_due) 
+        self.assertEqual(twenty_mins_from_now.replace(microsecond=0), run_obj.utc_time_due.replace(microsecond=0)) 
     
     def test_pick_without_assign(self):
         run = self.runs[0]
