@@ -1,6 +1,7 @@
 module.exports = {
 	entry: {
 		'dispatch' : './app/dispatch.jsx',
+		'dispatch_control' : './app/dispatch_control.jsx',
 		'checkpoint' : './app/checkpoint.jsx',
 		'start_racer' : './app/start_racer.jsx'
 	},
@@ -15,6 +16,7 @@ module.exports = {
 			Racer: './Racer.jsx',
 			EnterRacer: './EnterRacer.jsx',
 			Feedback: './Feedback.jsx',
+			RacerSmall: './RacerSmall.jsx',
 		},
 		extensions: ['*', '.js', '.jsx']
 	},

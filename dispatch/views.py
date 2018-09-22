@@ -88,7 +88,7 @@ class DispatchView(AuthorizedRaceOfficalMixin, TemplateView):
         return response
 
 class StartViewDispatch(AuthorizedRaceOfficalMixin, TemplateView):
-    template_name = "start_racer_react.html"
+    template_name = "react_controls.html"
     
     method_decorator(ensure_csrf_cookie)
     def dispatch(self, request, *args, **kwargs):
@@ -99,6 +99,24 @@ class StartViewDispatch(AuthorizedRaceOfficalMixin, TemplateView):
         current_race = RaceControl.shared_instance().current_race
         context['current_race'] = current_race
         context['correct_race_type'] = current_race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS 
+        context['js_file'] = 'start_racer'
+        response.set_cookie('raceID', current_race.pk)
+        
+        return response
+
+class DispatchControlsView(AuthorizedRaceOfficalMixin, TemplateView):
+    template_name = "react_controls.html"
+    
+    method_decorator(ensure_csrf_cookie)
+    def dispatch(self, request, *args, **kwargs):
+        return super(DispatchControlsView, self).dispatch(request, *args, **kwargs)
+    
+    def render_to_response(self, context, **response_kwargs):
+        response = super(DispatchControlsView, self).render_to_response(context, **response_kwargs)
+        current_race = RaceControl.shared_instance().current_race
+        context['current_race'] = current_race
+        context['correct_race_type'] = current_race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS
+        context['js_file'] = 'dispatch_control'
         response.set_cookie('raceID', current_race.pk)
         return response
 
@@ -108,9 +126,15 @@ class RacerLookupView(APIView):
     
     def get(self, request, *args, **kwargs):
         current_race = RaceControl.shared_instance().current_race
-        
+                
         race_entry = RaceEntry.objects.filter(race=current_race).filter(racer__racer_number=kwargs['racer']).first()
-
+        
+        include_runs = self.request.GET.get('runs')
+        
+        if include_runs : 
+            runs = Run.objects.filter(race_entry=race_entry)
+            return Response({'racer': RaceEntrySerializer(race_entry).data, 'runs': RunSerializer(runs).data}, status=status.HTTP_200_OK)
+        
         if race_entry:
             return Response(RaceEntrySerializer(race_entry).data, status=status.HTTP_200_OK)
         else:

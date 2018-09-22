@@ -116,7 +116,8 @@ urlpatterns = patterns('',
     
     
     url(r'^dispatch/start_racer/$', login_required(dispatch_views.StartViewDispatch.as_view())),
-    url(r'^dispatch/start/lookup/(?P<racer>[0-9]+)/$', login_required(dispatch_views.RacerLookupView.as_view())),
+    url(r'^dispatch/controls/$', login_required(dispatch_views.DispatchControlsView.as_view())),
+    url(r'^dispatch/lookup/(?P<racer>[0-9]+)/$', login_required(dispatch_views.RacerLookupView.as_view())),
     url(r'^dispatch/messages/(?P<race>[0-9]+)/$', login_required(dispatch_views.MessageListView.as_view())),
     #Ajax Views
     url(r'^ajax/racer/(?P<racer_number>[0-9]+)/$', login_required(ajax_views.RacerAjaxView.as_view())),

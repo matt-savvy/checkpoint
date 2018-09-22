@@ -3,6 +3,7 @@ var ReactDOM = require('react-dom');
 var Message = require('Message');
 var Feedback = require('Feedback');
 var EnterRacer = require('EnterRacer');
+var Racer = require('RacerSmall');
 const raceID = getCookie('raceID');
 
 const MESSAGE_TYPE_DISPATCH = 0
@@ -104,36 +105,7 @@ class Checklist extends React.Component {
 }
 
 
-class Racer extends React.Component {
-	constructor(props) {
-		super(props);
-	}
-	handleNextRacer() {
-		this.props.reset();
-	}
-	render () {		
-		return (
-		<div>
-			<div className="row">
-				<div className="col">
-					
-			{this.props.mode == MODE_RACER_FOUND && <button type="button" id="wrong-racer-button" onClick={this.handleNextRacer.bind(this)} className="btn btn-danger btn-sm">RESET</button>}
-		
-			
-					<h3 className="text-center">
-						#{this.props.racer.racer.racer_number} {this.props.racer.racer.first_name} {this.props.racer.racer.nick_name} {this.props.racer.racer.last_name} 
-						<br /> 
-						<small>
-						{this.props.racer.racer.contact_info}
-						</small>	
-					</h3>
-				</div>
-			</div>	
-					
-		</div>
-		)
-	}
-}
+
 
 
 class StartRacerScreen extends React.Component {
@@ -249,7 +221,7 @@ class StartRacerScreen extends React.Component {
 	}
 	racerLookup(racer) {		
 		this.setState({disabled:'disabled', feedback:null, currentMessage: null, error_description:null});
-		var url = "/dispatch/start/lookup/" + racer + "/"
+		var url = "/dispatch/lookup/" + racer + "/"
 		fetch(url, {
 		  headers: {
 	      	'Accept': 'application/json',
