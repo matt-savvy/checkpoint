@@ -35,6 +35,11 @@ class Racer(models.Model):
         (SHIRT_SIZE_XLARGE, "XL")
     )
     
+    radio_numbers = range(8, 90)
+    available_numbers = ["radio {}".format(str(x)) for x in radio_numbers]
+    available_numbers_tup = tuple([(element, element) for element in available_numbers])
+    
+    
     """(Racer description)"""
     racer_number = models.CharField(max_length=3, unique=True, validators=[RegexValidator(r'^\d{1,10}$')])
     first_name = models.CharField(max_length=50)
@@ -49,7 +54,7 @@ class Racer(models.Model):
     paypal_tx = models.CharField(blank=True, max_length=100)
     team = models.CharField(blank=True, max_length=100)
     company = models.CharField(blank=True, max_length=100)
-    radio_number = models.CharField(blank=True, max_length=100)
+    radio_number = models.CharField(choices=available_numbers_tup, blank=True, max_length=100)
     contact_info = models.CharField(blank=True, max_length=100)
     
     class Meta:

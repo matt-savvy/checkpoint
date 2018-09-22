@@ -74,7 +74,7 @@
             {% for entry in race_entries %}
             <tr>
                 <td><input type="checkbox" name="remove-from-race[]" value="{{entry.id}}" class='entered-in-race-checkboxes'></td>
-                <td>{{entry.racer.racer_number}}</td>
+                <td><a href="/raceentries/update/{{entry.id}}">{{entry.racer.racer_number}}</a></td>
                 <td>{{entry.racer.last_name}}</td>
                 <td>{{entry.racer.first_name}}</td>
                 <td>{{entry.racer.gender}}</td>

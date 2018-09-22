@@ -88,8 +88,7 @@ urlpatterns = patterns('',
     url(r'^raceentries/race/(?P<pk>[0-9]+)/$', login_required(entry_views.ManageRaceEntryView.as_view())),
     url(r'^raceentries/advance/(?P<pk>[0-9]+)/$', login_required(entry_views.AdvanceView.as_view())),
     url(r'^raceentries/enter/$', login_required(entry_views.EnterRacersView.as_view())),
-    url(r'^raceentries/enter/single/$', login_required(entry_views.EnterSingleRacerView.as_view()), name="enter-single-racer"),
-    url(r'^raceentries/update/(?P<pk>[0-9]+)/$', login_required(entry_views.UpdateRaceEntryView.as_view()), name="update-raceentry"),
+
     #Race Control
     url(r'^racecontrol/$', login_required(racecontrol_views.RaceControlRaceListView.as_view())),
 
@@ -116,8 +115,8 @@ urlpatterns = patterns('',
     url(r'^dispatch/api/next_message/$', login_required(dispatch_views.NextMessage.as_view())),
     url(r'^dispatch/api/rider_response/$', login_required(dispatch_views.RiderResponse.as_view())),
     url(r'^dispatch/$', login_required(dispatch_views.DispatchView.as_view())),
-    
-    
+    url(r'^dispatch/radios/$', login_required(dispatch_views.RadioAssignView.as_view())),
+    url(r'^dispatch/radios/api/$', login_required(dispatch_views.RadioAPIView.as_view())),
     url(r'^dispatch/start_racer/$', login_required(dispatch_views.StartViewDispatch.as_view())),
     url(r'^dispatch/controls/$', login_required(dispatch_views.DispatchControlsView.as_view())),
     url(r'^dispatch/lookup/(?P<racer>[0-9]+)/$', login_required(dispatch_views.RacerLookupView.as_view())),

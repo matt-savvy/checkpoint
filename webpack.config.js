@@ -3,7 +3,8 @@ module.exports = {
 		'dispatch' : './app/dispatch.jsx',
 		'dispatch_control' : './app/dispatch_control.jsx',
 		'checkpoint' : './app/checkpoint.jsx',
-		'start_racer' : './app/start_racer.jsx'
+		'start_racer' : './app/start_racer.jsx',
+		'radio_assign' : './app/radio_assign.jsx'
 	},
 	output: {
 		path : __dirname,

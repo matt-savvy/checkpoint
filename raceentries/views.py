@@ -1,9 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.views.generic.list import ListView
-from django.views.generic.edit import FormView, CreateView, UpdateView
+from django.views.generic.edit import FormView
 from django.views.generic import View, TemplateView
-from .forms import RaceEntryEnterForm
 from raceentries.models import RaceEntry
 from raceentries.forms import AdvanceForm
 from races.models import Race
@@ -112,26 +111,3 @@ class AdvanceView(AuthorizedRaceOfficalMixin, FormView):
     def form_valid(self, form):
         self.success_url = "/raceentries/race/" + str(form.cleaned_data['race_id'])
         return super(AdvanceView, self).form_valid(form)
-    
-class EnterSingleRacerView(AuthorizedRaceOfficalMixin, CreateView):
-    template_name = "enter_single_racer.html"
-    form_class = RaceEntryEnterForm
-    success_url = "/raceentries/"
-    
-    def form_valid(self, form):
-        """If the form is valid, save the associated model."""
-        self.object = form.save()
-        self.object.racer.radio_number = form.cleaned_data['radio_number']
-        self.object.racer.contact_info = form.cleaned_data['contact_info']
-        self.object.racer.save()
-        
-        if self.object.race.race_type == Race.RACE_TYPE_DISPATCH_FINALS:
-            self.object.race.populate_runs(self.object)
-            messages.success(self.request, 'Racer was successfully created, runs populated for finals.')
-        else:
-            messages.success(self.request, 'Racer was successfully created')
-        return HttpResponseRedirect(self.get_success_url())
-    
-class UpdateRaceEntryView(AuthorizedRaceOfficalMixin, UpdateView):
-    template_name = "update_race_entry.html"
-    form_class = RaceEntryEnterForm

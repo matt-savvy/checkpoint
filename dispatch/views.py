@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from nacccusers.auth import AuthorizedRaceOfficalMixin
 from .models import Message
+from racers.models import Racer
 from runs.models import Run
 from dispatch.serializers import MessageSerializer, RunSerializer
 from races.models import Race
@@ -141,5 +142,31 @@ class RacerLookupView(APIView):
         if race_entry:
             return Response(RaceEntrySerializer(race_entry).data, status=status.HTTP_200_OK)
 
-            
+class RadioAssignView(AuthorizedRaceOfficalMixin, TemplateView):
+    template_name = "react_controls.html"
     
+    method_decorator(ensure_csrf_cookie)
+    def dispatch(self, request, *args, **kwargs):
+        return super(RadioAssignView, self).dispatch(request, *args, **kwargs)
+    
+    def render_to_response(self, context, **response_kwargs):
+        response = super(RadioAssignView, self).render_to_response(context, **response_kwargs)
+        current_race = RaceControl.shared_instance().current_race
+        context['current_race'] = current_race
+        context['correct_race_type'] = current_race.dispatch_race
+        context['js_file'] = 'radio_assign'
+        response.set_cookie('raceID', current_race.pk)
+        return response
+
+class RadioAPIView(APIView):
+    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    
+    def get(self, request, *args, **kwargs):           
+        radio_numbers = range(8, 90)
+        existing_numbers = Racer.objects.values_list('radio_number', flat=True)
+        available_numbers = ["radio {}".format(str(x)) for x in radio_numbers]
+        available_numbers = [x for x in available_numbers if x not in existing_numbers]
+        
+        print available_numbers
+        return Response({'available_radios' : available_numbers}, status=status.HTTP_200_OK)
