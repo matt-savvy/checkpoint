@@ -69,6 +69,14 @@ class Run(models.Model):
             return self.utc_time_due.astimezone(eastern).strftime('%I:%M %p')
         else:
             return "N/A"
+            
+    @property
+    def localized_ready_time(self):
+        eastern = pytz.timezone('US/Eastern')
+        if self.utc_time_ready:
+            return self.utc_time_ready.astimezone(eastern).strftime('%I:%M %p')
+        else:
+            return "N/A"
     
     def assign(self):
         time_now = datetime.datetime.now(tz=pytz.utc)

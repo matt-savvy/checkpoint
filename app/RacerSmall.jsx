@@ -20,6 +20,7 @@ class Racer extends React.Component {
 			
 					<h3 className="text-center">
 						#{this.props.racer.racer.racer_number} {this.props.racer.racer.first_name} {this.props.racer.racer.nick_name} {this.props.racer.racer.last_name} 
+						{this.props.racer.manifest && <p><b>Manifest {this.props.racer.manifest.manifest_name}</b></p>}
 						<br /> 
 						<small>
 						{this.props.racer.racer.contact_info}

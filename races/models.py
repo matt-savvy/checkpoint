@@ -74,7 +74,7 @@ class Race(models.Model):
                     else:
                         ready_time = datetime.datetime.now(tz=pytz.utc)
                 elif self.race_type == self.RACE_TYPE_DISPATCH_PRELIMS:
-                    ready_time = race_entry.start_time    
+                    ready_time = race_entry.start_time  
                 run.utc_time_ready = ready_time + datetime.timedelta(minutes=job.minutes_ready_after_start)
                 run.save()
                 runs.append(run)

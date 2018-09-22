@@ -129,6 +129,9 @@ class RacerLookupView(APIView):
                 
         race_entry = RaceEntry.objects.filter(race=current_race).filter(racer__racer_number=kwargs['racer']).first()
         
+        if not race_entry:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
         include_runs = self.request.GET.get('runs')
         
         if include_runs : 
@@ -137,6 +140,6 @@ class RacerLookupView(APIView):
         
         if race_entry:
             return Response(RaceEntrySerializer(race_entry).data, status=status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+
+            
     

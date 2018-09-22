@@ -19,24 +19,52 @@ const MODE_RACER_FOUND = "found";
 
 class Run extends React.Component {
 	render () {
+		var tableClass;
+		if (this.props.run.late) {
+			tableClass = "table-danger"
+		}
 		return (
-				<tr>
-					<td>{this.props.job.id}</td>
-					
-					<td>{this.props.job.pick_checkpoint}</td>
-					<td>{this.props.job.drop_checkpoint}</td>
-					<td>{this.props.job.utc_time_ready}</td>
-					<td>{this.props.job.utc_time_complete}</td>
-					<td>{this.props.job.service_level}</td>
-					<td>{this.props.job.manifest}</td>
-			</tr>
+				<tr className={tableClass}>
+					<td>{this.props.run.id}</td>
+					<td>{this.props.run.job.pick_checkpoint.checkpoint_name}</td>
+					<td>{this.props.run.job.drop_checkpoint.checkpoint_name}</td>
+					<td>{this.props.run.status_as_string}</td>
+					<td>{this.props.run.localized_ready_time}</td>
+					<td>{this.props.run.localized_due_time}</td>
+					<td>{this.props.run.job.service}</td>
+					<td>{this.props.run.job.manifest && this.props.run.job.manifest.manifest_name}</td>
+				</tr>
 		)
 	}
 }
 
 
 class RunTable extends React.Component {
-	
+	render () {
+		var RunList = this.props.runs.map(function (run) {
+			return (<Run key={run.id} run={run} />)
+		});
+		
+		return (
+			<div>
+				<table className="table">
+					<tbody>
+						<tr>
+							<th scope="col">Run #</th>
+							<th scope="col">Pick</th>
+							<th scope="col">Drop</th>
+							<th scope="col">Status</th>
+							<th scope="col">Ready Time</th>
+							<th scope="col">Due Time</th>
+							<th scope="col">Service</th>
+							<th scope="col">Manifest</th>
+						</tr>
+						{RunList}
+					</tbody>
+				</table>
+			</div>
+		)
+	}
 }
 
 class DispatchControl extends React.Component {
@@ -46,6 +74,7 @@ class DispatchControl extends React.Component {
 			feedback: null,
 			mode : MODE_LOOKUP_RACER,
 			currentRacer:null,
+			runs : null,
 			showConfirm:false,
 			disabled: null,
 			error_description: null,
@@ -120,6 +149,9 @@ class DispatchControl extends React.Component {
 	reset() {
 		this.setState({currentRacer:null, mode:MODE_LOOKUP_RACER, currentMessage:null, disabled:null, error_description:null})
 	}
+	refresh() {
+		this.racerLookup(this.state.currentRacer.racer.racer_number);
+	}
 	handleLastRacer(){
 		this.setState({currentRacer:null, mode:MODE_RACER_CONFIRMED, currentMessage:this.state.lastMessage, disabled:null, error_description:null})
 	}
@@ -130,6 +162,7 @@ class DispatchControl extends React.Component {
 			return (
 				<div>
 					{this.state.lastMessage && <button type="button" id="wrong-racer-button" onClick={this.handleLastRacer.bind(this)} className="btn btn" value="Show Last"><i className="fas fa-caret-left"></i> Prev</button>}
+					
 					<EnterRacer racerLookup={this.racerLookup.bind(this)} error_description={this.state.error_description}/>
 				</div>
 			)
@@ -137,7 +170,10 @@ class DispatchControl extends React.Component {
 			return (
 				<div>
 					{this.state.feedback && <div className="alert alert-warning" role="alert"> {this.state.feedback}</div>}
+					{this.state.currentRacer && <p className="text-center"><button onClick={this.refresh.bind(this)} className="btn btn-primary"><i className="fa fa-refresh" aria-hidden="true"></i> Refresh</button></p>}
 					<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode}/>
+					<h3 className="text-center">{this.state.currentRacer.entry_status_as_string}</h3>
+					<RunTable runs={this.state.runs} />
 				</div>
 			)
 		} else {
