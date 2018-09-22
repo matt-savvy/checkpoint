@@ -6,11 +6,17 @@ var Racer = require('RacerSmall');
 const MODE_LOOKUP_RACER = "lookup";
 const MODE_RACER_FOUND = "found";
 
+
+const RUN_STATUS_PICKED      = 0;
+const RUN_STATUS_COMPLETED   = 1;
+const RUN_STATUS_ASSIGNED    = 2;
+const RUN_STATUS_PENDING     = 3;
+const RUN_STATUS_DISPATCHING = 4;
+
 // cut racer
 // dq
 // dnf
 
-//display racer status
 //display racer start time
 //display racer due back time
 //display open jobs first
@@ -23,6 +29,7 @@ class Run extends React.Component {
 		if (this.props.run.late) {
 			tableClass = "table-danger"
 		}
+		
 		return (
 				<tr className={tableClass}>
 					<td>{this.props.run.id}</td>
@@ -47,6 +54,7 @@ class RunTable extends React.Component {
 		
 		return (
 			<div>
+				<h2>{this.props.label}</h2>
 				<table className="table">
 					<tbody>
 						<tr>
@@ -156,8 +164,7 @@ class DispatchControl extends React.Component {
 		this.setState({currentRacer:null, mode:MODE_RACER_CONFIRMED, currentMessage:this.state.lastMessage, disabled:null, error_description:null})
 	}
 	render(){
-		var showConfirm = this.state.showConfirm;
-
+		
 		if (this.state.mode == MODE_LOOKUP_RACER) {
 			return (
 				<div>
@@ -167,13 +174,19 @@ class DispatchControl extends React.Component {
 				</div>
 			)
 		} else if (this.state.mode == MODE_RACER_FOUND) {
+			var openRuns = this.state.runs.filter(run => ((run.status == RUN_STATUS_ASSIGNED) || (run.status == RUN_STATUS_PICKED)|| (run.status == RUN_STATUS_DISPATCHING)));
+			var pendingRuns = this.state.runs.filter(run => (run.status == RUN_STATUS_PENDING));
+			var completeRuns = this.state.runs.filter(run => (run.status == RUN_STATUS_COMPLETED));
+			
 			return (
 				<div>
 					{this.state.feedback && <div className="alert alert-warning" role="alert"> {this.state.feedback}</div>}
 					{this.state.currentRacer && <p className="text-center"><button onClick={this.refresh.bind(this)} className="btn btn-primary"><i className="fa fa-refresh" aria-hidden="true"></i> Refresh</button></p>}
 					<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode}/>
 					<h3 className="text-center">{this.state.currentRacer.entry_status_as_string}</h3>
-					<RunTable runs={this.state.runs} />
+					<RunTable runs={openRuns} label="OPEN"/>
+					<RunTable runs={pendingRuns} label="PENDING"/>
+					<RunTable runs={completeRuns} label="COMPLETE"/>
 				</div>
 			)
 		} else {
