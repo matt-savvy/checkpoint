@@ -117,7 +117,7 @@ class DispatchControlsView(AuthorizedRaceOfficalMixin, TemplateView):
         response = super(DispatchControlsView, self).render_to_response(context, **response_kwargs)
         current_race = RaceControl.shared_instance().current_race
         context['current_race'] = current_race
-        context['correct_race_type'] = current_race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS
+        context['correct_race_type'] = current_race.dispatch_race
         context['js_file'] = 'dispatch_control'
         response.set_cookie('raceID', current_race.pk)
         return response

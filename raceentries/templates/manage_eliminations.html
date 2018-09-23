@@ -12,6 +12,7 @@
 </div>
 <div class="row">
 
+ {% load tz %}
  
       <form method="POST" action="/raceentries/enter/" id="remove-form">
       {% csrf_token %}
@@ -31,6 +32,7 @@
                 <th>Gender</th>
 				<th>Category</th>
 				<th>Score</th>
+				<th>Last Stop</th>
 				
             </tr>
             {% for entry in men %}
@@ -42,7 +44,7 @@
                 <td>{{entry.racer.gender}}</td>
 				<td>{{entry.racer.category_as_string_short}}</td>
 				<td>{{entry.score}}</td>
-
+				<td>{{entry.last_stop | time:"G:i:s"}}</td>
             </tr> 
           {% endfor %}
           </table>
@@ -61,6 +63,7 @@
                 <th>Gender</th>
 				<th>Category</th>
 				<th>Score</th>
+				<th>Last Stop</th>
 				
             </tr>
             {% for entry in wtf %}
@@ -72,7 +75,7 @@
                 <td>{{entry.racer.gender}}</td>
 				<td>{{entry.racer.category_as_string_short}}</td>
 				<td>{{entry.score}}</td>
-
+				<td>{{entry.last_stop | time:"G:i:s"}}</td>
             </tr>
 			
             {% endfor %}

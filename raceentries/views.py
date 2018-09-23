@@ -71,6 +71,25 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
     model = RaceEntry
     template_name = 'manage_eliminations.html'
     
+    def last_stop(self, entry):
+        last_pick = Run.objects.filter(race_entry=entry).filter(status=Run.RUN_STATUS_PICKED).order_by('utc_time_picked').last()
+        last_drop = Run.objects.filter(race_entry=entry).filter(status=Run.RUN_STATUS_COMPLETED).order_by('utc_time_dropped').last()
+        
+        if last_pick and last_drop:
+            last_pick_time = last_pick.utc_time_picked
+            last_drop_time = last_drop.utc_time_dropped
+        
+            if last_drop_time >= last_pick_time:
+                return last_drop_time
+            elif last_pick_time > last_drop_time:
+                return last_pick_time
+        elif last_pick:
+            return last_pick.utc_time_picked
+        elif last_drop:
+            return last_drop.utc_time_dropped
+        
+        return None
+        
     def get_context_data(self, **kwargs):
         import pdb
         context = super(CutListView, self).get_context_data(**kwargs)
@@ -82,8 +101,8 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
         
         for entry in race_entries:
             entry.score = entry.calculate_current_score()
-        
-        race_entries.sort(key=lambda x: x.score, reverse=True)
+            entry.last_stop = self.last_stop(entry)
+        race_entries.sort(key=lambda x: (-x.score, x.last_stop))
 
         men = [entry for entry in race_entries if entry.racer.gender==Racer.GENDER_MALE]
         wtf = [entry for entry in race_entries if entry.racer.gender!=Racer.GENDER_MALE]
@@ -104,6 +123,10 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
         context['men'] = men
         context['wtf'] = wtf
         context['race'] = current_race
+        from django.utils import timezone
+        import pytz
+        est = pytz.timezone('US/Eastern')
+        timezone.activate(est)
         return context
 
 class EnterRacersView(AuthorizedRaceOfficalMixin, View):

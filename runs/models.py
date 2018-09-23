@@ -95,7 +95,6 @@ class Run(models.Model):
             self.status = self.RUN_STATUS_PICKED
             self.determination = self.DETERMINATION_NOT_DROPPED
             self.utc_time_picked = datetime.datetime.now(tz=pytz.utc)
-            #TODO partial credit 40%a
             self.save()
     
     def drop(self):
