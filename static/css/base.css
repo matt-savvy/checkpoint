@@ -14,6 +14,18 @@ body {
 	bottom:60px;
 }
 
+.expired {
+	 background-image: linear-gradient(#ffefaa,#ff9900);
+	 background-color: #ff9900;
+}
+
+.urgent {
+ 	background-image: linear-gradient(#ffefaa,#ffe155);
+}
+
+.complete {
+	background-image:linear-gradient(#dff0d8,#99FFAA);
+	background-color: #dff0d8; 
 
 div.loading {
     /* Ensures that the transition only runs in one direction */

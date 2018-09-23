@@ -27,7 +27,7 @@ class Run extends React.Component {
 	render () {
 		var tableClass;
 		if (this.props.run.late) {
-			tableClass = "table-danger"
+			tableClass = "table expired"
 		}
 		
 		return (
@@ -184,6 +184,7 @@ class DispatchControl extends React.Component {
 					{this.state.currentRacer && <p className="text-center"><button onClick={this.refresh.bind(this)} className="btn btn-primary"><i className="fa fa-refresh" aria-hidden="true"></i> Refresh</button></p>}
 					<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode}/>
 					<h3 className="text-center">{this.state.currentRacer.entry_status_as_string} {this.state.currentRacer.localized_start_time && <small>Racing since {this.state.currentRacer.localized_start_time}</small>}</h3>
+					<h4 className="text-center">Current Earnings : {this.state.currentRacer.current_score} </h4>
 					<RunTable runs={openRuns} label="OPEN"/>
 					<RunTable runs={pendingRuns} label="PENDING"/>
 					<RunTable runs={completeRuns} label="COMPLETE"/>

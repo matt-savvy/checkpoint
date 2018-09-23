@@ -4,6 +4,13 @@ from checkpoints.models import Checkpoint
 import datetime
 
 class Job(models.Model):
+    SERVICE_REGULAR = 180
+    SERVICE_RUSH = 15
+    SERVICE_DOUBLE_RUSH = 7
+    
+    PAYOUT_REGULAR = "3.00"
+    PAYOUT_RUSH = "4.50"
+    PAYOUT_DOUBLE_RUSH = "6.25"
     
     """(Job description)"""
     job_id = models.IntegerField(unique=True)
@@ -28,9 +35,9 @@ class Job(models.Model):
     
     @property
     def service(self):
-        if self.minutes_due_after_start < 10:
+        if self.minutes_due_after_start <= self.SERVICE_DOUBLE_RUSH:
             return "DOUBLE RUSH"
-        elif self.minutes_due_after_start < 20:
+        elif self.minutes_due_after_start < self.SERVICE_RUSH:
             return "RUSH"
         else:
             return "REGULAR"

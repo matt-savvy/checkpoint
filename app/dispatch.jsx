@@ -149,6 +149,11 @@ class DispatchScreen extends React.Component {
 					}
 				}
 				
+				if (data.message.message_type == MESSAGE_TYPE_NOTHING) {
+					console.log("timeout init");
+					setTimeout(function() { this.getNextMessage() }.bind(this), 45000);
+				}
+				
 				messages.unshift(data.message);
 				this.setState({messages: messages, disabled:null, error_description: data.error_description});
 				
@@ -230,12 +235,12 @@ class DispatchScreen extends React.Component {
 					{this.state.feedback && <Feedback object={this.state.feedback} undo={this.undo.bind(this)} />}
 					{this.state.messageStatus && <div className="alert alert-warning" role="alert">{messageStatus}</div>}
 			</div>
-			<div className="row bottom-navbar">
-				<div className="col text-left">
+			<div className="navbar footer">
+				<div className="float-left">
 					{showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-danger btn-sm" disabled={this.state.disabled}  value="SNOOZE"><i className="fas fa-user-slash"></i> No Response</button>}
 				</div>
 				
-				<div className="col text-right">
+				<div className="float-right">
 					{showConfirm && <button onClick={this.riderResponse.bind(this)} className="btn btn-success btn-sm" disabled={this.state.disabled} value="CONFIRM"><i className="fas fa-check-circle"></i> Confirmed</button>}
 				</div>
 			</div>

@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.views.generic import View
 from .forms import JobForm
@@ -44,7 +45,22 @@ class JobCreateView(CreateView):
     template_name = 'create_job.html'
     model = Job
     form_class = JobForm
-
+    
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        print form.cleaned_data['service']
+        if form.cleaned_data['service'] == 'rush':
+            self.object.points = Job.PAYOUT_RUSH
+            self.object.minutes_due_after_start = Job.SERVICE_RUSH
+        elif form.cleaned_data['service'] == 'double_rush':
+            self.object.points = Job.PAYOUT_DOUBLE_RUSH
+            self.object.minutes_due_after_start = Job.SERVICE_DOUBLE_RUSH
+        else:
+            self.object.points = Job.PAYOUT_REGULAR
+            self.object.minutes_due_after_start = Job.SERVICE_REGULAR
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
+    
     def get_success_url(self):
         messages.success(self.request, 'Job was successfully created.')
         if 'save-another' in self.request.POST:
@@ -56,6 +72,20 @@ class JobUpdateView(UpdateView):
     model = Job
     form_class = JobForm
     
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        print form.cleaned_data['service']
+        if form.cleaned_data['service'] == 'rush':
+            self.object.points = Job.PAYOUT_RUSH
+            self.object.minutes_due_after_start = Job.SERVICE_RUSH
+        elif form.cleaned_data['service'] == 'double_rush':
+            self.object.points = Job.PAYOUT_DOUBLE_RUSH
+            self.object.minutes_due_after_start = Job.SERVICE_DOUBLE_RUSH
+        else:
+            self.object.points = Job.PAYOUT_REGULAR
+            self.object.minutes_due_after_start = Job.SERVICE_REGULAR
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
     
 class JobDeleteView(DeleteView):
     model = Job

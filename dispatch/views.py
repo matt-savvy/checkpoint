@@ -18,6 +18,8 @@ from racecontrol.models import RaceControl
 from .util import get_next_message
 from raceentries.models import RaceEntry
 from ajax.serializers import RaceEntrySerializer, RacerSerializer
+import datetime
+import pytz
 
 class NextMessage(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
@@ -126,13 +128,16 @@ class RacerLookupView(APIView):
     
     def get(self, request, *args, **kwargs):
         current_race = RaceControl.shared_instance().current_race
-                
+        
         race_entry = RaceEntry.objects.filter(race=current_race).filter(racer__racer_number=kwargs['racer']).first()
         
         if not race_entry:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         include_runs = self.request.GET.get('runs')
+        
+        current_score = race_entry.calculate_current_score()
+        print current_score
         
         if include_runs : 
             runs = Run.objects.filter(race_entry=race_entry)

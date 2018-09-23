@@ -5,6 +5,7 @@ import datetime
 from django.utils.timezone import utc
 from racecontrol.models import RaceControl
 from runs.models import Run
+from django.db.models import Q, Sum
 import decimal
 import pytz
 
@@ -171,6 +172,18 @@ class RaceEntry(models.Model):
     
     def calculate_grand_total(self):
         self.grand_total = (self.points_earned + self.supplementary_points) - self.deductions
+    
+    def calculate_current_score(self):
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        points_aggregate = Run.objects.filter(race_entry=self).filter(status=Run.RUN_STATUS_COMPLETED).aggregate(points=Sum('points_awarded'))
+        points = points_aggregate['points']
+        credit_jobs = Run.objects.filter(race_entry=self).filter(status=Run.RUN_STATUS_PICKED).filter(utc_time_due__lt=right_now).aggregate(points=Sum('job__points'))
+        penalty_jobs = Run.objects.filter(race_entry=self).filter(Q(status=Run.RUN_STATUS_PICKED) | Q(status=Run.RUN_STATUS_ASSIGNED)).filter(utc_time_due__lt=right_now).aggregate(points=Sum('job__points'))
+        if penalty_jobs['points']:
+            points =- penalty_jobs['points']
+        if credit_jobs['points']:
+            points =+ (.40 * credit_jobs['points'])
+        return points
     
     def time_due_back(self, tz):
         due_back = self.start_time + datetime.timedelta(seconds=self.race.time_limit * 60)

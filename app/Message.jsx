@@ -21,7 +21,7 @@ class Message extends React.Component {
 				if ((run.job.service == "RUSH") || (run.job.service == "DOUBLE RUSH")){
 					console.log(run.job.service)
 					service = run.job.service;
-					alertClass = "alert-danger"
+					alertClass = "urgent"
 				}
 				
 				return (<div key={"run " + run.id} className={alertClass} >Pickup from <strong>{run.job.pick_checkpoint.checkpoint_name}</strong> 

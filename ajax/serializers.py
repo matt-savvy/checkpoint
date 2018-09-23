@@ -14,9 +14,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
             return Racer(**validated_data)
 
-
-
-
 class VolunteerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Volunteer
@@ -35,10 +32,12 @@ class RacerSerializer(serializers.ModelSerializer):
 class RaceEntrySerializer(serializers.ModelSerializer):
     entry_status_as_string = serializers.CharField(source='entry_status_as_string')
     localized_start_time = serializers.CharField(source='localized_start_time')
+    current_score = serializers.CharField(source='calculate_current_score')
     racer = RacerSerializer()
     class Meta:
         model = RaceEntry
         depth = 2
+        
 
 class CheckpointSerializer(serializers.ModelSerializer):
     class Meta:

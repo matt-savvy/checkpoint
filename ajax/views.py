@@ -17,10 +17,10 @@ import time
 import requests
 import json
 import pytz
-from django.db.models import Q
 import decimal
 from django.utils.timezone import utc
 from racelogs.models import RaceLog
+from django.db.models import Q, Sum
 
 class JobAjaxView(generics.RetrieveAPIView):
     queryset = Job.objects.all()

@@ -56,5 +56,9 @@ class RaceEntryTestCase(TestCase):
                 self.assertEqual(run.job.manifest, self.manifest_one)
                 self.assertNotEqual(run.job.manifest, self.manifest_two)
                 
-
-        
+class ScoreTestCase(TestCase):
+    def setUp(self):
+        self.race_one = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_PRELIMS)
+        self.race_entry_one = RaceEntryFactory(race=self.race_one, manifest=self.manifest_one, entry_status=RaceEntry.ENTRY_STATUS_ENTERED)
+        self.jobs = JobFactory.create_batch(10, minutes_due_after_start=45, points="3.00", race=self.race_one, manifest=self.manifest_one)
+        self.race_entry_one.start_racer()
