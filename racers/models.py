@@ -23,6 +23,13 @@ class Racer(models.Model):
         (RACER_CATEGORY_EX_MESSENGER, "Recovered Messenger")
     )
     
+    
+    RACER_CATEGORY_OPTIONS_SHORT = (
+        (RACER_CATEGORY_MESSENGER, "Messenger"),
+        (RACER_CATEGORY_NON_MESSENGER, "Non-Mess"),
+        (RACER_CATEGORY_EX_MESSENGER, "Recovered")
+    )
+    
     SHIRT_SIZE_SMALL  = 'S'
     SHIRT_SIZE_MEDIUM = 'M'
     SHIRT_SIZE_LARGE  = 'L'
@@ -83,6 +90,10 @@ class Racer(models.Model):
     @property
     def category_as_string(self):
         return self.RACER_CATEGORY_OPTIONS[self.category][1]
+        
+    @property
+    def category_as_string_short(self):
+        return self.RACER_CATEGORY_OPTIONS_SHORT[self.category][1]
     
     def mark_as_paid(self):
         if not self.paid:

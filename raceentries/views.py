@@ -75,7 +75,7 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
         import pdb
         context = super(CutListView, self).get_context_data(**kwargs)
         current_race = RaceControl.shared_instance().current_race
-        race_entries = RaceEntry.objects.filter(race=current_race)
+        race_entries = list(RaceEntry.objects.filter(race=current_race))
         
         men_to_keep = self.request.GET.get('men_to_keep', 15)
         wtf_to_keep = self.request.GET.get('wtf_to_keep', 8)
@@ -83,15 +83,12 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
         for entry in race_entries:
             entry.score = entry.calculate_current_score()
         
+        race_entries.sort(key=lambda x: x.score, reverse=True)
+
         men = [entry for entry in race_entries if entry.racer.gender==Racer.GENDER_MALE]
         wtf = [entry for entry in race_entries if entry.racer.gender!=Racer.GENDER_MALE]
         working_men = [entry for entry in men if entry.racer.category==Racer.RACER_CATEGORY_MESSENGER]
         working_wtf = [entry for entry in wtf if entry.racer.category==Racer.RACER_CATEGORY_MESSENGER]
-        
-        men.sort(key=lambda x: x.score, reverse=True)
-        wtf.sort(key=lambda x: x.score, reverse=True)
-        working_men.sort(key=lambda x: x.score, reverse=True)
-        working_wtf.sort(key=lambda x: x.score, reverse=True)
         
         for racer in race_entries:
             if racer in working_men[:20] or racer in working_wtf[:5]:
@@ -101,7 +98,12 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
             else:
                 racer.cut = True
         
-        context['racers'] = race_entries
+        ###TODO filter it also one level deeper on whatever criteria we are going to use to split ties of the same dollar amount.
+        ###TODO maybe we just make a field on the db, and run a quick collection script that saves all the data and we can do some simple filters
+        
+        context['men'] = men
+        context['wtf'] = wtf
+        context['race'] = current_race
         return context
 
 class EnterRacersView(AuthorizedRaceOfficalMixin, View):
