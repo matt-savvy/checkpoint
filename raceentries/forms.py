@@ -17,3 +17,16 @@ class AdvanceForm(forms.Form):
     advance_from = forms.ModelChoiceField(queryset=Race.objects.all())
     advance_using = forms.ChoiceField(choices=ADVANCE_FROM_CHOICES)
     number_to_advance = forms.IntegerField()
+    
+class CutForm(forms.Form):
+    men_to_keep = forms.IntegerField()
+    wtf_to_keep = forms.IntegerField()
+    messengers_only = forms.BooleanField()
+    
+    def __init__(self, *args, **kwargs):
+        super(CutForm, self).__init__(*args, **kwargs)
+        current_race = RaceControl.shared_instance().current_race
+        men = RaceEntry.objects.filter(race=current_race).filter(racer__gender=Racer.GENDER_MALE).count()
+        wtf = RaceEntry.objects.filter(race=current_race).exclude(racer__gender=Racer.GENDER_MALE).count()
+        self.fields['men_to_keep'].initial = men
+        self.fields['wtf_to_keep'].initial = wtf

@@ -37,7 +37,7 @@ class Job(models.Model):
     def service(self):
         if self.minutes_due_after_start <= self.SERVICE_DOUBLE_RUSH:
             return "DOUBLE RUSH"
-        elif self.minutes_due_after_start < self.SERVICE_RUSH:
+        elif self.minutes_due_after_start <= self.SERVICE_RUSH:
             return "RUSH"
         else:
             return "REGULAR"

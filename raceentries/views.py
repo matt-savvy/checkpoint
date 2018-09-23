@@ -4,7 +4,7 @@ from django.views.generic.list import ListView
 from django.views.generic.edit import FormView
 from django.views.generic import View, TemplateView
 from raceentries.models import RaceEntry
-from raceentries.forms import AdvanceForm
+from raceentries.forms import AdvanceForm, CutForm
 from races.models import Race
 from racers.models import Racer
 from runs.models import Run
@@ -14,7 +14,9 @@ from django.db import IntegrityError
 from nacccusers.auth import AuthorizedRaceOfficalMixin
 from racelogs.models import RaceLog
 from racecontrol.models import RaceControl
-
+from django.utils import timezone
+import pytz
+        
 class RaceEntryRaceListView(AuthorizedRaceOfficalMixin, ListView):
     model = Race
     template_name = "entries_race_select.html"
@@ -89,42 +91,62 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
             return last_drop.utc_time_dropped
         
         return None
-        
-    def get_context_data(self, **kwargs):
-        import pdb
-        context = super(CutListView, self).get_context_data(**kwargs)
+    
+    def get_cut_racers(self):
         current_race = RaceControl.shared_instance().current_race
-        race_entries = list(RaceEntry.objects.filter(race=current_race))
+        race_entries = list(RaceEntry.objects.filter(race=current_race).filter(entry_status=RaceEntry.ENTRY_STATUS_RACING))
         
-        men_to_keep = self.request.GET.get('men_to_keep', 15)
-        wtf_to_keep = self.request.GET.get('wtf_to_keep', 8)
+        men_to_keep = int(self.request.GET.get('men', 30))
+        wtf_to_keep = int(self.request.GET.get('wtf', 10))
         
         for entry in race_entries:
             entry.score = entry.calculate_current_score()
             entry.last_stop = self.last_stop(entry)
+            entry.cut = True
         race_entries.sort(key=lambda x: (-x.score, x.last_stop))
-
-        men = [entry for entry in race_entries if entry.racer.gender==Racer.GENDER_MALE]
-        wtf = [entry for entry in race_entries if entry.racer.gender!=Racer.GENDER_MALE]
-        working_men = [entry for entry in men if entry.racer.category==Racer.RACER_CATEGORY_MESSENGER]
-        working_wtf = [entry for entry in wtf if entry.racer.category==Racer.RACER_CATEGORY_MESSENGER]
+        
+        working_men = [entry for entry in race_entries if entry.racer.category == Racer.RACER_CATEGORY_MESSENGER and entry.racer.gender == Racer.GENDER_MALE][:20]
+        working_wtf = [entry for entry in race_entries if entry.racer.category == Racer.RACER_CATEGORY_MESSENGER and entry.racer.gender != Racer.GENDER_MALE][:5]
+        
+        men = [entry for entry in race_entries if entry.racer.gender==Racer.GENDER_MALE and not entry in working_men]
+        wtf = [entry for entry in race_entries if entry.racer.gender!=Racer.GENDER_MALE and not entry in working_wtf]
+        
+        import pdb
+        pdb.set_trace()
+        
+        for entry in working_men:
+            entry.cut = False
+        for entry in working_wtf:
+            entry.cut = False
+        
+        men_to_keep = men_to_keep - len(working_men)
+        wtf_to_keep = wtf_to_keep - len(working_wtf)
         
         for racer in race_entries:
-            if racer in working_men[:20] or racer in working_wtf[:5]:
-                racer.cut = False
-            elif racer in men[:men_to_keep] or racer in wtf[:wtf_to_keep]:
-                racer.cut = False
+            if racer.cut:
+                if racer in men[:men_to_keep] or racer in wtf[:wtf_to_keep]:
+                    racer.cut = False
+                    
+        racers = {}
+        racers['men'] = []
+        racers['wtf'] = []
+        for entry in race_entries:
+            if entry.racer.gender == Racer.GENDER_MALE:
+                racers['men'].append(entry)
             else:
-                racer.cut = True
-        
-        ###TODO filter it also one level deeper on whatever criteria we are going to use to split ties of the same dollar amount.
-        ###TODO maybe we just make a field on the db, and run a quick collection script that saves all the data and we can do some simple filters
-        
-        context['men'] = men
-        context['wtf'] = wtf
+                racers['wtf'].append(entry)
+        return racers
+    
+    def get_context_data(self, **kwargs):
+        context = super(CutListView, self).get_context_data(**kwargs)
+        current_race = RaceControl.shared_instance().current_race
+
+        racers = self.get_cut_racers()
+        context['men'] = racers['men']
+        context['wtf'] = racers['wtf']
         context['race'] = current_race
-        from django.utils import timezone
-        import pytz
+        context['form'] = CutForm()
+
         est = pytz.timezone('US/Eastern')
         timezone.activate(est)
         return context

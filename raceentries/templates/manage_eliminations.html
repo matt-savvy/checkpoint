@@ -14,12 +14,32 @@
 
  {% load tz %}
  
-      <form method="POST" action="/raceentries/enter/" id="remove-form">
+      {% load widget_tweaks %}
       {% csrf_token %}
-	  	<input type="hidden" name="race-id" value="{{race.id}}">
-	  <button type="submit" class="btn btn-default btn-danger" name="remove-racers">Remove Racer(s) in Race</button>
+	  <div class="form col-md-3">
+		  
+	  <form action="" method="post">{% csrf_token %}
+	      {% for field in form %}
+	          <div class="form-group">
+	              <label for="{{field.name}}">{{field.label}}</label>
+	              {{field.errors}}
+	              {{field|add_class:"form-control"}}
+	           </div>
+        
+	      {% endfor %}
+		  {% if preview %}
+		  	<button type="submit" class="btn btn-default btn-danger" name="remove-racers">Cut Racer(s) in Race</button>
+		  {% endif %}
+	      	<button type="submit" class="btn btn-default btn-warning" name="preview">Preview Cut</button>
+		
 	  </form>
-      
+	  	<p>Note : We will keep at least 20 working men and 5 working WTF NO MATTER WHAT. </p>
+	  
+		</div>
+      </div>
+	  <div class="row">
+	  
+	  
 	  <div class="col-md-6">
 	  	  <h3 class="text-success">{{ men|length }} Men in {{race}}</h3>
         <div class="table-responsive">
