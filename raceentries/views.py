@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from nacccusers.auth import AuthorizedRaceOfficalMixin
 from racelogs.models import RaceLog
-
+from racecontrol.models import RaceControl
 
 class RaceEntryRaceListView(AuthorizedRaceOfficalMixin, ListView):
     model = Race
@@ -65,6 +65,43 @@ class ManageRaceEntryView(AuthorizedRaceOfficalMixin, TemplateView):
             if not found:
                 not_in_race.append(racer)
         context['not_in_race'] = not_in_race
+        return context
+        
+class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
+    model = RaceEntry
+    template_name = 'manage_eliminations.html'
+    
+    def get_context_data(self, **kwargs):
+        import pdb
+        context = super(CutListView, self).get_context_data(**kwargs)
+        current_race = RaceControl.shared_instance().current_race
+        race_entries = RaceEntry.objects.filter(race=current_race)
+        
+        men_to_keep = self.request.GET.get('men_to_keep', 15)
+        wtf_to_keep = self.request.GET.get('wtf_to_keep', 8)
+        
+        for entry in race_entries:
+            entry.score = entry.calculate_current_score()
+        
+        men = [entry for entry in race_entries if entry.racer.gender==Racer.GENDER_MALE]
+        wtf = [entry for entry in race_entries if entry.racer.gender!=Racer.GENDER_MALE]
+        working_men = [entry for entry in men if entry.racer.category==Racer.RACER_CATEGORY_MESSENGER]
+        working_wtf = [entry for entry in wtf if entry.racer.category==Racer.RACER_CATEGORY_MESSENGER]
+        
+        men.sort(key=lambda x: x.score, reverse=True)
+        wtf.sort(key=lambda x: x.score, reverse=True)
+        working_men.sort(key=lambda x: x.score, reverse=True)
+        working_wtf.sort(key=lambda x: x.score, reverse=True)
+        
+        for racer in race_entries:
+            if racer in working_men[:20] or racer in working_wtf[:5]:
+                racer.cut = False
+            elif racer in men[:men_to_keep] or racer in wtf[:wtf_to_keep]:
+                racer.cut = False
+            else:
+                racer.cut = True
+        
+        context['racers'] = race_entries
         return context
 
 class EnterRacersView(AuthorizedRaceOfficalMixin, View):

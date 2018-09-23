@@ -88,10 +88,10 @@ urlpatterns = patterns('',
     url(r'^raceentries/race/(?P<pk>[0-9]+)/$', login_required(entry_views.ManageRaceEntryView.as_view())),
     url(r'^raceentries/advance/(?P<pk>[0-9]+)/$', login_required(entry_views.AdvanceView.as_view())),
     url(r'^raceentries/enter/$', login_required(entry_views.EnterRacersView.as_view())),
-
+    url(r'^raceentries/cuts/$', login_required(entry_views.CutListView.as_view())),
     #Race Control
     url(r'^racecontrol/$', login_required(racecontrol_views.RaceControlRaceListView.as_view())),
-
+    
     url(r'^racecontrol/race/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.RaceControlView.as_view())),
     url(r'^racecontrol/ajax/racerinfo/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.RacerInfoView.as_view())),
     url(r'^racecontrol/ajax/racerdetail$', login_required(racecontrol_views.RacerDetailAjaxView.as_view())),
