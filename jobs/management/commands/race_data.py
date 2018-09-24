@@ -24,10 +24,10 @@ class Command(BaseCommand):
         races = Race.objects.order_by('pk')
         for race in races:
             print "{} {}".format(race.pk, race)
-        #selection_race = int(raw_input("choose race number : "))
+        selection_race = int(raw_input("choose race number : "))
        
-        #race = Race.objects.get(pk=selection_race)
-        race = Race.objects.get(pk=1)
+        race = Race.objects.get(pk=selection_race)
+        #race = Race.objects.get(pk=1)
         right_now = datetime.datetime.now(tz=pytz.utc)
         race.race_start_time = right_now - datetime.timedelta(minutes=75)
         race.race_start_time = race.race_start_time.replace(second=0, microsecond=0)
@@ -94,9 +94,15 @@ class Command(BaseCommand):
                                     if run.utc_time_dropped <= run.utc_time_due:
                                         run.determination = Run.DETERMINATION_OK
                                         run.points_awarded = run.job.points
+                                        entry.add_up_points()
+                                        entry.add_up_runs()
+                                        entry.save()
                                     else:
                                         run.determination = Run.DETERMINATION_LATE
                                         run.points_awarded = decimal.Decimal('0.00')
+                                        entry.add_up_points()
+                                        entry.add_up_runs()
+                                        entry.save()
                                     run.save()
                    
             their_runs = Run.objects.filter(race_entry=entry)              

@@ -161,17 +161,17 @@ class RaceEntry(models.Model):
     
     def add_up_points(self):
         runs = Run.objects.filter(race_entry__racer=self.racer).filter(job__race=self.race)
-        total = decimal.Decimal('0')
+        total = decimal.Decimal('0.00')
         for run in runs:
             total += run.points_awarded
         self.points_earned = total
         self.calculate_grand_total()
     
     def add_up_runs(self):
-         self.number_of_runs_completed = Run.objects.filter(race_entry__racer=self.racer).filter(job__race=self.race).count()
+        self.number_of_runs_completed = Run.objects.filter(race_entry=self).filter(status=Run.RUN_STATUS_COMPLETED).count()
     
     def calculate_grand_total(self):
-        self.grand_total = (self.points_earned + self.supplementary_points) - self.deductions
+        self.grand_total = (decimal.Decimal(self.points_earned) + decimal.Decimal(self.supplementary_points)) - decimal.Decimal(self.deductions)
     
     def calculate_current_score(self):
         right_now = datetime.datetime.now(tz=pytz.utc)
@@ -185,7 +185,7 @@ class RaceEntry(models.Model):
         if penalty_jobs['points']:
             points -= penalty_jobs['points']
         if credit_jobs['points']:
-            points += (decimal.Decimal('.4') * credit_jobs['points'])
+            points += (decimal.Decimal('.40') * credit_jobs['points'])
         return round(points, 2)
     
     def time_due_back(self, tz):
@@ -216,3 +216,8 @@ class RaceEntry(models.Model):
             return self.start_time.astimezone(eastern).strftime('%I:%M %p')
         else:
             return "N/A"
+    
+    @property
+    def number_of_open_jobs(self):
+        runs = Run.objects.filter(race_entry=self).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_DISPATCHING) | Q(status=Run.RUN_STATUS_PICKED)).count()
+        return runs

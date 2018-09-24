@@ -21,7 +21,7 @@ class AdvanceForm(forms.Form):
 class CutForm(forms.Form):
     men_to_keep = forms.IntegerField()
     wtf_to_keep = forms.IntegerField()
-    messengers_only = forms.BooleanField()
+    messengers_only = forms.BooleanField(required=False)
     
     def __init__(self, *args, **kwargs):
         super(CutForm, self).__init__(*args, **kwargs)

@@ -16,6 +16,7 @@ from racelogs.models import RaceLog
 from racecontrol.models import RaceControl
 from django.utils import timezone
 import pytz
+import pdb
         
 class RaceEntryRaceListView(AuthorizedRaceOfficalMixin, ListView):
     model = Race
@@ -95,9 +96,14 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
     def get_cut_racers(self):
         current_race = RaceControl.shared_instance().current_race
         race_entries = list(RaceEntry.objects.filter(race=current_race).filter(entry_status=RaceEntry.ENTRY_STATUS_RACING))
+
+        men_to_keep = int(self.request.POST.get('men_to_keep', 30))
+        wtf_to_keep = int(self.request.POST.get('wtf_to_keep', 10))
+        messengers_only = self.request.POST.get('messengers_only', False)
         
-        men_to_keep = int(self.request.GET.get('men', 30))
-        wtf_to_keep = int(self.request.GET.get('wtf', 10))
+        racers = {}
+        racers['men'] = []
+        racers['wtf'] = []
         
         for entry in race_entries:
             entry.score = entry.calculate_current_score()
@@ -105,31 +111,37 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
             entry.cut = True
         race_entries.sort(key=lambda x: (-x.score, x.last_stop))
         
-        working_men = [entry for entry in race_entries if entry.racer.category == Racer.RACER_CATEGORY_MESSENGER and entry.racer.gender == Racer.GENDER_MALE][:20]
-        working_wtf = [entry for entry in race_entries if entry.racer.category == Racer.RACER_CATEGORY_MESSENGER and entry.racer.gender != Racer.GENDER_MALE][:5]
+        working_men = [entry for entry in race_entries if entry.racer.category == Racer.RACER_CATEGORY_MESSENGER and entry.racer.gender == Racer.GENDER_MALE]
+        working_wtf = [entry for entry in race_entries if entry.racer.category == Racer.RACER_CATEGORY_MESSENGER and entry.racer.gender != Racer.GENDER_MALE]
         
-        men = [entry for entry in race_entries if entry.racer.gender==Racer.GENDER_MALE and not entry in working_men]
-        wtf = [entry for entry in race_entries if entry.racer.gender!=Racer.GENDER_MALE and not entry in working_wtf]
         
-        import pdb
-        pdb.set_trace()
+        if messengers_only:
+            print "messengers only"
+            
+            working_men = working_men[:men_to_keep]
+            working_wtf = working_wtf[:wtf_to_keep]
+            print "len(working men) ", len(working_men)  
+            print "len(working wtf) ", len(working_wtf)      
+        else:
+            working_men = working_men[:20]
+            working_wtf = working_wtf[:5]
         
+            men = [entry for entry in race_entries if entry.racer.gender==Racer.GENDER_MALE and not entry in working_men]
+            wtf = [entry for entry in race_entries if entry.racer.gender!=Racer.GENDER_MALE and not entry in working_wtf]
+            
+            men_to_keep = men_to_keep - len(working_men)
+            wtf_to_keep = wtf_to_keep - len(working_wtf)
+            
+            for racer in race_entries:
+                if racer.cut:
+                    if racer in men[:men_to_keep] or racer in wtf[:wtf_to_keep]:
+                        racer.cut = False
+            
         for entry in working_men:
             entry.cut = False
         for entry in working_wtf:
             entry.cut = False
-        
-        men_to_keep = men_to_keep - len(working_men)
-        wtf_to_keep = wtf_to_keep - len(working_wtf)
-        
-        for racer in race_entries:
-            if racer.cut:
-                if racer in men[:men_to_keep] or racer in wtf[:wtf_to_keep]:
-                    racer.cut = False
                     
-        racers = {}
-        racers['men'] = []
-        racers['wtf'] = []
         for entry in race_entries:
             if entry.racer.gender == Racer.GENDER_MALE:
                 racers['men'].append(entry)
@@ -145,11 +157,43 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
         context['men'] = racers['men']
         context['wtf'] = racers['wtf']
         context['race'] = current_race
-        context['form'] = CutForm()
-
+        context['form'] = CutForm(data={'wtf_to_keep':10, 'men_to_keep': 30})
         est = pytz.timezone('US/Eastern')
         timezone.activate(est)
         return context
+    
+    def post(self, request, *args, **kwargs):
+        current_race = RaceControl.shared_instance().current_race
+        
+        import pdb
+        #pdb.set_trace()
+        
+        if 'preview' in self.request.POST:
+            context = self.get_context_data(**kwargs)
+            context['form'] = CutForm(data=self.request.POST)
+            context['preview'] = True
+            return self.render_to_response(context)  
+        
+        racers_to_cut = self.request.POST.getlist('racers-to-cut[]')
+        racers_to_cut = [int(x) for x in racers_to_cut]
+        racers = list(RaceEntry.objects.filter(race=current_race).filter(entry_status=RaceEntry.ENTRY_STATUS_RACING))
+        
+        for entry in racers:
+            entry.score = entry.calculate_current_score()
+            entry.last_stop = self.last_stop(entry)
+            if entry.pk in racers_to_cut:
+                entry.entry_status = RaceEntry.ENTRY_STATUS_CUT
+                entry.cut = True
+                entry.save()
+        
+        messages.success(self.request, '{} Racers have been marked as cut.'.format(len(racers_to_cut)))
+        
+        context = {}
+        context['men'] = [entry for entry in racers if entry.racer.gender==Racer.GENDER_MALE]
+        context['wtf'] = [entry for entry in racers if entry.racer.gender!=Racer.GENDER_MALE]
+        context['complete'] = True
+        context['race'] = current_race
+        return self.render_to_response(context) 
 
 class EnterRacersView(AuthorizedRaceOfficalMixin, View):
     def post(self, request, *args, **kwargs):

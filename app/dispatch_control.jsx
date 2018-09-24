@@ -54,7 +54,7 @@ class RunTable extends React.Component {
 		
 		return (
 			<div>
-				<h2>{this.props.label}</h2>
+				<h2>{this.props.label} <small> <span className="badge badge-pill badge-primary">{this.props.runs.length}</span> </small></h2>
 				<table className="table">
 					<tbody>
 						<tr>

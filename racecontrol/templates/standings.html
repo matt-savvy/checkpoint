@@ -7,17 +7,25 @@
         <th>Last Name</th>
         <th>Gender</th>
         <th>City</th>
+		<th>Job count</th>
+		<th>Number of Open Jobs</th>
         <th>Final Time</th>
         <th>Total Points</th>
     </tr>
 {% for raceentry in raceentries %}
-    {% if raceentry.entry_status == 1  or raceentry.entry_status == 5 %}<tr class="danger"> {% else %}<tr class="success">{% endif %}
+    {% if raceentry.entry_status == 2 %}<tr class="table success"> 
+	{% elif raceentry.entry_status == 6 %}<tr class="table urgent">
+	{% else %}
+	<tr>
+	{% endif %}
         <td>{{forloop.counter}}</td>
         <td>{{raceentry.racer.racer_number}}</td>
         <td>{{raceentry.racer.first_name}}</td>
         <td>{{raceentry.racer.last_name}}</td>
         <td>{{raceentry.racer.gender}}</td>
         <td>{{raceentry.racer.city}}</td>
+		<td>{{raceentry.number_of_runs_completed}}
+		<td>{{raceentry.number_of_open_jobs}}
         <td>{{raceentry.final_time_formatted}}</td>
         <td>${{raceentry.grand_total}}</td>
     </tr>

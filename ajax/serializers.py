@@ -56,6 +56,8 @@ class JobSerializer(serializers.ModelSerializer):
 class RunSerializer(serializers.ModelSerializer):
     job = JobSerializer()
     status_as_string = serializers.CharField(source='status_as_string')
+    number_of_open_jobs = serializers.CharField(source='number_of_open_jobs')
+    
     class Meta:
         model = Run
         fields = ('id', 'job', 'status_as_string')
