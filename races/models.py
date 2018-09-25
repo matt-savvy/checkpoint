@@ -43,14 +43,14 @@ class Race(models.Model):
         race_entries = RaceEntry.objects.filter(race=self).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT))
         for race_entry in race_entries:
             ##do they have any assigned jobs or jobs that are currently being dispatched?
-            run_count = Run.objects.filter(race_entry=race_entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_DISPATCHING)).count()
+            run_count = Run.objects.filter(race_entry=race_entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_DISPATCHING)).count()
             
             if run_count == 0:
                 #befre we do say they're clear, let's make sure a message for them isn't already on someone's screen
                 current_message = Message.objects.filter(race_entry=race_entry).filter(status=Message.MESSAGE_STATUS_DISPATCHING).exists()
             
                 #if they're clear AND cut, we see if they have already 10-4'd a request to come to the office
-                already_confirmed_cut = Message.objects.filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED).exists()
+                already_confirmed_cut = Message.objects.filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(Q(status=Message.MESSAGE_STATUS_CONFIRMED) | Q(status=Message.MESSAGE_STATUS_SNOOZED)).exists()
             
                 if not current_message and not already_confirmed_cut:
                     return race_entry

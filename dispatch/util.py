@@ -71,8 +71,18 @@ def get_next_message(race, dispatcher=None):
 
     if race_entry:
         print "found clear racer"
+        
         if race_entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:            
             #they haven't already gotten that message, send them a cut message right away
+            already_cut_confirmed = Message.objects.filter(race=race).filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED).exists()
+            cut_snooze_not_ready = Message.objects.filter(race=race).filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_SNOOZED).exists()
+            if not already_cut_confirmed:
+                message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
+                message.save()
+                return message
+            
+        if right_now >= race_entry.start_time + datetime.timedelta(minutes=race.time_limit):
+            race_entry.cut_racer()
             message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
             message.save()
             return message
@@ -106,14 +116,14 @@ def get_next_message(race, dispatcher=None):
                             runs_to_assign.append(run_to_assign)
                             return assign_runs(runs_to_assign, race_entry)
             
-            message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
-            message.save()
-            race_entry.cut_racer()
-            return message
+            already_cut_confirmed = Message.objects.filter(race=race).filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED).exists()
+            if not already_cut_confirmed:
+                message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
+                message.save()
+                return message
             #there is no bonus manifest, the bonus manifest has no jobs that racer hasn't done, or it is after the bonus manifest cut off
             #so we cut the rider
     
-    print "grabbing runs"
     runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
     
     while runs.exists():
@@ -123,7 +133,6 @@ def get_next_message(race, dispatcher=None):
         if run_count(race_entry) < settings.OPEN_RUN_LIMIT:
             return assign_runs(runs_to_assign, race_entry)
         else:
-            print "above the run cap"
             for run in runs_to_assign:
                 run.utc_time_ready__lte = right_now + datetime.timedelta(minutes=5)
                 run.save()

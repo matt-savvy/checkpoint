@@ -33,6 +33,7 @@ class RaceEntry(models.Model):
     #race = models.ForeignKey(Race, related_name="raceentry", default=RaceControl.shared_instance().current_race)
     race = models.ForeignKey(Race)
     entry_date = models.DateTimeField(auto_now_add=True)
+    last_action = models.DateTimeField(blank=True, null=True)
     entry_status = models.IntegerField(choices=ENTRY_STATUS_CHOICES, default=ENTRY_STATUS_ENTERED)
     
     starting_position = models.IntegerField(blank=True, null=True)
@@ -77,7 +78,8 @@ class RaceEntry(models.Model):
             from dispatch.models import Message
             message = Message.objects.filter(race_entry=self).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED)
             if message.exists():
-                return 'Cut, racer copied at {}'.format(message.first().confirmed_time)
+                eastern = pytz.timezone('US/Eastern')
+                return 'Cut, racer copied at {}'.format(message.first().confirmed_time.astimezone(eastern).strftime('%I:%M %p'))
             else:
                 return 'Cut, racer not messaged yet.'                    
         return 'Did Not Finish'
@@ -89,6 +91,7 @@ class RaceEntry(models.Model):
             self.points_earned = '0.00'
             self.deductions = '0.00'
             self.grand_total = '0.00'
+            self.last_action = self.start_time
             self.save()
             if self.race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS:
                 self.race.populate_runs(self)
@@ -102,6 +105,7 @@ class RaceEntry(models.Model):
             self.points_earned = '0.00'
             self.deductions = '0.00'
             self.grand_total = '0.00'
+            self.last_action = self.start_time
             self.save()
             if self.race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS:
                 Run.objects.filter(race_entry=self).delete()
@@ -120,7 +124,7 @@ class RaceEntry(models.Model):
         return False
     
     def finish_racer(self):
-        if self.entry_status == self.ENTRY_STATUS_RACING:
+        if self.entry_status == self.ENTRY_STATUS_RACING or self.entry_status == self.ENTRY_STATUS_CUT:
             self.entry_status = self.ENTRY_STATUS_FINISHED
             self.end_time = datetime.datetime.utcnow().replace(tzinfo=utc)
             time_diff = self.end_time - self.start_time

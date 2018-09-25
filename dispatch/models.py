@@ -62,7 +62,7 @@ class Message(models.Model):
     def message_status_as_string(self):
         return self.MESSAGE_STATUS_CHOICES[self.status][1]
     
-    def confirm(self):
+    def confirm(self):        
         self.status = self.MESSAGE_STATUS_CONFIRMED
         self.confirmed_time = datetime.datetime.now(tz=pytz.utc)
         self.save()

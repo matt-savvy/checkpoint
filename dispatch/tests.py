@@ -153,12 +153,13 @@ class get_next_message_TestCase(TestCase):
         Run.objects.all().delete()
         racer.entry_status = RaceEntry.ENTRY_STATUS_CUT
         racer.save()
-        message = Message(race_entry=racer, race=racer.race, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_CONFIRMED)
-        message.save()
         next_message = get_next_message(self.race)
-
-        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
         
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
+        next_message.confirm()
+        ##they've copied the message. they shouldn't get another cut message
+        next_message = get_next_message(self.race)
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
     
     
     def test_no_double_messages_for_racer(self):

@@ -96,10 +96,15 @@ class Run(models.Model):
             self.determination = self.DETERMINATION_NOT_DROPPED
             self.utc_time_picked = datetime.datetime.now(tz=pytz.utc)
             self.save()
-    
+            self.race_entry.last_action = self.utc_time_picked
+            self.race_entry.save()
+            print "{} picked up {}".format(self.race_entry.racer, self.job)
+            
     def drop(self):
         if self.status == self.RUN_STATUS_PICKED:
             self.utc_time_dropped = datetime.datetime.now(tz=pytz.utc)
+            self.race_entry.last_action = self.utc_time_dropped
+            self.race_entry.save()
             try:
                 self.completion_seconds = (self.utc_time_dropped - self.utc_time_picked).seconds
             except:
@@ -122,7 +127,8 @@ class Run(models.Model):
             else:
                 self.determination = self.DETERMINATION_LATE
                 self.points_awarded = decimal.Decimal('0.00')
-        
+            
+            print "{} dropped off {}".format(self.race_entry.racer, self.job)
             self.save()
             
     @property       

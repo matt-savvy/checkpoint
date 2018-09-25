@@ -25,10 +25,17 @@
              {{form.advance_using|add_class:"form-control"}}
           </div>
           <div class="form-group">
-              <label for="{{form.number_to_advance.name}}">{{form.number_to_advance.label}}</label>
-              {{form.number_to_advance.errors}}
-              {{form.number_to_advance|add_class:"form-control"}}
+              <label for="{{form.men_to_advance.name}}">{{form.men_to_advance.label}}</label>
+              {{form.men_to_advance.errors}}
+              {{form.men_to_advance|add_class:"form-control"}}
            </div>
+		   
+           <div class="form-group">
+               <label for="{{form.wtf_to_advance.name}}">{{form.wtf_to_advance.label}}</label>
+               {{form.wtf_to_advance.errors}}
+               {{form.wtf_to_advance|add_class:"form-control"}}
+            </div>
+		   
            <button class="btn btn-default">Advance Racers</button>
     </form>
 

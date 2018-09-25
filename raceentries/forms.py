@@ -16,7 +16,13 @@ class AdvanceForm(forms.Form):
     race_id = forms.IntegerField()
     advance_from = forms.ModelChoiceField(queryset=Race.objects.all())
     advance_using = forms.ChoiceField(choices=ADVANCE_FROM_CHOICES)
-    number_to_advance = forms.IntegerField()
+    men_to_advance = forms.IntegerField()
+    wtf_to_advance = forms.IntegerField()
+    
+    def __init__(self, *args, **kwargs):
+        super(AdvanceForm, self).__init__(*args, **kwargs)
+        self.fields['men_to_advance'].initial = 65
+        self.fields['wtf_to_advance'].initial = 15
     
 class CutForm(forms.Form):
     men_to_keep = forms.IntegerField()

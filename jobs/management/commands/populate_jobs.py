@@ -53,7 +53,19 @@ class Command(BaseCommand):
            while this_set_counter <= jobs_in_this_set:
                checkpoint_combo = checkpoint_combos_list[job_counter]
                job_id += 1
-               job = Job(job_id=job_id, race=race, pick_checkpoint=checkpoint_combo[0], drop_checkpoint=checkpoint_combo[1], minutes_ready_after_start=minutes_counter, points='3.45')
+               
+               job = Job(job_id=job_id, race=race, pick_checkpoint=checkpoint_combo[0], drop_checkpoint=checkpoint_combo[1], minutes_ready_after_start=minutes_counter)
+               random_number = random.random()
+               if random_number >= .9:
+                   job.minutes_due_after_start = Job.SERVICE_DOUBLE_RUSH
+                   job.points = Job.PAYOUT_DOUBLE_RUSH
+               elif random_number >= .6:
+                   job.minutes_due_after_start = Job.SERVICE_RUSH
+                   job.points = Job.PAYOUT_RUSH
+               else:
+                   job.minutes_due_after_start = Job.SERVICE_REGULAR
+                   job.points = Job.PAYOUT_REGULAR
+               
                job.save()
                
                this_set_counter += 1

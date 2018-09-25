@@ -56,6 +56,10 @@ $(document).ready(function() {
         }
     });
     
+	$('#standings-tab').click(function() {
+		standings();
+	});
+	
     racerInfo();
     
     //**********************************************

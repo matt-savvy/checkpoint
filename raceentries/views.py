@@ -237,5 +237,43 @@ class AdvanceView(AuthorizedRaceOfficalMixin, FormView):
         return context
     
     def form_valid(self, form):
+        advance_to = get_object_or_404(Race, pk=self.kwargs['pk'])
+        advance_from = form.cleaned_data['advance_from']
+        racers = RaceEntry.objects.filter(race=advance_from).filter(entry_status=RaceEntry.ENTRY_STATUS_FINISHED)
+        if form.cleaned_data['advance_using'] == form.ADVANCE_FROM_POINTS:
+            for racer in racers:
+                racer.last_drop = Run.objects.filter(status=Run.RUN_STATUS_COMPLETED).order_by('utc_time_dropped').last()
+                racer.elapsed_time_til_last_drop = racer.last_drop.utc_time_dropped - racer.start_time
+            #pdb.set_trace()
+            racers = list(racers)
+            racers.sort(key=lambda x: (-x.grand_total, x.elapsed_time_til_last_drop))
+            
+            men_advanced = 0
+            wtf_advanced = 0
+            try:
+                starting_position = RaceEntry.objects.filter(race=advance_to).order_by('starting_position').first().starting_position
+            except:
+                starting_position = 1
+            
+            
+            for racer in racers:
+                print racer.grand_total, racer.elapsed_time_til_last_drop
+                if racer.racer.gender == Racer.GENDER_MALE and men_advanced <= form.cleaned_data['men_to_advance']:
+                    re = RaceEntry(racer=racer.racer, race=advance_to, starting_position=starting_position)
+                    re.save()
+                    men_advanced += 1
+                    starting_position += 1
+                elif racer.racer.gender != Racer.GENDER_MALE and wtf_advanced <= form.cleaned_data['wtf_to_advance']:
+                    re = RaceEntry(racer=racer.racer, race=advance_to, starting_position=starting_position)
+                    re.save()
+                    wtf_advanced += 1
+                    starting_position += 1
+                if men_advanced > form.cleaned_data['men_to_advance'] and wtf_advanced > form.cleaned_data['wtf_to_advance']:
+                    break 
+            if racers:
+                messages.success(self.request, '{} Racers have been advanced to {}.'.format(starting_position, advance_to))
+            else:
+                messages.danger(self.request, 'No Racers have been advanced.')
+        
         self.success_url = "/raceentries/race/" + str(form.cleaned_data['race_id'])
         return super(AdvanceView, self).form_valid(form)
