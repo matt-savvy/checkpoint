@@ -94,7 +94,7 @@ class RaceEntry(models.Model):
             self.last_action = self.start_time
             self.save()
             if self.race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS:
-                self.race.populate_runs(self)
+                runs = self.race.populate_runs(self)
             return True
         return False
     

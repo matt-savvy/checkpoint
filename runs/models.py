@@ -78,12 +78,12 @@ class Run(models.Model):
         else:
             return "N/A"
     
-    def assign(self):
+    def assign(self, force=False):
         time_now = datetime.datetime.now(tz=pytz.utc)
         if self.utc_time_ready:
-            if not time_now >= self.utc_time_ready:
+            if time_now <= self.utc_time_ready and not force:
                 return
-        if self.status == self.RUN_STATUS_DISPATCHING:
+        if self.status == self.RUN_STATUS_DISPATCHING or force:
             self.status = self.RUN_STATUS_ASSIGNED
             self.determination = self.DETERMINATION_NOT_PICKED
             self.utc_time_assigned = time_now

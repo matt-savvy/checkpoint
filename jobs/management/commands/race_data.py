@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from jobs.models import Job
 from races.models import Race, Manifest
+from dispatch.models import Message
 from runs.models import Run
 from racers.models import Racer
 from raceentries.models import RaceEntry
@@ -12,6 +13,7 @@ import itertools
 import datetime
 import pytz
 import pdb
+from dispatch.util import simulate_race
 
 def random_permutation(iterable, r=2):
     "Random selection from itertools.permutations(iterable, r)"
@@ -29,12 +31,12 @@ class Command(BaseCommand):
         race = Race.objects.get(pk=selection_race)
         #race = Race.objects.get(pk=1)
         right_now = datetime.datetime.now(tz=pytz.utc)
-        race.race_start_time = right_now - datetime.timedelta(minutes=75)
+        race.race_start_time = right_now
         race.race_start_time = race.race_start_time.replace(second=0, microsecond=0)
         race.save()
         #clean slate
         RaceEntry.objects.filter(race=race).delete()
-       
+        Message.objects.filter(race=race).delete()
         #pdb.set_trace()
         if Racer.objects.filter(gender=Racer.GENDER_MALE).count() < 65:
             difference = 65 - Racer.objects.filter(gender=GENDER_MALE).count()
@@ -52,59 +54,19 @@ class Command(BaseCommand):
         racers = set(racers)
         print "right now, ", right_now
         
+        speed = 60
+        NUMBER_OF_DISPATCHERS = 3
+        checkpoints = Checkpoint.objects.all()
         for racer in racers:
-            #pdb.set_trace()
-            print racer, 
             entry = RaceEntry(racer=racer, race=race, entry_status=RaceEntry.ENTRY_STATUS_ENTERED)
             entry.save()
             race.populate_runs(entry)
             entry.start_racer()
-           
-            runs = Run.objects.filter(race_entry=entry).filter(utc_time_ready__lte=right_now)
-            current_time = race.race_start_time.replace(tzinfo=pytz.utc)
-           
-            while current_time <= right_now:
-                random_minutes = datetime.timedelta(minutes=random.randint(5,14))
-                current_time += random_minutes
-                available_runs = runs.filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=current_time)
-                for run in available_runs:
-                    if Run.objects.filter(Q(status=Run.RUN_STATUS_PICKED) | Q(status=Run.RUN_STATUS_ASSIGNED)).filter(race_entry=entry).count() >= 13:
-                        break
-                    run.status = Run.RUN_STATUS_DISPATCHING
-                    run.assign()                   
-                    run.utc_time_assigned = current_time
-                    run.utc_time_due = current_time + datetime.timedelta(minutes=run.job.minutes_due_after_start)
-               
-                    #70% chance that if they picked it up, a random time from now
-                    if random.random() <= .7:
-                        random_minutes = datetime.timedelta(seconds=random.randint(300,900))
-                        pick_time = current_time + random_minutes
-                        if pick_time <= right_now:
-                            run.pick()
-                            run.utc_time_picked = pick_time
-                            run.save()
-                       
-                            #70% chance that if they picked it up, they're going to drop it
-                            if random.random() <= .7:
-                                random_minutes = datetime.timedelta(seconds=random.randint(180,1200))
-                                drop_time = pick_time + random_minutes
-                                if drop_time <= right_now:
-                                    run.drop()
-                                    run.utc_time_dropped = drop_time
-                                    if run.utc_time_dropped <= run.utc_time_due:
-                                        run.determination = Run.DETERMINATION_OK
-                                        run.points_awarded = run.job.points
-                                        entry.add_up_points()
-                                        entry.add_up_runs()
-                                        entry.save()
-                                    else:
-                                        run.determination = Run.DETERMINATION_LATE
-                                        run.points_awarded = decimal.Decimal('0.00')
-                                        entry.add_up_points()
-                                        entry.add_up_runs()
-                                        entry.save()
-                                    run.save()
-                   
-            their_runs = Run.objects.filter(race_entry=entry)              
-            print " picked {}, dropped {}.".format(their_runs.filter(status=Run.RUN_STATUS_PICKED).count(), their_runs.filter(status=Run.RUN_STATUS_COMPLETED).count())
-    print "race data created."
+        
+        finish_time_delta = datetime.timedelta(minutes=race.time_limit) / speed
+        
+        while right_now <= race.race_start_time + finish_time_delta:
+            simulate_race(race, NUMBER_OF_DISPATCHERS, checkpoints, speed)
+            if not RaceEntry.objects.filter(race=race).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT)).exists():
+                break
+        print "race data created."

@@ -31,6 +31,13 @@ class RunTestCase(TestCase):
         run.save()
         run.assign()
         self.assertEqual(run.status, Run.RUN_STATUS_PENDING)
+        
+    def test_assign_if_status_is_not_dispatching_but_force(self):
+        run = self.runs[0]
+        run.status = Run.RUN_STATUS_PENDING
+        run.save()
+        run.assign(force=True)
+        self.assertEqual(run.status, Run.RUN_STATUS_ASSIGNED)
     
     def test_assign_double_assign(self):
         run = self.runs[0]

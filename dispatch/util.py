@@ -7,6 +7,9 @@ from django.db.models import Q
 import datetime
 import pytz
 from django.conf import settings
+import random 
+from checkpoints.models import Checkpoint 
+from time import sleep
 
 def assign_runs(runs_to_assign, race_entry):
     right_now = datetime.datetime.now(tz=pytz.utc)
@@ -140,4 +143,70 @@ def get_next_message(race, dispatcher=None):
     message = Message(race=race, message_type=Message.MESSAGE_TYPE_NOTHING)
     message.save()
     return message
-        
+    
+def simulate_race(race, NUMBER_OF_DISPATCHERS, checkpoints, speed=60):
+    right_now = datetime.datetime.now(tz=pytz.utc)
+    messages_this_minute = 0
+    while messages_this_minute <= NUMBER_OF_DISPATCHERS:
+        next_message = get_next_message(race)
+        messages_this_minute += 1
+        if not next_message.message_type == Message.MESSAGE_TYPE_NOTHING:
+            print next_message.pk, next_message
+            if random.random() > .7:
+                next_message.confirm()
+            else:
+                next_message.snooze()
+        else:
+            break
+                
+    run_messages_count = Run.objects.filter(utc_time_ready__lte=right_now).filter(status=Run.RUN_STATUS_PENDING).values_list('race_entry', flat=True).distinct().count()
+    messages_count = Message.objects.filter(race=race).filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(message_time__lte=right_now).count()
+    print "messages we didn't get to rn ", run_messages_count + messages_count
+    
+    racing_entries = RaceEntry.objects.filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT))
+    for entry in racing_entries:
+        if entry.last_action:
+            long_enough = datetime.timedelta(seconds=random.randint(180, 360)) / speed
+            if datetime.datetime.now(tz=pytz.utc) - entry.last_action > long_enough:
+                #they did something 3-6 minutes ago, let's simulate another action
+                
+                #are they clear and cut? 
+                runs = Run.objects.filter(race_entry=entry).filter(Q(status=Run.RUN_STATUS_PICKED) | Q(status=Run.RUN_STATUS_ASSIGNED))
+                if not runs:
+                    if entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:
+                        if Message.objects.filter(race_entry=entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED).exists():
+                            entry.finish_racer()
+                            print "{} finished".format(entry)
+                else:
+                    runs = Run.objects.filter(race_entry=entry)
+                    picks = runs.filter(status=Run.RUN_STATUS_ASSIGNED)
+                    drops = runs.filter(status=Run.RUN_STATUS_PICKED)
+                    if picks :
+                        pick_checkpoints = picks.values_list('job__pick_checkpoint', flat=True).distinct()
+                    else:
+                        pick_checkpoints = []
+                    if drops:
+                        drop_checkpoints = drops.values_list('job__drop_checkpoint', flat=True).distinct()
+                    else:
+                        drop_checkpoints = []
+                    try:    
+                        checkpoint_list = list(Checkpoint.objects.filter(Q(pk__in=pick_checkpoints) | Q(pk__in=drop_checkpoints)).distinct())
+                        current_checkpoint = random.choice(checkpoint_list)
+                    except:
+                        print "blip"
+                        current_checkpoint = random.choice(checkpoints)
+                    for run in picks.filter(job__pick_checkpoint=current_checkpoint):
+                        run.pick()
+                    for run in drops.filter(job__drop_checkpoint=current_checkpoint):
+                        if random.random() >= .8:
+                            run.utc_time_due = right_now - datetime.timedelta(seconds=30)
+                            run.save()
+                        run.drop()
+                    entry.add_up_points()
+                    entry.add_up_runs()
+                    entry.save()
+    
+    sleep(60 / speed)
+    
+    print "\n" 
+    return checkpoints

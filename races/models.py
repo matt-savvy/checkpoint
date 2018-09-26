@@ -74,10 +74,13 @@ class Race(models.Model):
                     else:
                         ready_time = datetime.datetime.now(tz=pytz.utc)
                 elif self.race_type == self.RACE_TYPE_DISPATCH_PRELIMS:
-                    ready_time = race_entry.start_time  
+                    ready_time = race_entry.start_time
                 run.utc_time_ready = ready_time + datetime.timedelta(minutes=job.minutes_ready_after_start)
                 run.save()
                 runs.append(run)
+                if self.race_type == self.RACE_TYPE_DISPATCH_FINALS:
+                    if job.minutes_ready_after_start == 0:
+                        run.assign(force=True)
         return runs
     
     def redo_run_math(self):

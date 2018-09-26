@@ -20,20 +20,23 @@ class RaceTestCase(TestCase):
         
     def test_populate_runs_single_racer(self):
         """testing populating the runs for a single racer getting entered"""
-        self.race.populate_runs(self.race_entry_one)
+        self.race.race_type = Race.RACE_TYPE_DISPATCH_PRELIMS
+        self.race.save()
+        self.race_entry_one.start_racer()
         runs = Run.objects.filter(race_entry=self.race_entry_one)
         self.assertEqual(runs.count(), 12)
         
     def test_populate_runs_only_correct_racer(self):
         """only runs for race_entry_one show up, not for race_entry_two"""
-        self.race.populate_runs(self.race_entry_one)
+        self.race.race_type = Race.RACE_TYPE_DISPATCH_PRELIMS
+        self.race_entry_one.start_racer()
         runs = Run.objects.filter(race_entry=self.race_entry_two)
         self.assertFalse(runs.exists())
         self.assertTrue(Run.objects.filter(race_entry=self.race_entry_one).exists())
     
     def test_populate_runs_with_start_time(self):
         """make sure minutes stay with the race start time minutes"""
-        self.race.race_start_time = fake.future_datetime()
+        self.race.race_start_time = fake.future_datetime().replace(tzinfo=pytz.utc)
         time_plus_five = self.race.race_start_time + datetime.timedelta(minutes=5)
         self.race.save()
         self.race.populate_runs(self.race_entry_one)
@@ -54,7 +57,23 @@ class RaceTestCase(TestCase):
          
         runs = Run.objects.filter(race_entry=self.race_entry_one)
         self.assertEqual(runs.count(), 12)
-
+        
+    def test_populate_runs_assigns_initial_jobs(self):
+        for job in self.jobs_first:
+            job.minutes_ready_after_start = 0
+            job.save()
+            
+        self.race.race_start_time = fake.future_datetime().replace(tzinfo=pytz.utc)
+        self.race.save()
+        runs = self.race.populate_runs(self.race_entry_one)
+        
+        self.assertEqual(len(runs), 12)
+        
+        for run in Run.objects.filter(status=Run.RUN_STATUS_ASSIGNED):
+            self.assertTrue(run.job in self.jobs_first)
+        for run in Run.objects.filter(status=Run.RUN_STATUS_PENDING):
+            self.assertFalse(run.job in self.jobs_first)
+        
     def test_populate_gets_jobs_with_correct_manifest_and_no_manifest(self):
         """i need to get all the shared jobs and/or all the jobs for just my manifest"""
         ### so if everyone is on the same manifest on sunday, we don't blow it
@@ -62,7 +81,7 @@ class RaceTestCase(TestCase):
     
     def test_redo_runs_math(self):
         self.race.race_type=Race.RACE_TYPE_DISPATCH_FINALS
-        self.race.race_start_time = fake.future_datetime()
+        self.race.race_start_time = fake.future_datetime().replace(tzinfo=pytz.utc)
         self.race.save()
         
         self.race_entry_one = RaceEntryFactory(race=self.race)
