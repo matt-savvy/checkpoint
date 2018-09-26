@@ -284,13 +284,8 @@ class PostResultsStreamAjaxView(APIView):
                 'racer_number'         : str(event.racer.racer_number),
                 'racer_name'           : event.racer.display_name,
                 'city'                 : event.racer.city,
-                'country'              : event.racer.country,
                 'team'                 : event.racer.team,
-                'racer_photo_small'    : event.racer.mini_racer_image,
-                'racer_photo_medium'   : event.racer.medium_racer_image,
-                'racer_photo_large'    : event.racer.racer_image,
                 'message'              : event.message,
-                'message_photo'        : event.message_photo,
                 'poster_name'          : event.poster_name,
                 'poster_photo'         : event.poster_photo
             }
@@ -311,11 +306,7 @@ class PostResultsStreamAjaxView(APIView):
                 'racer_number'         : str(standing.racer.racer_number),
                 'racer_name'           : standing.racer.display_name,
                 'city'                 : standing.racer.city,
-                'country'              : standing.racer.country,
                 'team'                 : standing.racer.team,
-                'racer_photo_small'    : standing.racer.mini_racer_image,
-                'racer_photo_medium'   : standing.racer.medium_racer_image,
-                'racer_photo_large'    : standing.racer.racer_image,
                 'current_earnings'     : float(standing.grand_total),
                 "number_of_jobs"       : standing.number_of_jobs_completed                         
             }

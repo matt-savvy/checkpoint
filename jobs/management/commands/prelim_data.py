@@ -48,7 +48,7 @@ class Command(BaseCommand):
             re = RaceEntry(racer=racer, race=race)
             re.save()
             
-        while RaceEntry.objects.filter(Q(entry_status=RaceEntry.ENTRY_STATUS_ENTERED) | Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT)).exists():
+        while RaceEntry.objects.filter(race=race).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_ENTERED) | Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT)).exists():
             new_entry = RaceEntry.objects.filter(entry_status=RaceEntry.ENTRY_STATUS_ENTERED).first()
             if new_entry:
                 new_entry.start_racer()

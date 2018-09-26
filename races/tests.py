@@ -12,8 +12,8 @@ fake = Faker()
 class RaceTestCase(TestCase):
     def setUp(self):
         self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_FINALS)
-        self.race_entry_one = RaceEntryFactory()
-        self.race_entry_two = RaceEntryFactory()
+        self.race_entry_one = RaceEntryFactory(race=self.race)
+        self.race_entry_two = RaceEntryFactory(race=self.race)
         self.jobs_first = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0)
         self.jobs_second = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=5)
         self.jobs_third = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=10)
@@ -29,6 +29,7 @@ class RaceTestCase(TestCase):
         self.race.populate_runs(self.race_entry_one)
         runs = Run.objects.filter(race_entry=self.race_entry_two)
         self.assertFalse(runs.exists())
+        self.assertTrue(Run.objects.filter(race_entry=self.race_entry_one).exists())
     
     def test_populate_runs_with_start_time(self):
         """make sure minutes stay with the race start time minutes"""
@@ -53,6 +54,31 @@ class RaceTestCase(TestCase):
          
         runs = Run.objects.filter(race_entry=self.race_entry_one)
         self.assertEqual(runs.count(), 12)
+
+    def test_populate_gets_jobs_with_correct_manifest_and_no_manifest(self):
+        """i need to get all the shared jobs and/or all the jobs for just my manifest"""
+        ### so if everyone is on the same manifest on sunday, we don't blow it
+        pass
+    
+    def test_redo_runs_math(self):
+        self.race.race_type=Race.RACE_TYPE_DISPATCH_FINALS
+        self.race.race_start_time = fake.future_datetime()
+        self.race.save()
+        
+        self.race_entry_one = RaceEntryFactory(race=self.race)
+        self.race_entry_two = RaceEntryFactory(race=self.race)
+        self.race.populate_runs(self.race_entry_one)
+        self.race.populate_runs(self.race_entry_two)
+        
+        first_ready_time = Run.objects.filter(race_entry=self.race_entry_one).first().utc_time_ready
+        last_ready_time = Run.objects.filter(race_entry__race=self.race).last().utc_time_ready
+        
+        self.race.race_start_time += datetime.timedelta(minutes=5)
+        self.race.save()
+        self.race.redo_run_math()
+        
+        self.assertTrue(first_ready_time < Run.objects.filter(race_entry__race=self.race).first().utc_time_ready)
+        self.assertTrue(first_ready_time < Run.objects.filter(race_entry__race=self.race).last().utc_time_ready)
 
 class ClearRacerTestCase(TestCase):
     def setUp(self):
@@ -166,7 +192,7 @@ class ClearRacerTestCase(TestCase):
     
     def test_finals(self):
         race = RaceFactory(race_type=Race.RACE_TYPE_FINALS)
-        self.assertFalse(race.dispatch_race)
+        self.assertFalse(race.dispatch_race)    
         
 class ManifestTestCase(TestCase):
     def setUp(self):

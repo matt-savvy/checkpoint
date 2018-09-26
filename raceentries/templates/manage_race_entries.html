@@ -25,6 +25,7 @@
       <table class="table table-striped">
         <tr>
             <th>{% if race.race_type != race.RACE_TYPE_DISPATCH_FINALS %}<input type="checkbox" id="select-all-not-entered">{% endif %}</th>
+			
             <th>Racer Number</th>
             <th>Last Name</th>
             <th>First Name</th>
@@ -35,6 +36,7 @@
         {% for racer in not_in_race %}
         <tr>
             <td>{% if race.race_type != race.RACE_TYPE_DISPATCH_FINALS %}<input type="checkbox" name="enter-in-race[]" value="{{racer.id}}" class='not-in-race-checkboxes'>{% endif %}</td>
+			
             <td>{{racer.racer_number}}</td>
             <td>{{racer.last_name}}</td>
             <td>{{racer.first_name}}</td>
@@ -63,6 +65,8 @@
           <table class="table table-striped">
             <tr>
                 <th><input type="checkbox" id="select-all-entered"></th>
+				
+				<th>Starting Position</th>
                 <th>Racer Number</th>
                 <th>Last Name</th>
                 <th>First Name</th>
@@ -74,7 +78,8 @@
             {% for entry in race_entries %}
             <tr>
                 <td><input type="checkbox" name="remove-from-race[]" value="{{entry.id}}" class='entered-in-race-checkboxes'></td>
-                <td><a href="/nunya/raceentries/raceentry/{{entry.id}}">{{entry.racer.racer_number}}</a></td>
+                <td>{{entry.starting_position}}</td>
+				<td><a href="/nunya/raceentries/raceentry/{{entry.id}}">{{entry.racer.racer_number}}</a></td>
                 <td>{{entry.racer.last_name}}</td>
                 <td>{{entry.racer.first_name}}</td>
                 <td>{{entry.racer.gender}}</td>

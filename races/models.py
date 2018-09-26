@@ -64,7 +64,7 @@ class Race(models.Model):
         runs = []
 
         if self.dispatch_race:
-            jobs = Job.objects.filter(race=self).filter(manifest=race_entry.manifest)
+            jobs = Job.objects.filter(race=self).filter(Q(manifest=race_entry.manifest) | Q(manifest=None))
             
             for job in jobs:
                 run = Run(job=job, race_entry=race_entry, status=Run.RUN_STATUS_PENDING)
@@ -80,6 +80,18 @@ class Race(models.Model):
                 runs.append(run)
         return runs
     
+    def redo_run_math(self):
+        from runs.models import Run
+        if self.race_type == self.RACE_TYPE_DISPATCH_FINALS:
+            runs = Run.objects.filter(race_entry__race=self)
+            for run in runs:
+                if self.race_start_time:
+                    ready_time = self.race_start_time
+                else:
+                    ready_time = datetime.datetime.now(tz=pytz.utc)
+                run.utc_time_ready = ready_time + datetime.timedelta(minutes=run.job.minutes_ready_after_start)
+                run.save()
+                
     @property
     def race_type_string(self):
         return self.RACE_TYPE_CHOICES[self.race_type][1]
