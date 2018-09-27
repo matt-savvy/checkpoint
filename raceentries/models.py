@@ -225,3 +225,20 @@ class RaceEntry(models.Model):
     def number_of_open_jobs(self):
         runs = Run.objects.filter(race_entry=self).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_DISPATCHING) | Q(status=Run.RUN_STATUS_PICKED)).count()
         return runs
+    
+    @property
+    def five_minute_warning(self):
+        """if there's less than five minutes left in the race"""
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        if self.race.time_limit == 0:
+            return False
+            
+        if self.race.race_start_time:
+            five_mins_from_finish = self.race.race_start_time + datetime.timedelta(minutes=self.race.time_limit-5)
+        else:
+            five_mins_from_finish = self.start_time + datetime.timedelta(minutes=self.race.time_limit-5)
+        if right_now >= five_mins_from_finish:
+            return True
+        
+        return False
+    

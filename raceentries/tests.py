@@ -19,6 +19,7 @@ import pdb
 
 class RaceEntryTestCase(TestCase):
         def setUp(self):
+            self.right_now = datetime.datetime.now(tz=pytz.utc)
             self.race_one = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_PRELIMS)
  
             self.manifest_one = ManifestFactory()
@@ -55,6 +56,45 @@ class RaceEntryTestCase(TestCase):
             for run in runs:
                 self.assertEqual(run.job.manifest, self.manifest_one)
                 self.assertNotEqual(run.job.manifest, self.manifest_two)
+        
+        def test_five_min_warning_false_with_no_limit(self):
+            self.race_one.time_limit = 0
+            self.race_one.race_start_time = self.right_now - datetime.timedelta(minutes=95)
+            self.race_one.save()
+            
+            self.assertFalse(self.race_entry_one.five_minute_warning)
+            
+        def test_five_min_warning(self):
+            self.race_one.time_limit = 100
+            self.race_one.race_start_time = self.right_now - datetime.timedelta(minutes=95)
+            self.race_one.save()
+            
+            self.assertTrue(self.race_entry_one.five_minute_warning)
+            
+        def test_five_min_warning_early(self):
+            self.race_one.time_limit = 100
+            self.race_one.race_start_time = self.right_now - datetime.timedelta(minutes=30)
+            self.race_one.save()
+            
+            self.assertFalse(self.race_entry_one.five_minute_warning)
+        
+        def test_five_min_warning_prelim(self):
+            self.race_one.time_limit = 100
+            self.race_one.race_start_time = None
+            self.race_entry_one.start_time = self.right_now - datetime.timedelta(minutes=95)
+            self.race_one.save()
+            self.race_entry_one.save()
+            
+            self.assertTrue(self.race_entry_one.five_minute_warning)
+        
+        def test_five_min_warning_early_prelim(self):
+            self.race_one.time_limit = 100
+            self.race_one.race_start_time = None
+            self.race_entry_one.start_time = self.right_now - datetime.timedelta(minutes=30)
+            self.race_one.save()
+            self.race_entry_one.save()
+            
+            self.assertFalse(self.race_entry_one.five_minute_warning)
                 
 class ScoreTestCase(TestCase):
     def setUp(self):

@@ -27,8 +27,7 @@ def get_random_manifest_type():
 class ManifestFactory(factory.DjangoModelFactory):
     race = factory.SubFactory(RaceFactory)
     manifest_name = factory.Faker('color_name')
-    order = factory.Sequence(lambda n : "%d" % n)
-    manifest_type = Manifest.TYPE_CHOICE_MAIN
+    manifest_type = Manifest.TYPE_CHOICE_STARTING
     
     class Meta:
         model = Manifest

@@ -75,6 +75,8 @@ class Message(models.Model):
         elif self.message_type == self.MESSAGE_TYPE_OFFICE:
             self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_CUT
             self.race_entry.save()
+            ##if they confirm that they're cut, we wipe any other come to the office messages for this racer
+            Message.objects.filter(race_entry=self.race_entry).filter(message_type=self.MESSAGE_TYPE_OFFICE).exclude(pk=self.pk).delete()
         
         #TODO add logging
         return self

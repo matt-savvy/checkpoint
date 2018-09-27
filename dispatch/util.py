@@ -10,9 +10,22 @@ import random
 from checkpoints.models import Checkpoint 
 from time import sleep
 
+def snooze_capped_runs(race_entry):
+    runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING)
+    if race_entry.race.overtime:
+        minutes_to_snooze = 5
+        runs = runs.filter(job__manifest__manifest_type=Manifest.TYPE_CHOICE_BONUS)
+    else:
+        minutes_to_snooze = 15
+        runs = runs.exclude(job__manifest__manifest_type=Manifest.TYPE_CHOICE_BONUS)
+        
+    for run in runs:
+        run.utc_time_ready += datetime.timedelta(minutes=minutes_to_snooze)
+        run.save()
+        
 def assign_runs(runs_to_assign, race_entry):    
     right_now = datetime.datetime.now(tz=pytz.utc)
-    
+    runs_to_snooze = False
     message = Message(race=race_entry.race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH, status=Message.MESSAGE_STATUS_DISPATCHING, message_time=right_now)
     message.save()
     
@@ -20,26 +33,19 @@ def assign_runs(runs_to_assign, race_entry):
     if current_count + runs_to_assign.count() > race_entry.race.run_limit:
                 
         difference = race_entry.race.run_limit - current_count
-        runs_to_snooze = runs_to_assign[difference:]
-        if race_entry.race.overtime:
-            minutes_to_snooze = 5
-        else:
-            minutes_to_snooze = 15
-            
-        for run in runs_to_snooze:
-            run.utc_time_ready = right_now + datetime.timedelta(minutes=minutes_to_snooze)
-            run.save()
-        
         runs_to_assign = runs_to_assign[:difference]
-    
+        runs_to_snooze = True
     for run in runs_to_assign:
         message.runs.add(run)
         run.status = Run.RUN_STATUS_DISPATCHING    
         run.utc_time_assigned = right_now
         run.save()
- 
-    message.save()
     
+    if runs_to_snooze:
+        snooze_capped_runs(race_entry)
+    
+    message.save()
+
     #TODO assign dispatcher to message
     return message
 
@@ -47,11 +53,17 @@ def run_count(race_entry):
     current_run_count = Run.objects.filter(race_entry=race_entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_PICKED)).count()
     return current_run_count
     
-def get_next_message(race, dispatcher=None): 
+def get_next_message(race, dispatcher=None):
+    import pdb
+    #pdb.set_trace()
     right_now = datetime.datetime.now(tz=pytz.utc)
     
-    #TODO .filter(dispatcher=dispatcher)
-    
+    #if we're at the five minute warning, so any messages we were going to "Get back to" are wiped
+    if race.five_minute_warning:
+        print "five minute warning"
+        Message.objects.filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(message_type=Message.MESSAGE_TYPE_DISPATCH).filter(race_entry__race=race).delete()
+        Message.objects.filter(Q(status=Message.MESSAGE_STATUS_DISPATCHING) | Q(status=Message.MESSAGE_STATUS_NONE)).filter(race_entry__race=race).filter(message_time__lte=right_now - datetime.timedelta(minutes=3)).delete()
+        
     ## are there any SNOOZED messages IN THIS RACE that already exist?
     snoozed_message = Message.objects.filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(race_entry__race=race).filter(message_time__lte=right_now).first()
     if snoozed_message:
@@ -66,34 +78,38 @@ def get_next_message(race, dispatcher=None):
         print "found unconfirmed"
         return old_unconfirmed_messages.first()
     
+    if race.overtime:
+        manifest = Manifest.objects.filter(race=race).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
+    else:
+        manifest = None
+    
+    
     ##are there any clear racers? they get top priority
     race_entry = race.find_clear_racer()
 
     if race_entry:
         print "found clear racer"
+        office_messages = Message.objects.filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).exists()
         
-        if race_entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:            
-            #they haven't already gotten that message, send them a cut message right away
-            already_cut_confirmed = Message.objects.filter(race=race).filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED).exists()
-            cut_snooze_not_ready = Message.objects.filter(race=race).filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_SNOOZED).exists()
-            if not already_cut_confirmed:
+        #if they're cut, we'll tell them unless we already tried
+        if race_entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:
+            if not office_messages:
                 message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
                 message.save()
                 return message
         
-        ##if the time limit is in five minutes or less, they are gonna get cut
-        if right_now >= race_entry.start_time + datetime.timedelta(minutes=race.time_limit-5):
+        ##if they're racing but the time limit is in five minutes or less, they are gonna get cut
+        elif race_entry.five_minute_warning:
             race_entry.cut_racer()
             message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
             message.save()
+            
             return message
         
+        #pdb.set_trace()
         
-        #TODO
-        #see if it's overtime. if so, we play by slightly different rules. 
-        #if race_entry.race.overtime:
-        #
-        runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING)
+        runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(job__manifest=manifest)
+            
         if runs:
             #any runs with no ready time for whatver reason will get treated as if they are ready now
             runs_with_no_ready_time = runs.filter(utc_time_ready=None)
@@ -106,49 +122,41 @@ def get_next_message(race, dispatcher=None):
   
             return assign_runs(runs_to_assign, race_entry)
         else:
+            pass
             #TODO 
             #this all needs to get reformatted for the new overtime rules.
             #see if there are any jobs on the bonus manifest that they haven't already done
-            manifest = Manifest.objects.filter(race=race).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
-            if manifest:
-                runs_done_by_racer = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_COMPLETED).filter(job__manifest=manifest)
-                if right_now <= race.race_start_time + datetime.timedelta(minutes=manifest.cut_off_minutes_after_start):
-                    bonus_jobs = Job.objects.filter(race=race, manifest=manifest).exclude(run__in=runs_done_by_racer)
-                    if bonus_jobs:
-                        bonus_jobs_to_assign = bonus_jobs[:3]
-                        runs_to_assign = []
-                        for job in bonus_jobs_to_assign:
-                            run_to_assign = Run(job=job, race_entry=race_entry, status=Run.RUN_STATUS_PENDING)
-                            run_to_assign.utc_time_ready = right_now
-                            run_to_assign.save()
-                            runs_to_assign.append(run_to_assign)
-                            return assign_runs(runs_to_assign, race_entry)
-            
-            already_cut_confirmed = Message.objects.filter(race=race).filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(status=Message.MESSAGE_STATUS_CONFIRMED).exists()
-            if not already_cut_confirmed:
+            #manifest = Manifest.objects.filter(race=race).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
+            #if manifest:
+            #    runs_done_by_racer = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_COMPLETED).filter(job__manifest=manifest)
+            #    if right_now <= race.race_start_time + datetime.timedelta(minutes=manifest.cut_off_minutes_after_start):
+            #        bonus_jobs = Job.objects.filter(race=race, manifest=manifest).exclude(run__in=runs_done_by_racer)
+            #        if bonus_jobs:
+            #            bonus_jobs_to_assign = bonus_jobs[:3]
+            #            runs_to_assign = []
+            #            for job in bonus_jobs_to_assign:
+            #                run_to_assign = Run(job=job, race_entry=race_entry, status=Run.RUN_STATUS_PENDING)
+            #                run_to_assign.utc_time_ready = right_now
+            #                run_to_assign.save()
+            #                runs_to_assign.append(run_to_assign)
+            #                return assign_runs(runs_to_assign, race_entry)
+            #
+            if not office_messages:
                 message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
                 message.save()
                 return message
-            #there is no bonus manifest, the bonus manifest has no jobs that racer hasn't done, or it is after the bonus manifest cut off
-            #so we cut the rider
+            
+    runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(job__manifest=manifest).filter(utc_time_ready__lte=right_now)
     
-    runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
-    
-    while runs.exists():
+    while runs.all().exists():
         race_entry = runs.first().race_entry
         runs_to_assign = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
         
         if run_count(race_entry) < race_entry.race.run_limit:
             return assign_runs(runs_to_assign, race_entry)
         else:
-            for run in runs_to_assign:
-                if race.overtime:
-                    minutes_to_snooze = 5
-                else:
-                    minutes_to_snooze = 15
-                run.utc_time_ready = right_now + datetime.timedelta(minutes=minutes_to_snooze)
-                run.save()
-    
+            snooze_capped_runs(race_entry)
+            
     message = Message(race=race, message_type=Message.MESSAGE_TYPE_NOTHING)
     message.save()
     return message

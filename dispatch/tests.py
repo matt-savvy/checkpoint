@@ -14,6 +14,7 @@ import pytz
 import pdb
 from django.conf import settings
 from django.db.models import Q
+from freezegun import freeze_time
 
 class MessageTestCase(TestCase):
     def setUp(self):
@@ -154,9 +155,9 @@ class get_next_message_TestCase(TestCase):
         next_message = get_next_message(self.race)
         self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
     
-    
     def test_no_double_messages_for_racer(self):
         """only message is a message already on a screen, next_message() should return a NOTHING message"""
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).delete()
         messages = Message.objects.all().delete()
         runs = Run.objects.all()
         for run in runs:
@@ -166,8 +167,11 @@ class get_next_message_TestCase(TestCase):
         message = Message(race=self.race_entry_one.race, race_entry=self.race_entry_one, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
         message.save()
         
+        
+        
         next_message = get_next_message(self.race)
-
+        
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_NOTHING)
         self.assertNotEqual(next_message.race_entry, self.race_entry_one)
         
     def test_message_left_unconfirmed_for_too_long_gets_attempted_again(self):
@@ -219,15 +223,16 @@ class get_next_message_TestCase(TestCase):
         self.assertIsNone(next_message_runs.first())
         self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
 
-    def test_clear_racer_with_no_pending_jobs_bonus_manifest_exists_after_cut_off_time(self):
-        self.assertTrue(False)
-        "a clear racer should get cut because we are after the bonus cut off time. "
+    def test_clear_racer_gets_cut_five_minutes_to_the_end(self):
+        "a clear racer should get cut because of the five minute warning."
+        Run.objects.filter(status=Run.RUN_STATUS_ASSIGNED).delete()
         racer = self.race.find_clear_racer()
         runs = Run.objects.filter(race_entry=racer)
         runs.delete()
         
-        bonus_manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS, cut_off_minutes_after_start=20)
+        bonus_manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
         self.race.race_start_time = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=30)
+        self.race.time_limit = 35
         self.race.save()
         
         job = JobFactory.create(race=self.race, manifest=bonus_manifest)
@@ -238,7 +243,7 @@ class get_next_message_TestCase(TestCase):
         self.assertIsNone(next_message.runs.first())
         self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
         self.assertEqual(racer.entry_status, RaceEntry.ENTRY_STATUS_CUT)
-    
+        
     def test_get_next_message_with_two_sets_of_runs_ready_now(self):
         """some of these jobs was ready 5 mins ago, some were ready 8 mins ago. we should get them all back"""
         #Run.objects.filter(status=Run.RUN_STATUS_ASSIGNED).delete()
@@ -365,7 +370,7 @@ class get_next_message_TestCase(TestCase):
     #overtime, racer is clear
     #overtime, racer is cut
     #overtime, make sure we don't get jobs from the regular manifest
-    
+    @freeze_time("2018-9-27 10:30:00")
     def test_job_capped_jobs_will_snooze_15_minutes(self):
         Run.objects.all().delete()
         right_now = datetime.datetime.now(tz=pytz.utc) 
@@ -377,11 +382,12 @@ class get_next_message_TestCase(TestCase):
         last_run = Run.objects.get(pk=last_run.pk)
         fifteen_from_now = right_now + datetime.timedelta(minutes=15)
         
-        self.assertTrue(last_run.utc_time_ready - fifteen_from_now <= datetime.timedelta(seconds=5))
+        self.assertEqual(last_run.utc_time_ready - datetime.timedelta(minutes=15), right_now)
     
+    @freeze_time("2018-9-27 10:30:00")
     def test_job_capped_jobs_will_snooze_15_minutes_when_only_one_is_capped(self):
         Run.objects.all().delete()
-        right_now = datetime.datetime.now(tz=pytz.utc) 
+        right_now = datetime.datetime.now(tz=pytz.utc)
         RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
         RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
         RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PICKED)
@@ -392,24 +398,112 @@ class get_next_message_TestCase(TestCase):
         job_capped_runs = Run.objects.filter(status=Run.RUN_STATUS_PENDING)
         
         self.assertNotEqual(job_capped_runs[0].utc_time_ready, next_message.runs.first().utc_time_ready)
+    
+    @freeze_time("2018-9-27 10:30:00")
+    def test_all_pending_jobs_will_get_snoozed_if_cap_is_hit(self):
+        Run.objects.all().delete()
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
+        RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PICKED)
+        last_possible_runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        next_runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        for run in next_runs:
+            run.utc_time_ready += datetime.timedelta(minutes=10)
+            plus_fifteen = run.utc_time_ready + datetime.timedelta(minutes=15)
+            run.save()
+            
+        next_message = get_next_message(self.race)
         
+        job_capped_runs = Run.objects.filter(status=Run.RUN_STATUS_PENDING)
+        
+        self.assertNotEqual(job_capped_runs[0].utc_time_ready, next_message.runs.first().utc_time_ready)
+        self.assertEqual(job_capped_runs.last().utc_time_ready, plus_fifteen)
     
+    @freeze_time("2018-9-27 10:30:00")
     def test_job_capped_overtime_jobs_will_snooze_5_minutes(self):
-        pass
+        Run.objects.all().delete()
+        self.race.overtime = True
+        self.race.save()
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        plus_ten = right_now + datetime.timedelta(minutes=10)
+        plus_fifteen = right_now + datetime.timedelta(minutes=15)
+        
+        bonus_manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
+        
+        last_possible_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=bonus_manifest, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        next_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=bonus_manifest, status=Run.RUN_STATUS_PENDING, utc_time_ready=plus_ten)
     
+        next_message = get_next_message(self.race)
+        
+        job_capped_runs = Run.objects.filter(status=Run.RUN_STATUS_PENDING)
+                
+        self.assertEqual(plus_ten + datetime.timedelta(minutes=5), plus_fifteen)
+        
+        self.assertNotEqual(job_capped_runs[0].utc_time_ready, next_message.runs.first().utc_time_ready)
+        self.assertEqual(job_capped_runs.last().utc_time_ready, right_now + datetime.timedelta(minutes=5))
+    
+    @freeze_time("2018-9-27 10:30:00")
     def test_regular_jobs_wont_get_assigned_during_overtime(self):
-        pass
-    
-    def test_overtime_dispatches_from_BONUS_MANIFEST(self):
-        pass
+        Run.objects.all().delete()
+        self.race.overtime = True
+        self.race.save()
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        
+        bonus_manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        regular_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=None, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        overtime_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=bonus_manifest, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        
+        for run in next_message.runs.all():
+            self.assertEqual(run.job.manifest, bonus_manifest)
+        
+    def test_overtime_jobs_wont_get_dispatched_during_regular_hours(self):
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        Run.objects.all().delete()
+        
+        bonus_manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        regular_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=None, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        overtime_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=bonus_manifest, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        for run in next_message.runs.all():
+            self.assertNotEqual(run.job.manifest, bonus_manifest)
         
     def test_clear_cut_rider_gets_recalled_during_overtime(self):
-        pass
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        Run.objects.all().delete()
+        self.race.overtime = True
+        self.race.save()
+        
+        bonus_manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        regular_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=None, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        overtime_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=bonus_manifest, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        self.race_entry_one.cut_racer()
+        
+        next_message = get_next_message(self.race)
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
+        self.assertFalse(next_message.runs.all().first() in regular_runs)
+        self.assertFalse(next_message.runs.all().first() in overtime_runs)
     
     def test_overtime_lowers_job_cap(self):
+        self.race.overtime = True
+        self.assertEqual(self.race.run_limit, 6)
+
+    def test_five_min_warning_wipes_snoozed_job_messages(self):
         pass
     
-
+    def test_five_min_warning_wipes_purgatory_messages(self):
+        pass
+    
+    def test_five_min_warning_cuts_clear_racers(self):
+        pass
     
         ##make sure we
         #only get jobs for the correct racer
