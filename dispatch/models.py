@@ -5,6 +5,7 @@ from jobs.models import Job
 from runs.models import Run
 import datetime
 import pytz
+from django.utils.timezone import now
 
 class Message(models.Model):
     MESSAGE_TYPE_DISPATCH = 0
@@ -34,7 +35,7 @@ class Message(models.Model):
     race = models.ForeignKey(Race)
     race_entry = models.ForeignKey(RaceEntry, null=True)
     runs = models.ManyToManyField(Run)
-    message_time = models.DateTimeField(blank=True, null=True)
+    message_time = models.DateTimeField(blank=True, null=True, default=now)
     message_type = models.IntegerField(choices=MESSAGE_TYPE_CHOICES, default=MESSAGE_TYPE_DISPATCH)
     status = models.IntegerField(choices=MESSAGE_STATUS_CHOICES, default=MESSAGE_STATUS_NONE)
     confirmed_time = models.DateTimeField(blank=True, null=True)

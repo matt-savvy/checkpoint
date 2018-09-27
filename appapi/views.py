@@ -207,18 +207,3 @@ class DropView(APIView):
             pass
         
         return Response({'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
-
-class DispatchNextMessageView(APIView):
-    authentication_classes = (OAuth2Authentication, SessionAuthentication)
-    permission_classes = (IsAuthenticated,)
-    
-    def post(self, request, *args, **kwargs):
-        from dispatch.util import get_next_message
-        current_race = RaceControl.shared_instance().current_race
-        next_message = get_next_message(current_race)
-        return next_message
-        #TODO serializer
-        pass
-
-class DispatchAssignView(APIView):
-    pass

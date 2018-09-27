@@ -98,6 +98,14 @@ class RaceTestCase(TestCase):
         
         self.assertTrue(first_ready_time < Run.objects.filter(race_entry__race=self.race).first().utc_time_ready)
         self.assertTrue(first_ready_time < Run.objects.filter(race_entry__race=self.race).last().utc_time_ready)
+    
+    def test_run_limit(self):
+        self.assertEqual(self.race.run_limit, 13)
+    
+    def test_run_limit_overtime(self):
+        self.race.overtime = True
+        self.race.save()
+        self.assertEqual(self.race.run_limit, 6)
 
 class ClearRacerTestCase(TestCase):
     def setUp(self):

@@ -6,12 +6,11 @@ from jobs.models import Job
 from django.db.models import Q
 import datetime
 import pytz
-from django.conf import settings
 import random 
 from checkpoints.models import Checkpoint 
 from time import sleep
 
-def assign_runs(runs_to_assign, race_entry):
+def assign_runs(runs_to_assign, race_entry):    
     right_now = datetime.datetime.now(tz=pytz.utc)
     
     message = Message(race=race_entry.race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH, status=Message.MESSAGE_STATUS_DISPATCHING, message_time=right_now)
@@ -19,9 +18,9 @@ def assign_runs(runs_to_assign, race_entry):
     
     
     current_count = run_count(race_entry)
-    if current_count + runs_to_assign.count() > 13:
+    if current_count + runs_to_assign.count() > race_entry.race.run_limit:
         
-        difference = settings.OPEN_RUN_LIMIT - current_count
+        difference = race_entry.race.run_limit - current_count
         runs_to_assign = runs_to_assign[:difference]
         
     for run in runs_to_assign:
@@ -38,20 +37,8 @@ def run_count(race_entry):
     current_run_count = Run.objects.filter(race_entry=race_entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_PICKED)).count()
     return current_run_count
     
-def get_next_message(race, dispatcher=None):
-    if race.race_type not in [Race.RACE_TYPE_DISPATCH_PRELIMS, Race.RACE_TYPE_DISPATCH_FINALS]:
-        message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
-        message.save()
-        error = "This race type does not require a dispatcher."
-        return message, error
-    
+def get_next_message(race, dispatcher=None): 
     right_now = datetime.datetime.now(tz=pytz.utc)
-    if race.race_type == Race.RACE_TYPE_DISPATCH_FINALS and race.race_start_time:
-        if race.race_start_time > right_now:
-            message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
-            message.save()
-            error = "Race has not started yet!"
-            return message, error
     
     #TODO .filter(dispatcher=dispatcher)
     
@@ -83,13 +70,19 @@ def get_next_message(race, dispatcher=None):
                 message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
                 message.save()
                 return message
-            
-        if right_now >= race_entry.start_time + datetime.timedelta(minutes=race.time_limit):
+        
+        ##if the time limit is in five minutes or less, they are gonna get cut
+        if right_now >= race_entry.start_time + datetime.timedelta(minutes=race.time_limit-5):
             race_entry.cut_racer()
             message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
             message.save()
             return message
-            
+        
+        
+        #TODO
+        #see if it's overtime. if so, we play by slightly different rules. 
+        #if race_entry.race.overtime:
+        #
         runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING)
         if runs:
             #any runs with no ready time for whatver reason will get treated as if they are ready now
@@ -97,12 +90,14 @@ def get_next_message(race, dispatcher=None):
             if runs_with_no_ready_time:
                 runs_to_assign = runs_with_no_ready_time
             else:
-                #grab the last run and any runs that are ready at the same time OR EARLIER
-                next_run_ready_time = runs.last().utc_time_ready
-                runs_to_assign = runs.filter(utc_time_ready__lte=next_run_ready_time)
+                #grab the next run and any runs that are ready at the same time
+                next_run_ready_time = runs.first().utc_time_ready
+                runs_to_assign = runs.filter(utc_time_ready=next_run_ready_time)
   
             return assign_runs(runs_to_assign, race_entry)
         else:
+            #TODO 
+            #this all needs to get reformatted for the new overtime rules.
             #see if there are any jobs on the bonus manifest that they haven't already done
             manifest = Manifest.objects.filter(race=race).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
             if manifest:
@@ -133,11 +128,11 @@ def get_next_message(race, dispatcher=None):
         race_entry = runs.first().race_entry
         runs_to_assign = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
         
-        if run_count(race_entry) < settings.OPEN_RUN_LIMIT:
+        if run_count(race_entry) < race_entry.race.run_limit:
             return assign_runs(runs_to_assign, race_entry)
         else:
             for run in runs_to_assign:
-                run.utc_time_ready__lte = right_now + datetime.timedelta(minutes=5)
+                run.utc_time_ready = right_now + datetime.timedelta(minutes=15)
                 run.save()
     
     message = Message(race=race, message_type=Message.MESSAGE_TYPE_NOTHING)
@@ -151,7 +146,7 @@ def simulate_race(race, NUMBER_OF_DISPATCHERS, checkpoints, speed=60):
         next_message = get_next_message(race)
         messages_this_minute += 1
         if not next_message.message_type == Message.MESSAGE_TYPE_NOTHING:
-            print next_message.pk, next_message
+            print next_message.race_entry.starting_position, next_message
             if random.random() > .7:
                 next_message.confirm()
             else:
@@ -159,7 +154,7 @@ def simulate_race(race, NUMBER_OF_DISPATCHERS, checkpoints, speed=60):
         else:
             break
                 
-    run_messages_count = Run.objects.filter(utc_time_ready__lte=right_now).filter(status=Run.RUN_STATUS_PENDING).values_list('race_entry', flat=True).distinct().count()
+    run_messages_count = Run.objects.filter(race_entry__race=race).filter(utc_time_ready__lte=right_now).filter(status=Run.RUN_STATUS_PENDING).values_list('race_entry', flat=True).distinct().count()
     messages_count = Message.objects.filter(race=race).filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(message_time__lte=right_now).count()
     print "messages we didn't get to rn ", run_messages_count + messages_count
     

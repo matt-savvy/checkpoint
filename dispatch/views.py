@@ -27,15 +27,25 @@ class NextMessage(APIView):
     
     def post(self, request, *args, **kwargs):
         current_race = RaceControl.shared_instance().current_race
+        right_now = datetime.datetime.now(tz=pytz.utc)
         error = None
-        next_message = get_next_message(current_race)
         
-        try:
-            error = next_message[1]
-            next_message = next_message[0]
-        except:
-            error = None
-            next_message
+        
+        if not race.dispatch_race:
+            message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
+            message.save()
+            next_message = message
+            error = "This race type does not require a dispatcher."
+    
+        elif race.race_type == Race.RACE_TYPE_DISPATCH_FINALS and race.race_start_time:
+            if race.race_start_time > right_now:
+                message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
+                message.save()
+                next_message = message
+                error = "Race has not started yet!"
+        
+        else:        
+            next_message = get_next_message(current_race)
         
         if next_message:
             #return Response(MessageSerializer(next_message).data, status=status.HTTP_200_OK)

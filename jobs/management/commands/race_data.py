@@ -48,13 +48,25 @@ class Command(BaseCommand):
            
         racers_men = Racer.objects.filter(gender=Racer.GENDER_MALE).all()[:65]
         racers_wtf = Racer.objects.exclude(gender=Racer.GENDER_MALE).all()[:15]
+        starting_position = 2
+        for racer in racers_wtf:
+            racer.starting_position = starting_position
+            racer.save()
+            starting_position += 2
+            
+        starting_position = 1
+        for racer in racers_men:
+            racer.starting_position = starting_position
+            racer.save()
+            starting_position += 2
+        
         racers_working_men = Racer.objects.filter(gender=Racer.GENDER_MALE).filter(category=Racer.RACER_CATEGORY_MESSENGER).all()[:20]
         racers_working_wtf = Racer.objects.exclude(gender=Racer.GENDER_MALE).filter(category=Racer.RACER_CATEGORY_MESSENGER).all()[:5]
         racers = list(racers_men) + list(racers_wtf) + list(racers_working_men) + list(racers_working_wtf)
         racers = set(racers)
         print "right now, ", right_now
         
-        speed = 60
+        speed = 5
         NUMBER_OF_DISPATCHERS = 3
         checkpoints = Checkpoint.objects.all()
         for racer in racers:
@@ -64,7 +76,7 @@ class Command(BaseCommand):
             entry.start_racer()
         
         finish_time_delta = datetime.timedelta(minutes=race.time_limit) / speed
-        
+        print "go"
         while right_now <= race.race_start_time + finish_time_delta:
             simulate_race(race, NUMBER_OF_DISPATCHERS, checkpoints, speed)
             if not RaceEntry.objects.filter(race=race).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT)).exists():

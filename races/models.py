@@ -17,11 +17,15 @@ class Race(models.Model):
         (RACE_TYPE_DISPATCH_FINALS, 'Dispatched Group Finals')
     )
     
+    OPEN_RUN_LIMIT = 13
+    OVERTIME_RUN_LIMIT = 6 
+    
     """(Race description)"""
     race_name = models.CharField(max_length=100)
     race_type = models.IntegerField(choices=RACE_TYPE_CHOICES, default=RACE_TYPE_PRELIMS)
     time_limit = models.IntegerField(default=0)
     race_start_time = models.DateTimeField(blank=True, null=True)
+    overtime = models.BooleanField(default=False)
 
     def __unicode__(self):
         return self.race_name
@@ -43,7 +47,7 @@ class Race(models.Model):
         race_entries = RaceEntry.objects.filter(race=self).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT))
         for race_entry in race_entries:
             ##do they have any assigned jobs or jobs that are currently being dispatched?
-            run_count = Run.objects.filter(race_entry=race_entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_DISPATCHING)).count()
+            run_count = Run.objects.filter(race_entry=race_entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_PICKED) | Q(status=Run.RUN_STATUS_DISPATCHING)).count()
             
             if run_count == 0:
                 #befre we do say they're clear, let's make sure a message for them isn't already on someone's screen
@@ -98,6 +102,12 @@ class Race(models.Model):
     @property
     def race_type_string(self):
         return self.RACE_TYPE_CHOICES[self.race_type][1]
+        
+    @property
+    def run_limit(self):
+        if self.overtime:
+            return self.OVERTIME_RUN_LIMIT   
+        return self.OPEN_RUN_LIMIT
 
 class Manifest(models.Model):
     """jobs will belong to a manifest, so we can have different sets of jobs for the same race"""
