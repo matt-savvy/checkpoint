@@ -218,7 +218,7 @@ class get_next_message_TestCase(TestCase):
         
         self.assertIsNone(next_message_runs.first())
         self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
-        
+
     def test_clear_racer_with_no_pending_jobs_bonus_manifest_exists_after_cut_off_time(self):
         self.assertTrue(False)
         "a clear racer should get cut because we are after the bonus cut off time. "
@@ -358,8 +358,41 @@ class get_next_message_TestCase(TestCase):
         
         self.assertEqual(Run.objects.filter(race_entry=self.race_entry_one).exclude(status=Run.RUN_STATUS_PENDING).count(), self.race.run_limit)
     
+    
+    #overtime, racer has work, below job cap
+    #overtime, racer has work, above job cap
+    #overtime, make sure job capped jobs only snooze 5 min vs 15
+    #overtime, racer is clear
+    #overtime, racer is cut
+    #overtime, make sure we don't get jobs from the regular manifest
+    
     def test_job_capped_jobs_will_snooze_15_minutes(self):
-        pass
+        Run.objects.all().delete()
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        RunFactory.create_batch(6, race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
+        RunFactory.create_batch(7, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PICKED)
+        last_run = RunFactory(race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        next_message = get_next_message(self.race)
+        last_run = Run.objects.get(pk=last_run.pk)
+        fifteen_from_now = right_now + datetime.timedelta(minutes=15)
+        
+        self.assertTrue(last_run.utc_time_ready - fifteen_from_now <= datetime.timedelta(seconds=5))
+    
+    def test_job_capped_jobs_will_snooze_15_minutes_when_only_one_is_capped(self):
+        Run.objects.all().delete()
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
+        RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
+        RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PICKED)
+        last_possible_runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        
+        job_capped_runs = Run.objects.filter(status=Run.RUN_STATUS_PENDING)
+        
+        self.assertNotEqual(job_capped_runs[0].utc_time_ready, next_message.runs.first().utc_time_ready)
+        
     
     def test_job_capped_overtime_jobs_will_snooze_5_minutes(self):
         pass

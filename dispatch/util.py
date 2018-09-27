@@ -16,18 +16,28 @@ def assign_runs(runs_to_assign, race_entry):
     message = Message(race=race_entry.race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_DISPATCH, status=Message.MESSAGE_STATUS_DISPATCHING, message_time=right_now)
     message.save()
     
-    
     current_count = run_count(race_entry)
     if current_count + runs_to_assign.count() > race_entry.race.run_limit:
-        
+                
         difference = race_entry.race.run_limit - current_count
-        runs_to_assign = runs_to_assign[:difference]
+        runs_to_snooze = runs_to_assign[difference:]
+        if race_entry.race.overtime:
+            minutes_to_snooze = 5
+        else:
+            minutes_to_snooze = 15
+            
+        for run in runs_to_snooze:
+            run.utc_time_ready = right_now + datetime.timedelta(minutes=minutes_to_snooze)
+            run.save()
         
+        runs_to_assign = runs_to_assign[:difference]
+    
     for run in runs_to_assign:
         message.runs.add(run)
         run.status = Run.RUN_STATUS_DISPATCHING    
-        run.utc_time_ready = right_now
+        run.utc_time_assigned = right_now
         run.save()
+ 
     message.save()
     
     #TODO assign dispatcher to message
@@ -132,7 +142,11 @@ def get_next_message(race, dispatcher=None):
             return assign_runs(runs_to_assign, race_entry)
         else:
             for run in runs_to_assign:
-                run.utc_time_ready = right_now + datetime.timedelta(minutes=15)
+                if race.overtime:
+                    minutes_to_snooze = 5
+                else:
+                    minutes_to_snooze = 15
+                run.utc_time_ready = right_now + datetime.timedelta(minutes=minutes_to_snooze)
                 run.save()
     
     message = Message(race=race, message_type=Message.MESSAGE_TYPE_NOTHING)
