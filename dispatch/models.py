@@ -43,7 +43,7 @@ class Message(models.Model):
     
     class Meta:
         ordering = ('message_time',)
-        
+    
     def __unicode__(self):
         if self.message_type == self.MESSAGE_TYPE_OFFICE:
             return u"{} - Come to the Office".format(self.race_entry.racer)

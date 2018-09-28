@@ -124,7 +124,7 @@ class RaceTestCase(TestCase):
         
     def test_five_min_warning_early(self):
         self.race.time_limit = 100
-        self.race.race_start_time = self.right_now - datetime.timedelta(minutes=30)
+        self.race.race_start_time = self.right_now - datetime.timedelta(minutes=94)
         self.race.save()
         
         self.assertFalse(self.race.five_minute_warning)
@@ -141,7 +141,7 @@ class RaceTestCase(TestCase):
     def test_five_min_warning_early_prelim(self):
         self.race.time_limit = 100
         self.race.race_start_time = None
-        self.race_entry_one.start_time = self.right_now - datetime.timedelta(minutes=30)
+        self.race_entry_one.start_time = self.right_now - datetime.timedelta(minutes=94)
         self.race.save()
         self.race_entry_one.save()
         

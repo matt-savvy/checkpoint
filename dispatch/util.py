@@ -35,6 +35,7 @@ def assign_runs(runs_to_assign, race_entry):
         difference = race_entry.race.run_limit - current_count
         runs_to_assign = runs_to_assign[:difference]
         runs_to_snooze = True
+        
     for run in runs_to_assign:
         message.runs.add(run)
         run.status = Run.RUN_STATUS_DISPATCHING    
@@ -55,18 +56,18 @@ def run_count(race_entry):
     
 def get_next_message(race, dispatcher=None):
     import pdb
-    #pdb.set_trace()
+    
     right_now = datetime.datetime.now(tz=pytz.utc)
     
     #if we're at the five minute warning, so any messages we were going to "Get back to" are wiped
     if race.five_minute_warning:
-        print "five minute warning"
         Message.objects.filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(message_type=Message.MESSAGE_TYPE_DISPATCH).filter(race_entry__race=race).delete()
         Message.objects.filter(Q(status=Message.MESSAGE_STATUS_DISPATCHING) | Q(status=Message.MESSAGE_STATUS_NONE)).filter(race_entry__race=race).filter(message_time__lte=right_now - datetime.timedelta(minutes=3)).delete()
         
     ## are there any SNOOZED messages IN THIS RACE that already exist?
-    snoozed_message = Message.objects.filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(race_entry__race=race).filter(message_time__lte=right_now).first()
-    if snoozed_message:
+    snoozed_messages = Message.objects.filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(race_entry__race=race).filter(message_time__lte=right_now)
+    if snoozed_messages:
+        snoozed_message = snoozed_messages.first()
         print "found snoozed message"
         snoozed_message.status = Message.MESSAGE_STATUS_DISPATCHING
         snoozed_message.save()
@@ -74,7 +75,7 @@ def get_next_message(race, dispatcher=None):
     ## are there any messages marked DISPATCHING IN THIS RACE that are older than three minutes? maybe someone closed the tab and now it's in purgatory
     
     old_unconfirmed_messages = Message.objects.filter(Q(status=Message.MESSAGE_STATUS_DISPATCHING) | Q(status=Message.MESSAGE_STATUS_NONE)).filter(race_entry__race=race).filter(message_time__lte=right_now - datetime.timedelta(minutes=3))
-    if old_unconfirmed_messages.first():
+    if old_unconfirmed_messages:
         print "found unconfirmed"
         return old_unconfirmed_messages.first()
     
@@ -106,7 +107,7 @@ def get_next_message(race, dispatcher=None):
             
             return message
         
-        #pdb.set_trace()
+        
         
         runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(job__manifest=manifest)
             

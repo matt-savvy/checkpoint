@@ -47,7 +47,7 @@ class MessageTestCase(TestCase):
         message = Message(race=self.race, message_type=Message.MESSAGE_TYPE_NOTHING)
 
         self.assertTrue("Blank Message" in message.__unicode__())
-        
+    
     def test_confirm_message(self):
         self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_RACING
         self.race_entry.save()
@@ -75,7 +75,7 @@ class MessageTestCase(TestCase):
 class get_next_message_TestCase(TestCase):
     def setUp(self):
         right_now = datetime.datetime.now(tz=pytz.utc)
-        self.race = RaceFactory(race_start_time=right_now, race_type=Race.RACE_TYPE_DISPATCH_FINALS)
+        self.race = RaceFactory(race_start_time=right_now, race_type=Race.RACE_TYPE_DISPATCH_FINALS, time_limit=90)
         self.race_entry = RaceEntryFactory(race=self.race)
         self.jobs_first = JobFactory.create_batch(3, race=self.race, minutes_ready_after_start=0)
         self.jobs_second = JobFactory.create_batch(3, race=self.race, minutes_ready_after_start=10)
@@ -166,8 +166,6 @@ class get_next_message_TestCase(TestCase):
         
         message = Message(race=self.race_entry_one.race, race_entry=self.race_entry_one, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
         message.save()
-        
-        
         
         next_message = get_next_message(self.race)
         
@@ -439,8 +437,6 @@ class get_next_message_TestCase(TestCase):
         next_message = get_next_message(self.race)
         
         job_capped_runs = Run.objects.filter(status=Run.RUN_STATUS_PENDING)
-                
-        self.assertEqual(plus_ten + datetime.timedelta(minutes=5), plus_fifteen)
         
         self.assertNotEqual(job_capped_runs[0].utc_time_ready, next_message.runs.first().utc_time_ready)
         self.assertEqual(job_capped_runs.last().utc_time_ready, right_now + datetime.timedelta(minutes=5))
@@ -497,15 +493,58 @@ class get_next_message_TestCase(TestCase):
         self.assertEqual(self.race.run_limit, 6)
 
     def test_five_min_warning_wipes_snoozed_job_messages(self):
-        pass
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        message_one = MessageFactory(race=self.race, race_entry=self.race_entry_one, message_time=right_now, message_type=Message.MESSAGE_TYPE_DISPATCH)
+        message_one.snooze()
+        self.race.time_limit = 90
+        self.race.race_start_time =  datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=89)
+        self.race.save()
+        
+        get_next_message(self.race)
+        
+        self.assertTrue(Message.objects.get(pk=message_one.pk))
     
     def test_five_min_warning_wipes_purgatory_messages(self):
-        pass
+        Run.objects.filter(status=Run.RUN_STATUS_ASSIGNED).delete()
+        self.race.time_limit = 90
+        
+        first_next_message = get_next_message(self.race)
+        first_next_message_pk = first_next_message.pk
+        first_next_message.message_time = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=5)
+        first_next_message.save()
+        
+        self.race.race_start_time = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=89)
+        
+        self.race.save()
+        
+        next_message = get_next_message(self.race)
+        
+        self.assertTrue(Message.objects.get(pk=first_next_message.pk))
     
     def test_five_min_warning_cuts_clear_racers(self):
-        pass
-    
-        ##make sure we
-        #only get jobs for the correct racer
-        #only get jobs that are not already assigned, picked, or complete
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        Run.objects.filter(status=Run.RUN_STATUS_ASSIGNED).delete()
+        RaceEntry.objects.exclude(pk=self.race_entry_one.pk).delete()
+        self.race.time_limit = 90
+        self.race.race_start_time = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(minutes=89)
+        self.race.save()
+        
+        regular_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=None, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        next_message = get_next_message(self.race)
+        
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
+        
+    def test_snoozed_jobs_wont_get_double_dispatched(self):
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        regular_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=None, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        
+        message_one = MessageFactory(race=self.race, race_entry=self.race_entry_one, message_time=right_now, message_type=Message.MESSAGE_TYPE_DISPATCH)
+        message_one.runs.add(*regular_runs)
+        message_one.snooze()
+        Run.objects.filter(race_entry=self.race_entry_one).filter(status=Run.RUN_STATUS_ASSIGNED).delete()
+
+        next_message = get_next_message(self.race)
+        
+        self.assertNotEqual(next_message, message_one)
+
         #are we getting them in correct order of starting position?

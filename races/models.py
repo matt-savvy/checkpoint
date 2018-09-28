@@ -52,7 +52,7 @@ class Race(models.Model):
             if run_count == 0:
                 #befre we do say they're clear, let's make sure a message for them isn't already on someone's screen
                 current_message = Message.objects.filter(race_entry=race_entry).filter(status=Message.MESSAGE_STATUS_DISPATCHING).exists()
-            
+                
                 #if they're clear AND cut, we see if they have already 10-4'd a request to come to the office
                 already_confirmed_cut = Message.objects.filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(Q(status=Message.MESSAGE_STATUS_CONFIRMED) | Q(status=Message.MESSAGE_STATUS_SNOOZED)).exists()
             
@@ -111,16 +111,17 @@ class Race(models.Model):
     
     @property
     def five_minute_warning(self):
-        right_now = datetime.datetime.now(tz=pytz.utc)
         if self.time_limit == 0:
             return False
             
         if self.race_start_time:
-            five_mins_from_finish = self.race_start_time + datetime.timedelta(minutes=self.time_limit-5)
+            five_mins_from_finish = self.race_start_time + datetime.timedelta(minutes=self.time_limit - 5)
+            right_now = datetime.datetime.now(tz=pytz.utc)
             if right_now >= five_mins_from_finish:
                 return True
         
         return False
+                
         
         
 class Manifest(models.Model):
