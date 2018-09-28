@@ -47,4 +47,4 @@ class ManifestUpdateView(AuthorizedRaceOfficalMixin, UpdateView):
 class ManifestDeleteView(AuthorizedRaceOfficalMixin, DeleteView):
     model = Manifest
     template_name = 'delete_manifest.html'
-    success_url = '/manifests/'
+    success_url = '/races/manifests/'

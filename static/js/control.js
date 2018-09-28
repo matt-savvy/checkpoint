@@ -83,50 +83,49 @@ $(document).ready(function() {
         });
     }
     
-    function setupRacerInfo() {
-        $('#racer-info-racer-number').keyup(function() {
+    function setupRacerInfo() {	
+		$('#racer-info-racer-number-form').submit(function(e) {
+			e.preventDefault();
              selectedRacerNumber = $('#racer-info-racer-number').val();
              
-             if (selectedRacerNumber.length == 3) {
-                 $.ajax({
-                     url: '/racecontrol/ajax/racerdetail?race=' + raceId + '&racer=' + selectedRacerNumber,
-                     type: 'GET',
-                     beforeSend: function (request) {
-                         request.setRequestHeader("X-CSRFToken", csrftoken);
-                     },
-                     success: function(data, textStatus, xhr) {
-                         $('#racer-info-detail-view').html(data);
-                         $('#racer-info-racer-number').val("");
-                         $('#racer-info-racer-number').focus();
-                         
-                         $('#update-racer-notes').click(function() {
-                             var request = Object()
-                             request.racer = $(event.currentTarget).attr('racer-number'); 
-                             request.race = raceId;
-                             request.notes = $('#racer_notes').val();
-                             var json = JSON.stringify(request);
-                             $.ajax({
-                                 url: '/ajax/racernotes/',
-                                 type: 'POST',
-                                 contentType: 'application/json',
-                                 data: json,
-                                 beforeSend: function (request) {
-                                     request.setRequestHeader("X-CSRFToken", csrftoken);
-                                 },
-                                 success: function(data, textStatus, xhr) {
-                                     
-                                 },
-                                 error: function(xhr, textStatus, errorThrown) {
-                                 }
-                             });
-                         });
-                         
-                     },
-                     error: function(xhr, textStatus, errorThrown) {
+	         $.ajax({
+	             url: '/racecontrol/ajax/racerdetail?race=' + raceId + '&racer=' + selectedRacerNumber,
+	             type: 'GET',
+	             beforeSend: function (request) {
+	                 request.setRequestHeader("X-CSRFToken", csrftoken);
+	             },
+	             success: function(data, textStatus, xhr) {
+	                 $('#racer-info-detail-view').html(data);
+	                 $('#racer-info-racer-number').val("");
+	                 $('#racer-info-racer-number').focus();
+                
+	                 $('#update-racer-notes').click(function() {
+	                     var request = Object()
+	                     request.racer = $(event.currentTarget).attr('racer-number'); 
+	                     request.race = raceId;
+	                     request.notes = $('#racer_notes').val();
+	                     var json = JSON.stringify(request);
+	                     $.ajax({
+	                         url: '/ajax/racernotes/',
+	                         type: 'POST',
+	                         contentType: 'application/json',
+	                         data: json,
+	                         beforeSend: function (request) {
+	                             request.setRequestHeader("X-CSRFToken", csrftoken);
+	                         },
+	                         success: function(data, textStatus, xhr) {
+                            
+	                         },
+	                         error: function(xhr, textStatus, errorThrown) {
+	                         }
+	                     });
+	                 });
+                
+	             },
+	             error: function(xhr, textStatus, errorThrown) {
 
-                     }
-                 });
-             }
+	             }
+	         });
         });
         
     }
