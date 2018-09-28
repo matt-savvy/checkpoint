@@ -75,6 +75,14 @@ urlpatterns = patterns('',
     url(r'^races/update/(?P<pk>[0-9]+)/$', login_required(race_views.RaceUpdateView.as_view())),
     url(r'^races/details/(?P<pk>[0-9]+)/$', login_required(race_views.RaceDetailView.as_view())),
     url(r'^races/delete/(?P<pk>[0-9]+)/$', login_required(race_views.RaceDeleteView.as_view())),
+    
+    url(r'^races/manifests/$', login_required(race_views.ManifestListView.as_view())),
+    url(r'^races/manifests/create/$', login_required(race_views.ManifestCreateView.as_view())),
+    url(r'^races/manifests/update/(?P<pk>[0-9]+)/$', login_required(race_views.ManifestUpdateView.as_view())),
+    url(r'^races/manifests/details/(?P<pk>[0-9]+)/$', login_required(race_views.ManifestDetailView.as_view())),
+    url(r'^races/manifests/delete/(?P<pk>[0-9]+)/$', login_required(race_views.ManifestDeleteView.as_view())),
+    
+    
     #Job URLs
     url(r'^jobs/$', login_required(job_views.JobRaceListView.as_view())),
     url(r'^jobs/race/(?P<race>[0-9]+)/$', login_required(job_views.JobListView.as_view())),

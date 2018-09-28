@@ -4,11 +4,15 @@ from .models import Job
 SERVICE_REGULAR = 'regular'
 SERVICE_RUSH = 'rush'
 SERVICE_DOUBLE_RUSH = 'double_rush'
+
+SERVICE_OVERTIME = 'overtime'
+SERVICE_OVERTIME_RUSH = 'overtime_rush'
+SERVICE_OVERTIME_DOUBLE_RUSH = 'overtime_double_rush'
     
 SERVICE_CHOICES = (
     (SERVICE_REGULAR, 'Regular'),
     (SERVICE_RUSH, 'Rush'),
-    (SERVICE_DOUBLE_RUSH, 'Double Rush'), 
+    (SERVICE_DOUBLE_RUSH, 'Double Rush'),
 )
 
 class JobForm(forms.ModelForm):

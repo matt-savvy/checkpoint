@@ -401,16 +401,15 @@ class get_next_message_TestCase(TestCase):
     def test_all_pending_jobs_will_get_snoozed_if_cap_is_hit(self):
         Run.objects.all().delete()
         right_now = datetime.datetime.now(tz=pytz.utc) 
+        now_plus_ten = right_now + datetime.timedelta(minutes=10)
+        
         RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
         RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
         RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PICKED)
         last_possible_runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
-        next_runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
-        for run in next_runs:
-            run.utc_time_ready += datetime.timedelta(minutes=10)
-            plus_fifteen = run.utc_time_ready + datetime.timedelta(minutes=15)
-            run.save()
-            
+        next_runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, status=Run.RUN_STATUS_PENDING, utc_time_ready=now_plus_ten)
+        plus_fifteen = now_plus_ten + datetime.timedelta(minutes=15)
+        
         next_message = get_next_message(self.race)
         
         job_capped_runs = Run.objects.filter(status=Run.RUN_STATUS_PENDING)
@@ -439,7 +438,8 @@ class get_next_message_TestCase(TestCase):
         job_capped_runs = Run.objects.filter(status=Run.RUN_STATUS_PENDING)
         
         self.assertNotEqual(job_capped_runs[0].utc_time_ready, next_message.runs.first().utc_time_ready)
-        self.assertEqual(job_capped_runs.last().utc_time_ready, right_now + datetime.timedelta(minutes=5))
+        self.assertEqual(job_capped_runs.first().utc_time_ready, right_now + datetime.timedelta(minutes=5))
+        self.assertEqual(job_capped_runs.last().utc_time_ready, right_now + datetime.timedelta(minutes=15))
     
     @freeze_time("2018-9-27 10:30:00")
     def test_regular_jobs_wont_get_assigned_during_overtime(self):

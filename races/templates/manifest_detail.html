@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC PHL NACCC</a></li>
+  <li><a href="/races/">Races</a></li>
+  <li><a href="/manifests/">Races</a></li>
+  <li class="active">{{object}}</li>
+</ol>
+<div class="page-header">
+  <h1>Manifest Detail <small>NACCC PHL NACCC</small></h1>
+</div>
+
+<p><a href="/races/manifests/update/{{object.id}}/" class="btn btn-default">Edit Manifest</a> <a href="/races/manifests/delete/{{object.id}}/" class="btn btn-default">Delete Manifest</a>
+
+</p>
+<div>
+    <dl>
+      <dt>Manifest Name</dt>
+      <dd>{{object.manifest_name}}</dd>
+      <dt>Race</dt>
+      <dd>{{object.race}}</dd>
+      <dt>Type</dt>
+      <dd>{{object.manifest_type_as_string}}</dd>
+	  
+	  <h3>Jobs</h3>
+	  <div class="table-responsive">
+	  <table class="table table-striped">
+	    <tr>
+	        <th>Job Number</th>
+	        <th>Pick Up</th>
+	        <th>Drop Off</th>
+	  	  <th>Service</th>
+	        <th>Points</th>
+	        <th>Minutes Ready After Start</th>
+	  	  <th>Ready Time</td>
+	    </tr>
+	        {% for job in object.jobs %}
+	            <tr>
+	                <td><a href="/jobs/details/{{job.id}}/">{{job.job_id}}</td>
+	                <td>{{job.pick_checkpoint}}</td>
+	                <td>{{job.drop_checkpoint}}</td>
+	  			  <td>{{job.service}}</td>
+	                <td>{{job.points}}</td>
+	  			  <td>{{job.minutes_ready_after_start}}</td>
+	  			  <td>{{job.abosolute_ready_time}}</td>
+	             </tr>
+	
+	  	
+	  {% empty %}
+	  
+	  	 <td colspan="7">No Jobs yet. <a href = "/jobs/create/">Add some!</a></td>
+	     
+	  {% endfor %}
+	  
+    </dl>   
+</div> 
+
+
+
+{% endblock %}

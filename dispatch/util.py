@@ -123,25 +123,6 @@ def get_next_message(race, dispatcher=None):
   
             return assign_runs(runs_to_assign, race_entry)
         else:
-            pass
-            #TODO 
-            #this all needs to get reformatted for the new overtime rules.
-            #see if there are any jobs on the bonus manifest that they haven't already done
-            #manifest = Manifest.objects.filter(race=race).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
-            #if manifest:
-            #    runs_done_by_racer = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_COMPLETED).filter(job__manifest=manifest)
-            #    if right_now <= race.race_start_time + datetime.timedelta(minutes=manifest.cut_off_minutes_after_start):
-            #        bonus_jobs = Job.objects.filter(race=race, manifest=manifest).exclude(run__in=runs_done_by_racer)
-            #        if bonus_jobs:
-            #            bonus_jobs_to_assign = bonus_jobs[:3]
-            #            runs_to_assign = []
-            #            for job in bonus_jobs_to_assign:
-            #                run_to_assign = Run(job=job, race_entry=race_entry, status=Run.RUN_STATUS_PENDING)
-            #                run_to_assign.utc_time_ready = right_now
-            #                run_to_assign.save()
-            #                runs_to_assign.append(run_to_assign)
-            #                return assign_runs(runs_to_assign, race_entry)
-            #
             if not office_messages:
                 message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
                 message.save()

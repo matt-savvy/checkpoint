@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC PHL NACCC</a></li>
+  <li><a href="/races/manifests/">Manifests</a></li>
+  <li class="active">Delete {{object}}</li>
+</ol>
+<div class="page-header">
+  <h1>Delete {{object.name}} <small>NACCC PHL NACCC</small></h1>
+</div>
+
+<form action="" method="post">{% csrf_token %}
+    <p>Are you sure you want to delete "{{ object }}"?</p>
+    <p>
+    <a href="/races/manifests/details/{{object.id}}/" class ="btn btn-default">Cancel</a>
+    <input type="submit" value="Yes, delete {{object}}" class="btn btn-danger"/>
+    </p>
+</form>
+
+{% endblock %}

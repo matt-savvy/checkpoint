@@ -50,7 +50,7 @@ class Run(models.Model):
     completion_seconds = models.IntegerField(default=0)
     
     class Meta:
-        ordering = ['job__minutes_ready_after_start', 'race_entry__starting_position']
+        ordering = ['utc_time_ready', 'race_entry__starting_position']
         
     def __unicode__(self):
         return u"({}){}:{}".format(self.RUN_STATUS_CHOICES[self.status][1], self.race_entry.racer, self.job)
@@ -138,8 +138,6 @@ class Run(models.Model):
             
         if self.status == self.RUN_STATUS_ASSIGNED or self.status == self.RUN_STATUS_PICKED:
             right_now = datetime.datetime.now(tz=pytz.utc)
-            print right_now
-            print self.utc_time_due
             if right_now > self.utc_time_due:
                 return True
         elif self.status == self.RUN_STATUS_COMPLETED:

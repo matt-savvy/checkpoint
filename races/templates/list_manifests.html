@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/">NACCC PHL NACCC</a></li>
+  <li class="active">Manifests</li>
+</ol>
+<div class="page-header">
+  <h1>Manifests <small>NACCC PHL NACCC</small></h1>
+</div>
+
+<p><a href="/races/manifests/create/" class="btn btn-success">Add New Manifest</a></p>
+
+<div class="table-responsive">
+<table class="table table-striped">
+  <tr>
+      <th>Manifest Name</th>
+      <th>Race</th>
+      <th>Type</th>
+	  <th>Jobs</th>
+  </tr>
+      {% for manifest in manifests %}
+          <tr>
+              <td><a href="/races/manifests/details/{{manifest.id}}/">{{manifest.manifest_name}}</td>
+              <td>{{manifest.race}}</td>
+              <td>{{manifest.manifest_type_as_string}}</td>
+			  <td>{{manifest.jobs.count}}</td>
+           </tr>
+      {% empty %}
+      <tr>
+          <td colspan="7">No Manifests yet. <a href = "/races/manifests/create/">Make one!</a></td>
+       </tr>
+      {% endfor %}
+</table>
+</div>
+
+{% endblock %}

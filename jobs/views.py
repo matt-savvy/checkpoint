@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.views.generic import View
 from .forms import JobForm
+from races.models import Manifest
 import datetime
 import pytz
 
@@ -58,6 +59,11 @@ class JobCreateView(CreateView):
         else:
             self.object.points = Job.PAYOUT_REGULAR
             self.object.minutes_due_after_start = Job.SERVICE_REGULAR
+        
+        if self.object.manifest:
+            if self.object.manifest.manifest_type == Manifest.TYPE_CHOICE_BONUS:
+                self.object.points = str(1.5 * float(self.object.points))
+        
         self.object.save()
         return HttpResponseRedirect(self.get_success_url())
     
@@ -74,7 +80,6 @@ class JobUpdateView(UpdateView):
     
     def form_valid(self, form):
         self.object = form.save(commit=False)
-        print form.cleaned_data['service']
         if form.cleaned_data['service'] == 'rush':
             self.object.points = Job.PAYOUT_RUSH
             self.object.minutes_due_after_start = Job.SERVICE_RUSH
@@ -84,6 +89,11 @@ class JobUpdateView(UpdateView):
         else:
             self.object.points = Job.PAYOUT_REGULAR
             self.object.minutes_due_after_start = Job.SERVICE_REGULAR
+
+        if self.object.manifest:
+            if self.object.manifest.manifest_type == Manifest.TYPE_CHOICE_BONUS:
+                self.object.points = str(1.5 * float(self.object.points))
+        
         self.object.save()
         return HttpResponseRedirect(self.get_success_url())
     

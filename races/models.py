@@ -138,17 +138,22 @@ class Manifest(models.Model):
     race = models.ForeignKey(Race)
     manifest_name = models.CharField(max_length=100)
     manifest_type = models.IntegerField(choices=TYPE_CHOICES, default=TYPE_CHOICE_STARTING)
-
+    
+    
     class Meta:
         ordering = ['manifest_type']
-    
-    def __unicode__(self):
-        return u"Manifest #{} for {} ({})".format(self.race, self.manifest_name)
+        unique_together = ('manifest_name', 'race')
         
+    def __unicode__(self):
+        return u"{} Manifest - {} ({})".format(self.manifest_name, self.race, self.manifest_type_as_string)
+    
+    def get_absolute_url(self):
+        return "/races/manifests/details/" + str(self.id) + "/"
+    
     @property
     def manifest_type_as_string(self):
         return self.TYPE_CHOICES[self.manifest_type][1]
         
     def jobs(self):
         from jobs.models import Job
-        return Job.objects.filter(race=race, manifest=self)
+        return Job.objects.filter(race=self.race).filter(manifest=self).order_by('minutes_ready_after_start')
