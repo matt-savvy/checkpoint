@@ -121,6 +121,14 @@ class Race(models.Model):
                 return True
         
         return False
+        
+    @property
+    def race_end_time(self):
+        if self.race_start_time and self.time_limit != 0:
+            end_time = self.race_start_time + datetime.timedelta(minutes=self.time_limit)
+            return end_time
+        
+        return None
                 
         
         

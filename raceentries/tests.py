@@ -15,7 +15,8 @@ from runs.factories import RunFactory
 import datetime
 import pytz
 import pdb
-
+import decimal
+from freezegun import freeze_time
 
 class RaceEntryTestCase(TestCase):
         def setUp(self):
@@ -95,7 +96,58 @@ class RaceEntryTestCase(TestCase):
             self.race_entry_one.save()
             
             self.assertFalse(self.race_entry_one.five_minute_warning)
-                
+        
+        @freeze_time("2018-9-27 10:30:00")
+        def test_race_end_time_with_race_start_time(self):
+            right_now = datetime.datetime.now(tz=pytz.utc)
+            self.race_entry_one.start_racer()
+            self.race_one.time_limit = 100
+            self.race_one.race_start_time = right_now - datetime.timedelta(minutes=200)
+            self.race_one.save()
+            
+            self.assertEqual(self.race_one.race_end_time, self.race_entry_one.race_end_time)
+            
+        @freeze_time("2018-9-27 10:30:00")
+        def test_race_end_time_race_start_time_but_no_time_limit(self):
+            right_now = datetime.datetime.now(tz=pytz.utc)
+            self.race_entry_one.start_racer()
+            self.race_one.race_start_time = right_now - datetime.timedelta(minutes=200)
+            self.race_one.time_limit = 0
+            self.race_one.save()
+            self.race_entry_one.finish_racer()
+            
+            self.assertEqual(self.race_entry_one.race_end_time, datetime.datetime.now(tz=pytz.utc))
+            
+        @freeze_time("2018-9-27 10:30:00")
+        def test_race_end_time_without_race_start_time(self):
+            right_now = datetime.datetime.now(tz=pytz.utc)
+            self.race_entry_one.start_racer()
+            self.race_one.time_limit = 100
+            self.race_one.race_start_time = None
+            self.race_entry_one.finish_racer()
+            one_hundred = self.race_entry_one.start_time + datetime.timedelta(minutes=100)
+            
+            self.assertEqual(self.race_entry_one.race_end_time, one_hundred)
+        
+        def test_finish_racer_deducts_late_jobs(self):
+            """any jobs that are late when the race ends will get docked from your pay"""
+            self.race_one.race_start_time = self.right_now - datetime.timedelta(minutes=60)
+            self.race_one.time_limit = 60
+            self.race_one.save()
+            
+            self.race_entry_one.start_racer()
+            runs = Run.objects.filter(race_entry=self.race_entry_one)
+            run = runs.first()
+            run.assign(force=True)
+            run.utc_time_due = self.right_now - datetime.timedelta(minutes=40)
+            run.job.points = '5.00'
+            run.job.save()
+            run.save()
+            
+            self.race_entry_one.finish_racer()
+            
+            self.assertEqual(runs[0].points_awarded, decimal.Decimal('-5.00'))
+            
 class ScoreTestCase(TestCase):
     def setUp(self):
         self.race_one = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_PRELIMS)

@@ -8,6 +8,7 @@ from faker import Faker
 import datetime
 import pytz
 fake = Faker()
+from freezegun import freeze_time
 
 class RaceTestCase(TestCase):
     def setUp(self):
@@ -146,6 +147,15 @@ class RaceTestCase(TestCase):
         self.race_entry_one.save()
         
         self.assertFalse(self.race.five_minute_warning)
+    
+    @freeze_time("2018-9-27 10:30:00")
+    def test_race_end_time(self):
+        self.race.time_limit = 60
+        self.race.race_start_time = datetime.datetime.now(tz=pytz.utc)
+        self.race.save()
+        finish = self.race.race_start_time + datetime.timedelta(minutes=60)
+    
+        self.assertEqual(self.race.race_end_time, finish)
 
 
 class ClearRacerTestCase(TestCase):

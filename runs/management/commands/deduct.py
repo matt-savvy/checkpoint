@@ -10,7 +10,7 @@ class Command(BaseCommand):
    def handle(self, *args, **options):
         race = Race.objects.get(pk=args[0])
         race_entries = RaceEntry.objects.filter(race=race)
-        runs = Run.objects.filter(job__race=race)
+        runs = Run.objects.filter(job__race=race).filter
         
         for the_run in runs:
             if the_run.determination == Run.DETERMINATION_NOT_DROPPED:

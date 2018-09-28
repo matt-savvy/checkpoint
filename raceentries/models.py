@@ -124,19 +124,29 @@ class RaceEntry(models.Model):
         return False
     
     def finish_racer(self):
+        from runs.models import Run
         if self.entry_status == self.ENTRY_STATUS_RACING or self.entry_status == self.ENTRY_STATUS_CUT:
             self.entry_status = self.ENTRY_STATUS_FINISHED
             self.end_time = datetime.datetime.utcnow().replace(tzinfo=utc)
             time_diff = self.end_time - self.start_time
             self.final_time = time_diff.seconds
             self.save()
+            
+            import pdb
+            #pdb.set_trace()
+            runs = Run.objects.filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_PICKED)).filter(race_entry=self).filter(utc_time_due__lte=self.race_end_time)
+            for run in runs:
+                run.determination = Run.DETERMINATION_NOT_DROPPED
+                run.points_awarded = decimal.Decimal(-run.job.points)
+                run.save()
+            
             return True
         elif self.entry_status == self.ENTRY_STATUS_PROCESSING:
             self.entry_status = self.ENTRY_STATUS_FINISHED
             self.save()
             return True
         return False
-    
+        
     def dq_racer(self):
         self.entry_status = self.ENTRY_STATUS_DQD
         self.dq_time = datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -242,3 +252,11 @@ class RaceEntry(models.Model):
         
         return False
     
+    @property
+    def race_end_time(self):
+        if self.race.race_end_time:
+            return self.race.race_end_time
+        
+        elif self.race.time_limit != 0:
+            return self.start_time + datetime.timedelta(minutes=self.race.time_limit)
+        return self.end_time
