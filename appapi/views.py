@@ -69,14 +69,15 @@ class RacerCheckpointView(APIView):
     permission_classes = (IsAuthenticated,)
     
     def post(self, request, *args, **kwargs):
-        import pdb
-        ##pdb.set_trace()
         current_race = RaceControl.shared_instance().current_race
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        if current_race.time_limit != 0:
+            if right_now >= current_race.race_start_time + datetime.timedelta(minutes=current_race.time_limit):
+                 return Response({'error': True, 'error_title': "Race is over!", "error_description": "The race has ended. No further actions will be allowed."}, status=status.HTTP_200_OK)
         
         racer_number = request.DATA.get('racer_number')
         checkpoint = request.DATA['checkpoint']
         
-        #check for race entry object
         racer = Racer.objects.filter(racer_number=racer_number).first()
         
         if racer:

@@ -307,7 +307,8 @@ class Checkpoint extends React.Component {
           		alert('Looks like there was a problem. Status Code: ' + response.status);
 				return;
 			}
-			response.json().then(function(data) {				
+			response.json().then(function(data) {
+				console.log(data);			
 				if (data.error){
 					this.setState({error_description : data.error_description, mode:MODE_LOOKUP_RACER});
 				} else {

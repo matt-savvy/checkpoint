@@ -30,19 +30,20 @@ class NextMessage(APIView):
         right_now = datetime.datetime.now(tz=pytz.utc)
         error = None
         
-        
-        if not race.dispatch_race:
+        if not current_race.dispatch_race:
             message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
             message.save()
             next_message = message
             error = "This race type does not require a dispatcher."
     
-        elif race.race_type == Race.RACE_TYPE_DISPATCH_FINALS and race.race_start_time:
-            if race.race_start_time > right_now:
-                message = Message(race=race, message_type=Message.MESSAGE_TYPE_ERROR)
+        elif current_race.race_type == Race.RACE_TYPE_DISPATCH_FINALS and current_race.race_start_time:
+            if current_race.race_start_time > right_now:
+                message = Message(race=current_race, message_type=Message.MESSAGE_TYPE_ERROR)
                 message.save()
                 next_message = message
-                error = "Race has not started yet!"
+                error = "Race has not started yet!"            
+            else:
+                next_message = get_next_message(current_race)
         
         else:        
             next_message = get_next_message(current_race)
