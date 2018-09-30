@@ -327,21 +327,22 @@ class NumbersListView(AuthorizedRaceOfficalMixin, ListView):
     template_name = "list_racer_numbers.html"
     
     def get_context_data(self, **kwargs):
-        context = super(NumbersListView, self).get_context_data(**kwargs)
+        context = super(NumbersListView, self).get_context_data(**kwargs)        
+        existing_numbers = list(Racer.objects.values_list('racer_number', flat=True).order_by('racer_number'))
         
-        racer_numbers_list = list(Racer.objects.values_list('racer_number', flat=True).order_by('racer_number'))
-        numbers = []
-        for number in racer_numbers_list:
-            numbers.append(int(number))
-        target_length = len(numbers) + 50
-        for x in range(500, 999):
-            if not x in numbers:
-                numbers.append(x)
-            if len(numbers) > target_length:
-                break
-        numbers.sort()
+        racer_numbers = range(500, 1000)
+        racer_numbers.insert(0, 89)
+        racer_numbers.insert(0, 748)
+        
+        numbers_to_add = 300 - len(existing_numbers)
+        existing_numbers = [int(x) for x in existing_numbers]
 
-        context['numbers'] = numbers 
+        available_numbers = [x for x in racer_numbers if x not in existing_numbers][:numbers_to_add]
+        numbers_to_order = existing_numbers + available_numbers
+        numbers_to_order.sort()
+        print len(numbers_to_order)
+
+        context['numbers'] = numbers_to_order 
         return context
         
 class EmailListView(AuthorizedRaceOfficalMixin, ListView):
