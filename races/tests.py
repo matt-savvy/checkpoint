@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .models import Race
+from .models import Race, Manifest
 from .factories import RaceFactory, ManifestFactory
 from raceentries.factories import RaceEntryFactory
 from jobs.factories import JobFactory
@@ -76,11 +76,73 @@ class RaceTestCase(TestCase):
         for run in Run.objects.filter(status=Run.RUN_STATUS_PENDING):
             self.assertFalse(run.job in self.jobs_first)
         
-    def test_populate_gets_jobs_with_correct_manifest_and_no_manifest(self):
-        """i need to get all the shared jobs and/or all the jobs for just my manifest"""
-        ### so if everyone is on the same manifest on sunday, we don't blow it
-        pass
+    def test_populate_gets_manifest_jobs_and_bonus_jobs(self):
+        """racers get all the jobs with their manifest, as well as the overtime jobs"""
+
+        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_FINALS)
+        self.manifest_one = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_STARTING)
+        self.manifest_two = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_STARTING)
+        self.manifest_overtime = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
+        self.race_entry_one = RaceEntryFactory(race=self.race, manifest=self.manifest_one)
+        self.race_entry_two = RaceEntryFactory(race=self.race, manifest=self.manifest_two)
+        self.jobs_manifest_one = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0, manifest=self.manifest_one)
+        self.jobs_manifest_two = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0, manifest=self.manifest_two)
+        self.jobs_manifest_overtime = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=30, manifest=self.manifest_overtime)
+        
+        runs = self.race.populate_runs(self.race_entry_one)
+        self.assertEqual(len(runs), 8)
+        for run in runs:
+            self.assertTrue(run.job in self.jobs_manifest_one or run.job in self.jobs_manifest_overtime)
+            
+        runs = self.race.populate_runs(self.race_entry_two)
+        self.assertEqual(len(runs), 8)
+        for run in runs:
+            self.assertTrue(run.job in self.jobs_manifest_two or run.job in self.jobs_manifest_overtime)
     
+    def test_populate_gets_no_manifest_jobs_and_bonus_jobs(self):
+        """racers get all the jobs with no manifest, as well as the overtime jobs"""
+
+        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_FINALS)
+        self.manifest_one = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_STARTING)
+        self.manifest_two = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_STARTING)
+        self.manifest_overtime = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
+        self.race_entry_one = RaceEntryFactory(race=self.race)
+        self.race_entry_two = RaceEntryFactory(race=self.race)
+        self.jobs_no_manifest = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0, manifest=None)
+        self.jobs_manifest = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0, manifest=self.manifest_one)
+        self.jobs_manifest_overtime = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=30, manifest=self.manifest_overtime)
+        
+        runs = self.race.populate_runs(self.race_entry_one)
+        self.assertEqual(len(runs), 8)
+        for run in runs:
+            self.assertTrue(run.job in self.jobs_no_manifest or run.job in self.jobs_manifest_overtime)
+            
+        runs = self.race.populate_runs(self.race_entry_two)
+        self.assertEqual(len(runs), 8)
+        for run in runs:
+            self.assertTrue(run.job in self.jobs_no_manifest or run.job in self.jobs_manifest_overtime)
+        
+    def test_populate_jobs_with_heat_manifest(self):
+        """racers get all the jobs on their manifest"""
+        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_PRELIMS)
+        self.race.save()
+        self.manifest_a = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_STARTING)
+        self.manifest_b = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_STARTING)
+        self.manifest_c = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_STARTING)
+        self.manifest_d = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_STARTING)
+        self.overtime_manifest = ManifestFactory(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
+        self.race_entry_one = RaceEntryFactory(race=self.race, manifest=self.manifest_a)
+        self.race_entry_two = RaceEntryFactory(race=self.race, manifest=self.manifest_b)
+        self.jobs_a = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0, manifest=self.manifest_a)
+        self.jobs_b = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0, manifest=self.manifest_b)
+        self.jobs_c = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0, manifest=self.manifest_c)
+        self.jobs_d = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0, manifest=self.manifest_d)
+        self.race_entry_one.start_racer()
+        runs = self.race.populate_runs(self.race_entry_one)
+        self.assertEqual(len(runs), 4)
+        for run in runs:
+            self.assertTrue(run.job in self.jobs_a)
+        
     def test_redo_runs_math(self):
         self.race.race_type=Race.RACE_TYPE_DISPATCH_FINALS
         self.race.race_start_time = fake.future_datetime().replace(tzinfo=pytz.utc)

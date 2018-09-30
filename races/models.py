@@ -68,7 +68,18 @@ class Race(models.Model):
         runs = []
 
         if self.dispatch_race:
-            jobs = Job.objects.filter(race=self).filter(Q(manifest=race_entry.manifest) | Q(manifest=None))
+
+            overtime_manifest = Manifest.objects.filter(race=self).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
+            jobs = Job.objects.filter(race=self)
+                
+            if race_entry.manifest:
+                jobs = jobs.filter(Q(manifest=race_entry.manifest) | Q(manifest=None))
+            else:
+                jobs = jobs.filter(manifest=None)
+                
+            if overtime_manifest:
+                overtime_jobs = Job.objects.filter(race=self).filter(manifest=overtime_manifest)
+                jobs = jobs | overtime_jobs
             
             for job in jobs:
                 run = Run(job=job, race_entry=race_entry, status=Run.RUN_STATUS_PENDING)
