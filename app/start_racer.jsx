@@ -137,7 +137,7 @@ class StartRacerScreen extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
-		  //credentials: 'include',
+		  credentials: 'include',
 		  method: "POST",
 		  body: racerRequestJSON
 		})
@@ -173,7 +173,7 @@ class StartRacerScreen extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
-		  //credentials: 'include',
+		  credentials: 'include',
 		  method: "POST",
 		  body: riderResponseJSON
 		})
@@ -203,7 +203,7 @@ class StartRacerScreen extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
-		  //credentials: 'include',
+		  credentials: 'include',
 		  method: "POST",
 		  body: riderResponseJSON
 		})
@@ -222,13 +222,8 @@ class StartRacerScreen extends React.Component {
 	racerLookup(racer) {		
 		this.setState({disabled:'disabled', feedback:null, currentMessage: null, error_description:null});
 		var url = "/dispatch/lookup/" + racer + "/"
-		fetch(url, {
-		  headers: {
-	      	'Accept': 'application/json',
-	      	'Content-Type': 'application/json',
-	      },
-		  method: "GET",
-		})
+		var csrfToken = getCookie('csrftoken');
+		fetch(url, {credentials : 'include'})
 		.then(function(response) {
 			console.log(response);
 			

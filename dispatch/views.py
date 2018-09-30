@@ -133,7 +133,7 @@ class DispatchControlsView(AuthorizedRaceOfficalMixin, TemplateView):
         response.set_cookie('raceID', current_race.pk)
         return response
 
-class RacerLookupView(APIView):
+class RacerLookupView(AuthorizedRaceOfficalMixin, APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     

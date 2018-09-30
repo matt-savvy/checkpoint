@@ -102,7 +102,7 @@ class DispatchControl extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
-		  //credentials: 'include',
+		  credentials: 'include',
 		  method: "POST",
 		  body: riderResponseJSON
 		})
@@ -126,6 +126,7 @@ class DispatchControl extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
+		  credentials : 'include',
 		  method: "GET",
 		})
 		.then(function(response) {

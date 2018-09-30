@@ -89,6 +89,7 @@ class RadioAssignScreen extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
+		  credentials : 'include',
 		  method: "GET",
 		})
 		.then(function(response) {
@@ -133,7 +134,7 @@ class RadioAssignScreen extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
-		  //credentials: 'include',
+		  credentials: 'include',
 		  method: "POST",
 		  body: radioResponseJSON
 		})
@@ -157,6 +158,7 @@ class RadioAssignScreen extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
+		  credentials : 'include',
 		  method: "GET",
 		})
 		.then(function(response) {
