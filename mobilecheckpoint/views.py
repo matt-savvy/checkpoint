@@ -4,10 +4,13 @@ from checkpoints.models import Checkpoint
 from django.views.generic import ListView
 from nacccusers.models import NACCCUser
 from nacccusers.auth import AuthorizedRaceOfficalMixin
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
 
 class MobileCheckpointControlView(TemplateView):
     template_name = 'checkpoint_control_react.html'
     
+    method_decorator(ensure_csrf_cookie)
     def render_to_response(self, context, **response_kwargs):
         response = super(MobileCheckpointControlView, self).render_to_response(context, **response_kwargs)
         checkpoint = get_object_or_404(Checkpoint, pk=self.kwargs['pk'])

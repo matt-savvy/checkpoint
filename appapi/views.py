@@ -68,7 +68,7 @@ class RacerCheckpointView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
-    def post(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):        
         current_race = RaceControl.shared_instance().current_race
         right_now = datetime.datetime.now(tz=pytz.utc)
         racer_number = request.DATA.get('racer_number')
@@ -79,25 +79,26 @@ class RacerCheckpointView(APIView):
         if racer:
             race_entry = RaceEntry.objects.filter(racer=racer).filter(race=current_race).first()
             if race_entry:
-                
-                if race_entry.entry_status == RaceEntry.ENTRY_STATUS_RACING or race_entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:
-                    available_runs = get_available_runs(race_entry, checkpoint)
-                    serialized_runs = RunSerializer(available_runs)
-                    serialized_racer = RacerSerializer(racer)
-            
-                    return Response({'racer' : serialized_racer.data, 'runs' : serialized_runs.data, 'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
-            
-                elif race_entry.entry_status == RaceEntry.ENTRY_STATUS_FINISHED or race_entry.entry_status == RaceEntry.ENTRY_STATUS_PROCESSING:
+                if race_entry.entry_status == RaceEntry.ENTRY_STATUS_FINISHED or race_entry.entry_status == RaceEntry.ENTRY_STATUS_PROCESSING:
                     return Response({'error': True, 'error_title': "Racer is finished!", "error_description": "This racer has already finished the race"}, status=status.HTTP_200_OK)
                 
                 elif race_entry.entry_status == RaceEntry.ENTRY_STATUS_DQD:
                     return Response({'error': True, 'error_title': "Racer has been disqualified!", "error_description": "This racer is marked as disqualified. Have them report to headquarters."}, status=status.HTTP_200_OK)
                 
-                elif race_entry.race_end_time:
+                elif race_entry.entry_status == RaceEntry.ENTRY_STATUS_ENTERED:
+                    return Response({'error': True, 'error_title': "Racer has not started!", "error_description": "This racer has not started their race yet."}, status=status.HTTP_200_OK)
+                
+                if race_entry.race_end_time:
                     if right_now >= race_entry.race_end_time:
                         return Response({'error': True, 'error_title': "Race is over!", "error_description": "The race has ended. No further actions will be allowed."}, status=status.HTTP_200_OK)
-                  
-            
+                
+                if race_entry.entry_status == RaceEntry.ENTRY_STATUS_RACING or race_entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:
+                    available_runs = get_available_runs(race_entry, checkpoint)
+                    serialized_runs = RunSerializer(available_runs)
+                    serialized_racer = RacerSerializer(racer)
+                                
+                    return Response({'racer' : serialized_racer.data, 'runs' : serialized_runs.data, 'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
+
         else:
             return Response({'error' : True, 'error_title' : 'Cannot Find Racer', 'error_description' : 'No racer found with racer number {}.'.format(str(racer_number))}, status=status.HTTP_200_OK)
 
@@ -105,10 +106,7 @@ class PickView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
-    def post(self, request, *args, **kwargs):
-        import pdb
-        
-        
+    def post(self, request, *args, **kwargs):     
         current_race = RaceControl.shared_instance().current_race
         racer_number = request.DATA.get('racer_number')
         run_number = request.DATA.get('run')

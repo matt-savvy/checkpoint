@@ -289,7 +289,7 @@ class Checkpoint extends React.Component {
 		var racerRequest = {}
 		racerRequest.racer_number = racer;
 		racerRequest.checkpoint = checkpoint;
-		var racerRequestJOSN = JSON.stringify(racerRequest);
+		var racerRequestJSON = JSON.stringify(racerRequest);
 		
 		fetch("/api/v1/racer/", {
 		  headers: {
@@ -299,7 +299,7 @@ class Checkpoint extends React.Component {
 	      },
 		  credentials: 'include',
 		  method: "POST",
-		  body: racerRequestJOSN
+		  body: racerRequestJSON
 		})
 		.then(function(response) {
 			
