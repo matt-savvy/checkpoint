@@ -22,11 +22,20 @@ class Command(BaseCommand):
        races = Race.objects.order_by('pk')
        for race in races:
            print "{} {}".format(race.pk, race)
+           
+       
+       
        selection_race = int(raw_input("choose race number : "))
+       
+       for manifest in Manifest.objects.all():
+           print "{} {}".format(manifest.pk, manifest)
+           
+       selection_manifest = int(raw_input("choose manifest number : "))
        selection_number_of_jobs = int(raw_input("number of jobs: "))
        
        race = Race.objects.get(pk=selection_race)
        checkpoints = Checkpoint.objects.all()
+       manifest = Manifest.objects.get(pk=selection_manifest)
        #TODO add filter for removing HQ so we don't overdo that checkpoint
        
        
@@ -66,6 +75,7 @@ class Command(BaseCommand):
                    job.minutes_due_after_start = Job.SERVICE_REGULAR
                    job.points = Job.PAYOUT_REGULAR
                
+               job.manifest = manifest
                job.save()
                
                this_set_counter += 1
