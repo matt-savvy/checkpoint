@@ -343,7 +343,7 @@ class Checkpoint extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
-		  //credentials: 'include',
+		  credentials: 'include',
 		  method: "POST",
 		  body: pickRequestJSON
 		})
@@ -380,7 +380,7 @@ class Checkpoint extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
-		  //credentials: 'include',
+		  credentials: 'include',
 		  method: "POST",
 		  body: dropRequestJSON
 		})

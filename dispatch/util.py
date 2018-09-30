@@ -107,6 +107,9 @@ def get_next_message(race, dispatcher=None):
             
             return message
         
+        if not race.overtime and race_entry.manifest:
+            manifest = race_entry.manifest
+        
         runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(job__manifest=manifest)
             
         if runs:
