@@ -17,8 +17,6 @@ from jobs.factories import JobFactory
 
 class RacerCheckpointViewTestCase(APITestCase):
     def setUp(self):
-        import pdb
-        #pdb.set_trace()
         self.eastern = pytz.timezone('US/Eastern')
         self.now = datetime.datetime.now(tz=self.eastern)
         self.race = Race(race_name='Test Race', race_type=Race.RACE_TYPE_DISPATCH_FINALS, race_start_time=self.now)

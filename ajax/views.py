@@ -75,16 +75,16 @@ class StartRacerAjaxView(APIView):
         
 class FinishRacerAjaxView(APIView):
     def post(self, request):
-        racer_number = self.request.DATA['racer']
-        race_id = self.request.DATA['race']
-        race_entry = RaceEntry.objects.filter(race__pk=race_id).filter(racer__racer_number=racer_number)
-        if len(race_entry) == 0:
+        racer_number = self.request.DATA.get('racer')
+        race_id = self.request.DATA.get('race')
+        race_entry = RaceEntry.objects.filter(race__pk=race_id).filter(racer__racer_number=racer_number).first()
+        if not race_entry:
             return Response({'detail' : 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
-        if race_entry[0].finish_racer():
-            race_entry[0].save()
-            RaceLog(racer=race_entry[0].racer, race=race_entry[0].race, user=request.user, log="Racer finished race.", current_grand_total=race_entry[0].grand_total, current_number_of_runs=race_entry[0].number_of_runs_completed).save()
+        if race_entry.finish_racer():
+            race_entry.save()
+            RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer finished race.", current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
             return Response({
-                'final_time' : race_entry[0].final_time_formatted
+                'final_time' : race_entry.final_time_formatted
             })
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
