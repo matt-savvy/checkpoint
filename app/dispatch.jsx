@@ -54,18 +54,19 @@ class DispatchScreen extends React.Component {
 		console.log(e.target.value);
 		this.setState({disabled:'disabled'});
 		var csrfToken = getCookie('csrftoken');
+		csrfToken = "helpmeobiwan";
 		var riderResponse = {};
 		riderResponse.message = this.state.messages[this.state.currentMessage].id;
 		riderResponse.action = e.target.value;
 		var riderResponseJSON = JSON.stringify(riderResponse);
 		fetch("/dispatch/api/rider_response/", {
-		  headers: {
-			'X-CSRFToken': csrfToken,
-	      	'Accept': 'application/json',
-	      	'Content-Type': 'application/json',
-	      },
-		  //credentials: 'include',
-		  method: "POST",
+  		  headers: {
+  			'X-CSRFToken': csrfToken,
+  	      	'Accept': 'application/json',
+  	      	'Content-Type': 'application/json',
+  	      },
+  		  credentials: 'include',
+  		  method: "POST",
 		  body: riderResponseJSON
 		})
 		.then(function(response) {
@@ -98,7 +99,7 @@ class DispatchScreen extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
-		  //credentials: 'include',
+		  credentials: 'include',
 		  method: "POST",
 		  body: riderResponseJSON
 		})
@@ -128,7 +129,7 @@ class DispatchScreen extends React.Component {
 	      	'Accept': 'application/json',
 	      	'Content-Type': 'application/json',
 	      },
-		  //credentials: 'include',
+		  credentials: 'include',
 		  method: "POST",
 		  body: nextMessageRequestJSON
 		})
