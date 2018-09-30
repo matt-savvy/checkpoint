@@ -107,8 +107,6 @@ def get_next_message(race, dispatcher=None):
             
             return message
         
-        
-        
         runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(job__manifest=manifest)
             
         if runs:
@@ -119,7 +117,7 @@ def get_next_message(race, dispatcher=None):
             else:
                 #grab the next run and any runs that are ready at the same time
                 next_run_ready_time = runs.first().utc_time_ready
-                runs_to_assign = runs.filter(utc_time_ready=next_run_ready_time)
+                runs_to_assign = runs.filter(utc_time_ready__lte=next_run_ready_time)
   
             return assign_runs(runs_to_assign, race_entry)
         else:
@@ -146,24 +144,36 @@ def get_next_message(race, dispatcher=None):
 def simulate_race(race, NUMBER_OF_DISPATCHERS, checkpoints, speed=60):
     right_now = datetime.datetime.now(tz=pytz.utc)
     messages_this_minute = 0
+    racing_entries = RaceEntry.objects.filter(race=race).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT))
+    
     while messages_this_minute <= NUMBER_OF_DISPATCHERS:
         next_message = get_next_message(race)
         messages_this_minute += 1
         if not next_message.message_type == Message.MESSAGE_TYPE_NOTHING:
             print next_message.race_entry.starting_position, next_message
-            if random.random() > .7:
+            if random.random() < .7:
                 next_message.confirm()
             else:
                 next_message.snooze()
         else:
             break
-                
+    
+    
     run_messages_count = Run.objects.filter(race_entry__race=race).filter(utc_time_ready__lte=right_now).filter(status=Run.RUN_STATUS_PENDING).values_list('race_entry', flat=True).distinct().count()
     messages_count = Message.objects.filter(race=race).filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(message_time__lte=right_now).count()
-    print "messages we didn't get to rn ", run_messages_count + messages_count
     
-    racing_entries = RaceEntry.objects.filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT))
-    for entry in racing_entries:
+    clear_rider_count = 0
+        
+    for entry in racing_entries.all():
+        ##CLEAR RIDER COUNT MATH##
+        run_count = Run.objects.filter(race_entry=entry).filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_PICKED) | Q(status=Run.RUN_STATUS_DISPATCHING)).count()
+        if run_count == 0:
+            current_message = Message.objects.filter(race_entry=entry).filter(status=Message.MESSAGE_STATUS_DISPATCHING).exists()
+            already_confirmed_cut = Message.objects.filter(race_entry=entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).filter(Q(status=Message.MESSAGE_STATUS_CONFIRMED) | Q(status=Message.MESSAGE_STATUS_SNOOZED)).exists()
+            if not current_message and not already_confirmed_cut:
+                clear_rider_count += 1
+        ## END CLEAR
+        
         if entry.last_action:
             long_enough = datetime.timedelta(seconds=random.randint(180, 360)) / speed
             if datetime.datetime.now(tz=pytz.utc) - entry.last_action > long_enough:
@@ -205,7 +215,11 @@ def simulate_race(race, NUMBER_OF_DISPATCHERS, checkpoints, speed=60):
                     entry.add_up_runs()
                     entry.save()
     
+    print "messages we didn't get to rn ", run_messages_count + messages_count
+    print "clear riders ", clear_rider_count
+    print "\n"
+    
     sleep(60 / speed)
     
-    print "\n" 
+    
     return checkpoints

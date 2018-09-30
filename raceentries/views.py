@@ -91,7 +91,7 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
         elif last_drop:
             return last_drop.utc_time_dropped
         
-        return None
+        return entry.start_time
     
     def get_cut_racers(self):
         current_race = RaceControl.shared_instance().current_race

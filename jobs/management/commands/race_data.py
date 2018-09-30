@@ -71,6 +71,7 @@ class Command(BaseCommand):
         checkpoints = Checkpoint.objects.all()
         for racer in racers:
             entry = RaceEntry(racer=racer, race=race, entry_status=RaceEntry.ENTRY_STATUS_ENTERED)
+            entry.starting_position = racer.starting_position
             entry.save()
             race.populate_runs(entry)
             entry.start_racer()
