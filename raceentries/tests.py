@@ -106,6 +106,19 @@ class RaceEntryTestCase(TestCase):
             self.race_one.save()
             
             self.assertEqual(self.race_one.race_end_time, self.race_entry_one.race_end_time)
+        
+        @freeze_time("2018-9-27 10:30:00")
+        def test_race_end_time_with_race_start_time(self):
+            right_now = datetime.datetime.now(tz=pytz.utc)
+            self.race_entry_one.start_racer()
+            self.race_one.time_limit = 100
+            self.race_one.race_start_time = None
+            self.race_entry_one.start_time = None
+            self.race_entry_one.save()
+            self.race_one.save()
+            
+            self.assertIsNone(self.race_entry_one.race_end_time)
+        
             
         @freeze_time("2018-9-27 10:30:00")
         def test_race_end_time_race_start_time_but_no_time_limit(self):

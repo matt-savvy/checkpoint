@@ -258,5 +258,6 @@ class RaceEntry(models.Model):
             return self.race.race_end_time
         
         elif self.race.time_limit != 0:
-            return self.start_time + datetime.timedelta(minutes=self.race.time_limit)
+            if self.start_time:
+                return self.start_time + datetime.timedelta(minutes=self.race.time_limit)
         return self.end_time
