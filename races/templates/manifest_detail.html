@@ -10,7 +10,13 @@
   <h1>Manifest Detail <small>NACCC PHL NACCC</small></h1>
 </div>
 
-<p><a href="/races/manifests/update/{{object.id}}/" class="btn btn-default">Edit Manifest</a> <a href="/races/manifests/delete/{{object.id}}/" class="btn btn-default">Delete Manifest</a>
+<p><a href="/races/manifests/update/{{object.id}}/" class="btn btn-default">Edit Manifest</a>
+	
+	<a href="/jobs/create/?manifest={{object.pk}}" class="btn btn-info">Add Jobs</a>
+	
+	 <a href="/races/manifests/delete/{{object.id}}/" class="btn btn-warning">Delete Manifest</a>
+
+
 
 </p>
 <div>
@@ -48,7 +54,7 @@
 	  	
 	  {% empty %}
 	  
-	  	 <td colspan="7">No Jobs yet. <a href = "/jobs/create/">Add some!</a></td>
+	  	 <td colspan="7">No Jobs yet. <a href = "/jobs/create/?manifest={{object.pk}}">Add some!</a></td>
 	     
 	  {% endfor %}
 	  

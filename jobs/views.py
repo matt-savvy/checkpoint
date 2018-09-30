@@ -47,6 +47,28 @@ class JobCreateView(CreateView):
     model = Job
     form_class = JobForm
     
+    def get_initial(self):
+        """
+        Returns the initial data to use for forms on this view.
+        """
+        initial = self.initial.copy()
+        race = self.request.GET.get('race')
+        manifest = self.request.GET.get('manifest')
+        if manifest:
+            try:
+                manifest = Manifest.objects.get(pk=manifest)
+                initial['manifest'] = manifest
+                initial['race'] = manifest.race
+            except:
+                pass
+        elif race:
+            try:
+                race = Race.objects.get(pk=race)
+                initial['race'] = race
+            except:
+                pass
+        return initial
+    
     def form_valid(self, form):
         self.object = form.save(commit=False)
         print form.cleaned_data['service']
@@ -70,7 +92,10 @@ class JobCreateView(CreateView):
     def get_success_url(self):
         messages.success(self.request, 'Job was successfully created.')
         if 'save-another' in self.request.POST:
-            return '/jobs/create/'
+            if self.object.manifest:
+                return '/jobs/create/?manifest={}'.format(self.object.manifest.pk)
+            else:
+                return '/jobs/create/?race={}'.format(self.object.race.pk)
         return super(JobCreateView, self).get_success_url()
     
 class JobUpdateView(UpdateView):
