@@ -150,8 +150,8 @@ class DispatchScreen extends React.Component {
 				}
 				
 				if (data.message.message_type == MESSAGE_TYPE_NOTHING) {
-					console.log("timeout init");
-					setTimeout(function() { this.getNextMessage() }.bind(this), 45000);
+					//console.log("timeout init");
+					//setTimeout(function() { this.getNextMessage() }.bind(this), 45000);
 				}
 				
 				messages.unshift(data.message);
