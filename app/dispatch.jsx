@@ -54,7 +54,6 @@ class DispatchScreen extends React.Component {
 		console.log(e.target.value);
 		this.setState({disabled:'disabled'});
 		var csrfToken = getCookie('csrftoken');
-		csrfToken = "helpmeobiwan";
 		var riderResponse = {};
 		riderResponse.message = this.state.messages[this.state.currentMessage].id;
 		riderResponse.action = e.target.value;
