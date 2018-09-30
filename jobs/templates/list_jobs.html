@@ -14,6 +14,7 @@
 <div class="table-responsive">
 <table class="table table-striped">
   <tr>
+	  <th>Manifest</th>
       <th>Job Number</th>
       <th>Pick Up</th>
       <th>Drop Off</th>
@@ -24,6 +25,7 @@
   </tr>
       {% for job in jobs %}
           <tr>
+			  <td>{{job.manifest.manifest_name}}</td>
               <td><a href="/jobs/details/{{job.id}}/">{{job.job_id}}</td>
               <td>{{job.pick_checkpoint}}</td>
               <td>{{job.drop_checkpoint}}</td>

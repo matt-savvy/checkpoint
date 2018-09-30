@@ -1,6 +1,7 @@
 from django.test import TestCase
 from .models import Message
 from runs.models import Run
+from jobs.models import Job
 from races.models import Race, Manifest
 from raceentries.models import RaceEntry
 from .util import get_next_message
@@ -422,6 +423,7 @@ class get_next_message_TestCase(TestCase):
         Run.objects.all().delete()
         self.race.overtime = True
         self.race.save()
+        self.race_entry_one.manifest = None
         right_now = datetime.datetime.now(tz=pytz.utc) 
         plus_ten = right_now + datetime.timedelta(minutes=10)
         plus_fifteen = right_now + datetime.timedelta(minutes=15)
@@ -457,11 +459,33 @@ class get_next_message_TestCase(TestCase):
         
         for run in next_message.runs.all():
             self.assertEqual(run.job.manifest, bonus_manifest)
+    
+    def test_racers_in_prelims_dont_get_manifest_jobs_filtered(self):
+        manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_STARTING)
+        self.race.race_type = Race.RACE_TYPE_DISPATCH_PRELIMS
+        self.race.save()
+        Run.objects.filter(race_entry=self.race).delete()
+
+        for job in self.jobs_second:
+            job.manifest = manifest
+            job.save()
+        self.race_entry_one.manifest = manifest
+        self.race_entry_one.save()
+        self.race_entry_one.start_racer()
+        Run.objects.filter(job__in=self.jobs_first).update(status=Run.RUN_STATUS_COMPLETED)
         
+        next_message = get_next_message(self.race)
+        next_message_runs = next_message.runs.all()
+        
+        self.assertEqual(len(next_message_runs), 3)
+        
+        for run in next_message_runs:
+            self.assertTrue(run.job in self.jobs_second)
+    
     def test_overtime_jobs_wont_get_dispatched_during_regular_hours(self):
         right_now = datetime.datetime.now(tz=pytz.utc) 
         Run.objects.all().delete()
-        
+        self.race.overtime = False
         bonus_manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
         RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
         regular_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=None, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)

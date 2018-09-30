@@ -5,7 +5,7 @@ from django.views.generic.edit import FormView
 from django.views.generic import View, TemplateView
 from raceentries.models import RaceEntry
 from raceentries.forms import AdvanceForm, CutForm
-from races.models import Race
+from races.models import Race, Manifest
 from racers.models import Racer
 from runs.models import Run
 from django.contrib import messages
@@ -198,14 +198,20 @@ class CutListView(AuthorizedRaceOfficalMixin, TemplateView):
 class EnterRacersView(AuthorizedRaceOfficalMixin, View):
     def post(self, request, *args, **kwargs):
         race = Race.objects.get(pk=self.request.POST['race-id'])
+        manifests = list(Manifest.objects.filter(race=race).exclude(manifest_type=Manifest.TYPE_CHOICE_BONUS))
+        manifest_count = len(manifests)
+        
         if 'enter-racers' in self.request.POST:
             racer_ids = self.request.POST.getlist('enter-in-race[]')
             if racer_ids:
-                for racer_id in racer_ids:
+                for x, racer_id in enumerate(racer_ids):
                     try:
                         re = RaceEntry()
                         re.race = race
                         re.racer = Racer.objects.get(pk=int(racer_id))
+                        if manifests:
+                            re.manifest = manifests[x % manifest_count]
+                            print re.manifest
                         re.save()
                         if race.race_type == Race.RACE_TYPE_DISPATCH_FINALS:
                             race.populate_runs(re)
@@ -276,7 +282,7 @@ class AdvanceView(AuthorizedRaceOfficalMixin, FormView):
             if racers:
                 messages.success(self.request, '{} Racers have been advanced to {}.'.format(starting_position, advance_to))
             else:
-                messages.danger(self.request, 'No Racers have been advanced.')
+                messages.warning(self.request, 'No Racers have been advanced.')
         
         self.success_url = "/raceentries/race/" + str(form.cleaned_data['race_id'])
         return super(AdvanceView, self).form_valid(form)

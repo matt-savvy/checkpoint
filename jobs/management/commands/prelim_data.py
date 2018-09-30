@@ -27,10 +27,10 @@ class Command(BaseCommand):
         races = Race.objects.order_by('pk')
         for race in races:
             print "{} {}".format(race.pk, race)
-        #selection_race = int(raw_input("choose race number : "))
+        selection_race = int(raw_input("choose race number : "))
        
-        #race = Race.objects.get(pk=selection_race)
-        race = Race.objects.get(pk=2)
+        race = Race.objects.get(pk=selection_race)
+        #race = Race.objects.get(pk=2)
         right_now = datetime.datetime.now(tz=pytz.utc)
         NUMBER_OF_DISPATCHERS = 4
         
@@ -44,8 +44,14 @@ class Command(BaseCommand):
         for checkpoint in checkpoints:
             checkpoint.value = 0
             
-        for racer in racers:
+        manifests = list(Manifest.objects.filter(race=race).exclude(manifest_type=Manifest.TYPE_CHOICE_BONUS))
+        manifest_count = len(manifests)
+        
+        for x, racer in enumerate(racers):
             re = RaceEntry(racer=racer, race=race)
+            if manifests:
+                re.manifest = manifests[x % manifest_count]
+                print re.manifest
             re.save()
             
         while RaceEntry.objects.filter(race=race).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_ENTERED) | Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT)).exists():

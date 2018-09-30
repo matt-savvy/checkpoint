@@ -13,31 +13,22 @@ def random_permutation(iterable, r=2):
     return tuple(random.sample(pool, r))
 
 class Command(BaseCommand):
-   
-   
-
-   
-   
    def handle(self, *args, **options):
        races = Race.objects.order_by('pk')
        for race in races:
            print "{} {}".format(race.pk, race)
            
-       
-       
        selection_race = int(raw_input("choose race number : "))
+       race = Race.objects.get(pk=selection_race)
        
-       for manifest in Manifest.objects.all():
+       for manifest in Manifest.objects.filter(race=race).all():
            print "{} {}".format(manifest.pk, manifest)
            
        selection_manifest = int(raw_input("choose manifest number : "))
        selection_number_of_jobs = int(raw_input("number of jobs: "))
        
-       race = Race.objects.get(pk=selection_race)
        checkpoints = Checkpoint.objects.all()
-       manifest = Manifest.objects.get(pk=selection_manifest)
-       #TODO add filter for removing HQ so we don't overdo that checkpoint
-       
+       manifest = Manifest.objects.get(pk=selection_manifest)       
        
        all_jobs = []
        

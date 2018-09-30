@@ -55,8 +55,6 @@ def run_count(race_entry):
     return current_run_count
     
 def get_next_message(race, dispatcher=None):
-    import pdb
-    
     right_now = datetime.datetime.now(tz=pytz.utc)
     
     #if we're at the five minute warning, so any messages we were going to "Get back to" are wiped
@@ -101,17 +99,17 @@ def get_next_message(race, dispatcher=None):
         
         ##if they're racing but the time limit is in five minutes or less, they are gonna get cut
         elif race_entry.five_minute_warning:
+            print "five_minute_warning"
             race_entry.cut_racer()
             message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
             message.save()
             
             return message
-        
-        if not race.overtime and race_entry.manifest:
-            manifest = race_entry.manifest
-        
-        runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(job__manifest=manifest)
             
+        runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING)
+        if manifest:
+            runs = runs.filter(job__manifest=manifest)
+        
         if runs:
             #any runs with no ready time for whatver reason will get treated as if they are ready now
             runs_with_no_ready_time = runs.filter(utc_time_ready=None)
@@ -128,12 +126,20 @@ def get_next_message(race, dispatcher=None):
                 message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
                 message.save()
                 return message
+    
             
-    runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(job__manifest=manifest).filter(utc_time_ready__lte=right_now)
+    runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
+    
+    ##we don't want to filter it down to jobs with no manifest otherwise racers with an assigned manifest get no work
+    if manifest:
+        runs = runs.filter(job__manifest=manifest)
     
     while runs.all().exists():
         race_entry = runs.first().race_entry
         runs_to_assign = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
+        
+        if manifest:
+            runs_to_assign = runs_to_assign.filter(job__manifest=manifest)
         
         if run_count(race_entry) < race_entry.race.run_limit:
             return assign_runs(runs_to_assign, race_entry)

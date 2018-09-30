@@ -142,6 +142,25 @@ class RaceTestCase(TestCase):
         self.assertEqual(len(runs), 4)
         for run in runs:
             self.assertTrue(run.job in self.jobs_a)
+    
+    def test_populate_jobs_with_no_manifests(self):
+        """racers get all the jobs on their manifest"""
+        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_PRELIMS)
+        self.race.save()
+        self.race_entry_one = RaceEntryFactory(race=self.race)
+        self.race_entry_two = RaceEntryFactory(race=self.race)
+        self.jobs_a = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=0)
+        self.jobs_b = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=7)
+        self.jobs_c = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=20)
+        self.jobs_d = JobFactory.create_batch(4, race=self.race, minutes_ready_after_start=28)
+        self.race_entry_one.start_racer()
+        runs = self.race.populate_runs(self.race_entry_one)
+        self.assertEqual(len(runs), 16)
+        for run in runs:
+            self.assertTrue(run.job in self.jobs_a or run.job in self.jobs_b or run.job in self.jobs_c or run.
+            
+            job in self.jobs_d)
+    
         
     def test_redo_runs_math(self):
         self.race.race_type=Race.RACE_TYPE_DISPATCH_FINALS

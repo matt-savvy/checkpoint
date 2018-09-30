@@ -73,7 +73,7 @@
                 <th>Gender</th>
 				<th>Radio Number</th>
 				<th>Contact Info</th>
-				
+				<th>Manifest</th>
             </tr>
             {% for entry in race_entries %}
             <tr>
@@ -85,10 +85,11 @@
                 <td>{{entry.racer.gender}}</td>
 				<td>{{entry.racer.radio_number}}</td>
 				<td>{{entry.racer.contact_info}}</td>
+				<td>{{entry.manifest.manifest_name}}</td>
             </tr> 
             {% empty %}
             <tr>
-                <td colspan="6">All Racers in Race</td>
+                <td colspan="6">No Racers entered in Race</td>
             </tr>
             {% endfor %}
           </table>
