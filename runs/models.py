@@ -31,6 +31,7 @@ class Run(models.Model):
         (DETERMINATION_OK, 'OK'),
         (DETERMINATION_LATE, 'Late'),
         (DETERMINATION_NOT_DROPPED, 'Not Dropped'),
+        (DETERMINATION_NOT_PICKED, 'Not Picked'),
         (DETERMINATION_NOT_DETERMINED, 'Not Determined'),
         (DETERMINATION_ERROR, 'Error!')
     )
@@ -107,18 +108,22 @@ class Run(models.Model):
             except:
                 pass
             self.status = self.RUN_STATUS_COMPLETED
-        
-            if not self.race_entry.race.race_start_time:
+            
+            if not self.race_entry.race.race_start_time and not self.race_entry.start_time:
                 self.determination = self.DETERMINATION_ERROR
                 self.save()
                 return
         
             race = self.race_entry.race
             if not self.utc_time_due:
-                job_due_time = race.race_start_time.astimezone(pytz.utc) + datetime.timedelta(minutes=self.job.minutes_due_after_start)
-            else:
-                job_due_time = self.utc_time_due
-            if self.utc_time_dropped <= job_due_time:
+                if race.race_start_time:
+                    self.utc_time_due = race.race_start_time.astimezone(pytz.utc) + datetime.timedelta(minutes=self.job.minutes_due_after_start)
+                elif self.utc_time_assigned:
+                    self.utc_time_due = self.utc_time_assigned + datetime.timedelta(minutes=self.job.minutes_due_after_start)
+                else:
+                    self.utc_time_due = self.race_entry.start_time + datetime.timedelta(minutes=self.job.minutes_ready_after_start + self.job.minutes_due_after_start)
+
+            if self.utc_time_dropped <= self.utc_time_due:
                 self.determination = self.DETERMINATION_OK
                 self.points_awarded = self.job.points
             else:

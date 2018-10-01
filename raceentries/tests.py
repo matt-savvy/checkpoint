@@ -144,10 +144,11 @@ class RaceEntryTestCase(TestCase):
         
         def test_finish_racer_deducts_late_jobs(self):
             """any jobs that are late when the race ends will get docked from your pay"""
+            self.race_one.race_type = Race.RACE_TYPE_DISPATCH_FINALS
             self.race_one.race_start_time = self.right_now - datetime.timedelta(minutes=60)
             self.race_one.time_limit = 60
             self.race_one.save()
-            
+            self.race_one.populate_runs(self.race_entry_one)
             self.race_entry_one.start_racer()
             runs = Run.objects.filter(race_entry=self.race_entry_one)
             run = runs.first()
@@ -160,7 +161,132 @@ class RaceEntryTestCase(TestCase):
             self.race_entry_one.finish_racer()
             
             self.assertEqual(runs[0].points_awarded, decimal.Decimal('-5.00'))
+        
+        def test_finish_racer_doesnt_deduct_jobs_with_time_left_final(self):
+            """any jobs that stil have timewhen the race ends will just get zeroed out"""
+            self.race_one.race_type = Race.RACE_TYPE_DISPATCH_FINALS
+            self.race_one.race_start_time = self.right_now - datetime.timedelta(minutes=60)
+            self.race_one.time_limit = 60
+            self.race_one.save()
+            self.race_one.populate_runs(self.race_entry_one)
+            self.race_entry_one.start_racer()
+            runs = Run.objects.filter(race_entry=self.race_entry_one)
+            run = runs.first()
+            run.assign(force=True)
+            run.utc_time_due = self.right_now + datetime.timedelta(minutes=61)
+            run.save()
+            run.job.points = '5.00'
+            run.job.save()
+            run.save()
             
+            self.race_entry_one.finish_racer()
+            
+            self.assertEqual(runs[0].points_awarded, decimal.Decimal('0.00'))
+            
+        def test_finish_racer_deducts_late_jobs_prelim(self):
+            """any jobs that are late when the race ends will get docked from your pay"""
+            self.race_one.race_start_time = None
+            self.race_one.time_limit = 60
+            self.race_one.save()
+            
+            self.race_entry_one.start_racer()
+            runs = Run.objects.filter(race_entry=self.race_entry_one)
+            run = runs.first()
+            run.assign(force=True)
+            run.utc_time_due = self.right_now + datetime.timedelta(minutes=59)
+            run.save()
+            run.job.points = '5.00'
+            run.job.save()
+            run.save()
+            
+            self.race_entry_one.finish_racer()
+            
+            self.assertEqual(runs[0].points_awarded, decimal.Decimal('-5.00'))
+            
+        def test_finish_racer_doesnt_deduct_jobs_with_time_left_prelim(self):
+            """any jobs that stil have timewhen the race ends will just get zeroed out"""
+            self.race_one.race_start_time = None
+            self.race_one.time_limit = 60
+            self.race_one.save()
+            
+            self.race_entry_one.start_racer()
+            runs = Run.objects.filter(race_entry=self.race_entry_one)
+            run = runs.first()
+            run.assign(force=True)
+            run.utc_time_due = self.right_now + datetime.timedelta(minutes=61)
+            run.save()
+            run.job.points = '5.00'
+            run.job.save()
+            run.save()
+            
+            self.race_entry_one.finish_racer()
+            self.assertEqual(runs[0].points_awarded, decimal.Decimal('0.00'))
+            
+@freeze_time("2018-9-27 10:30:00")
+class FinishRacerTestCase(TestCase):
+    def setUp(self):
+        self.right_now = datetime.datetime.now(tz=pytz.utc)
+        self.race = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_PRELIMS, race_start_time=None)
+        self.race_entry = RaceEntryFactory(race=self.race)
+        self.jobs_one = JobFactory.create_batch(5, minutes_ready_after_start=0, race=self.race)
+        self.race_entry.start_racer()
+    
+    def test_final_time_with_first_message_and_last_drop_prelim(self):
+        message = get_next_message(self.race)
+        message.confirm()
+        ru = message.runs.first()
+        ru.pick()
+        ru.drop()
+        ru.utc_time_dropped += datetime.timedelta(seconds=900)
+        ru.save()
+        self.race_entry.finish_racer()
+        self.assertEqual(self.race_entry.final_time, 900)
+        
+    def test_final_time_with_first_message_prelim(self):
+        message = get_next_message(self.race)
+        message.confirm()
+        ru = message.runs.first()
+        ru.pick()
+        ru.save()
+        freezer = freeze_time("2018-9-27 10:45:00")
+        freezer.start()
+        self.race_entry.finish_racer()
+        self.assertEqual(self.race_entry.final_time, 900)
+        freezer.stop()
+        
+    def test_final_time_with_last_drop_finals(self):
+        self.race.race_type = Race.RACE_TYPE_DISPATCH_FINALS
+        self.race.race_start_time = datetime.datetime.now(tz=pytz.utc)
+        self.race.save()
+        
+        message = get_next_message(self.race)
+        message.confirm()
+        ru = message.runs.first()
+        ru.pick()
+        ru.drop()
+        ru.utc_time_dropped += datetime.timedelta(seconds=900)
+        ru.save()
+        self.race_entry.finish_racer()
+        self.assertEqual(self.race_entry.final_time, 900)
+        
+    def test_final_time_with_no_drop(self):
+        self.race.race_type = Race.RACE_TYPE_DISPATCH_FINALS
+        self.race.race_start_time = datetime.datetime.now(tz=pytz.utc)
+        self.race.save()
+        
+        message = get_next_message(self.race)
+        message.confirm()
+        ru = message.runs.first()
+        ru.pick()
+        ru.save()
+        freezer = freeze_time("2018-9-27 10:45:00")
+        freezer.start()
+        self.race_entry.finish_racer()
+        self.assertEqual(self.race_entry.final_time, 900)
+        freezer.stop()
+        
+        
+
 class ScoreTestCase(TestCase):
     def setUp(self):
         self.race_one = RaceFactory(race_type=Race.RACE_TYPE_DISPATCH_PRELIMS)

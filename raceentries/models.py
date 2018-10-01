@@ -125,20 +125,39 @@ class RaceEntry(models.Model):
     
     def finish_racer(self):
         from runs.models import Run
+        from dispatch.models import Message
         if self.entry_status == self.ENTRY_STATUS_RACING or self.entry_status == self.ENTRY_STATUS_CUT:
             self.entry_status = self.ENTRY_STATUS_FINISHED
             self.end_time = datetime.datetime.utcnow().replace(tzinfo=utc)
-            time_diff = self.end_time - self.start_time
+            
+            
+            first_message = Message.objects.filter(race_entry=self).order_by('message_time').first()
+            last_drop = Run.objects.filter(status=Run.RUN_STATUS_COMPLETED).filter(race_entry=self).order_by('utc_time_dropped').last()
+            
+            if self.race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS:
+                if first_message and last_drop:
+                    first_message_confirmed_time = first_message.confirmed_time
+                    last_drop_time = last_drop.utc_time_dropped
+                    time_diff = last_drop_time - first_message_confirmed_time
+                else:
+                    time_diff = self.end_time - self.start_time
+            elif self.race.race_type == Race.RACE_TYPE_DISPATCH_FINALS:
+                if last_drop:
+                    time_diff = last_drop.utc_time_dropped - self.race.race_start_time
+                else:
+                    time_diff = self.end_time - self.start_time
+            else:
+                time_diff = self.end_time - self.start_time
             self.final_time = time_diff.seconds
             self.save()
             
-            import pdb
-            #pdb.set_trace()
-            runs = Run.objects.filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_PICKED)).filter(race_entry=self).filter(utc_time_due__lte=self.race_end_time)
-            for run in runs:
-                run.determination = Run.DETERMINATION_NOT_DROPPED
-                run.points_awarded = decimal.Decimal(-run.job.points)
-                run.save()
+            runs = Run.objects.filter(Q(status=Run.RUN_STATUS_ASSIGNED) | Q(status=Run.RUN_STATUS_PICKED)).filter(race_entry=self)
+            runs.update(determination=Run.DETERMINATION_NOT_DROPPED)
+
+            runs = runs.filter(utc_time_due__lte=self.race_end_time)
+            for ru in runs:
+                ru.points_awarded = decimal.Decimal(-ru.job.points)
+                ru.save()
             
             return True
         elif self.entry_status == self.ENTRY_STATUS_PROCESSING:
@@ -188,6 +207,7 @@ class RaceEntry(models.Model):
         self.grand_total = (decimal.Decimal(self.points_earned) + decimal.Decimal(self.supplementary_points)) - decimal.Decimal(self.deductions)
     
     def calculate_current_score(self):
+        """for cuts"""
         right_now = datetime.datetime.now(tz=pytz.utc)
         points_aggregate = Run.objects.filter(race_entry=self).filter(status=Run.RUN_STATUS_COMPLETED).aggregate(points=Sum('points_awarded'))
         points = points_aggregate['points']
@@ -254,10 +274,10 @@ class RaceEntry(models.Model):
     
     @property
     def race_end_time(self):
-        if self.race.race_end_time:
-            return self.race.race_end_time
-        
-        elif self.race.time_limit != 0:
+        if self.race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS:
             if self.start_time:
                 return self.start_time + datetime.timedelta(minutes=self.race.time_limit)
-        return self.end_time
+                
+        if self.race.race_end_time:
+            return self.race.race_end_time
+        return None
