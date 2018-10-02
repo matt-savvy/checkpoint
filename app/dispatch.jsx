@@ -69,7 +69,12 @@ class DispatchScreen extends React.Component {
 		  body: riderResponseJSON
 		})
 		.then(function(response) {
-			
+			var id = window.setTimeout(function() {}, 0);
+
+			while (id--) {
+				console.log('timeout cleared');
+			    window.clearTimeout(id); // will do nothing if no timeout with id is present//
+			}
         	if (response.status !== 200) {
           		alert('Looks like there was a problem. Status Code: ' + response.status);
 				return;
@@ -103,7 +108,12 @@ class DispatchScreen extends React.Component {
 		  body: riderResponseJSON
 		})
 		.then(function(response) {
-			
+			var id = window.setTimeout(function() {}, 0);
+
+			while (id--) {
+				console.log('timeout cleared');
+			    window.clearTimeout(id); // will do nothing if no timeout with id is present//
+			}
         	if (response.status !== 200) {
           		alert('Looks like there was a problem. Status Code: ' + response.status);
 				return;
@@ -133,13 +143,19 @@ class DispatchScreen extends React.Component {
 		  body: nextMessageRequestJSON
 		})
 		.then(function(response) {
-			
+			var id = window.setTimeout(function() {}, 0);
+
+			while (id--) {
+				console.log('timeout cleared');
+			    window.clearTimeout(id); // will do nothing if no timeout with id is present//
+			}
         	if (response.status !== 200) {
           		alert('Looks like there was a problem. Status Code: ' + response.status);
 				return;
 			}
 			response.json().then(function(data) {
 				console.log(data);
+
 				var messages = this.state.messages;
 				
 				var recentMessage = this.state.messages[0];
@@ -150,8 +166,10 @@ class DispatchScreen extends React.Component {
 				}
 				
 				if (data.message.message_type == MESSAGE_TYPE_NOTHING) {
-					//console.log("timeout init");
-					//setTimeout(function() { this.getNextMessage() }.bind(this), 45000);
+					console.log("timeout init");
+					var id = window.setTimeout(function() {}, 0);
+
+					setTimeout(function() { this.getNextMessage() }.bind(this), 45000);
 				}
 				
 				messages.unshift(data.message);
