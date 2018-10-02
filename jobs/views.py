@@ -9,7 +9,8 @@ from .forms import JobForm
 from races.models import Manifest
 import datetime
 import pytz
-
+from checkpoints.models import Checkpoint
+from django.db.models import Count, Q
 from races.models import Race
 from jobs.models import Job
 
@@ -37,6 +38,19 @@ class JobListView(ListView):
     
     def get_queryset(self):
         return Job.objects.filter(race__pk=self.kwargs['race']).order_by('job_id')
+        
+    def get_context_data(self, **kwargs):
+        context = super(JobListView, self).get_context_data(**kwargs)
+        race = Race.objects.get(pk=self.kwargs['race'])
+        jobs = Job.objects.filter(race=race)
+
+        checkpoints = Checkpoint.objects.all()
+        for checkpoint in checkpoints:
+            checkpoint.num_picks = jobs.filter(pick_checkpoint=checkpoint).count()
+            checkpoint.num_drops = jobs.filter(drop_checkpoint=checkpoint).count()
+
+        context['checkpoints'] = checkpoints
+        return context
     
 class JobDetailView(DetailView):
     template_name = 'job_detail.html'
