@@ -5,7 +5,7 @@ $(document).ready(function() {
 
 	$('#racer_table').DataTable({
 		"paging":   false,
-		 "ordering": false,
+		 "ordering": true,
 	});
 	
 	var csrftoken = getCookie('csrftoken'); 
