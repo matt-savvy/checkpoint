@@ -43,4 +43,8 @@ class RegisterForm(forms.ModelForm):
         available_numbers = [x for x in racer_numbers if x not in existing_numbers][:numbers_to_fill]
         available_numbers_tup = tuple([(element, str(element)) for element in available_numbers])
         self.fields['racer_number'].choices = available_numbers_tup
-        
+
+class PickupForm(forms.ModelForm):
+    class Meta:
+        model = Racer
+        fields = ('track', 'cargo')

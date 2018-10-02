@@ -1,4 +1,13 @@
 $(document).ready(function() {
+	
+	
+	console.log("help");
+
+	$('#racer_table').DataTable({
+		"paging":   false,
+		 "ordering": false,
+	});
+	
 	var csrftoken = getCookie('csrftoken'); 
 	
 	function markRacerAsPaid(pk) {

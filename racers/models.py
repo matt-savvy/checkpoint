@@ -23,6 +23,17 @@ class Racer(models.Model):
         (RACER_CATEGORY_EX_MESSENGER, "Recovered Messenger")
     )
     
+    HEAT_FIRST = 'a'
+    HEAT_SECOND = 'b'
+    HEAT_THIRD = 'c'
+    HEAT_FOURTH = 'd'
+    
+    HEAT_CHOICE_OPTIONS = (
+        (HEAT_FIRST, "10:00"),
+        (HEAT_SECOND, "11:00"),
+        (HEAT_THIRD, "12:00"),
+        (HEAT_FOURTH, "13:00"),
+    )
     
     RACER_CATEGORY_OPTIONS_SHORT = (
         (RACER_CATEGORY_MESSENGER, "Messenger"),
@@ -56,6 +67,10 @@ class Racer(models.Model):
     city = models.CharField(max_length=50, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_OPTIONS)
     category = models.IntegerField(choices=RACER_CATEGORY_OPTIONS)
+    track = models.BooleanField("Racer is riding a brakeless track bike", default=False)
+    cargo = models.BooleanField("Racer is doing the cargo race.", default=False)
+    packet = models.BooleanField("Packet picked up.", default=False)
+    heat = models.CharField(max_length=2, choices=HEAT_CHOICE_OPTIONS, default=HEAT_FIRST)
     shirt_size = models.CharField(max_length=2, choices=SHIRT_SIZE_OPTIONS, default=SHIRT_SIZE_MEDIUM)
     paid = models.BooleanField(default=False)
     paypal_tx = models.CharField(blank=True, max_length=100)
@@ -94,6 +109,10 @@ class Racer(models.Model):
     @property
     def category_as_string_short(self):
         return self.RACER_CATEGORY_OPTIONS_SHORT[self.category][1]
+    
+    @property
+    def heat_string(self):
+        return self.HEAT_CHOICE_OPTIONS[self.heat]
     
     def mark_as_paid(self):
         if not self.paid:

@@ -60,6 +60,7 @@ urlpatterns = patterns('',
     #
     url(r'^paypal/', include('paypal.standard.ipn.urls')),
     url(r'^racers/update/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerUpdateView.as_view())),
+    url(r'^racers/pickup/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerPacketPickupView.as_view())),
     url(r'^racers/details/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerDetailView.as_view())),
     url(r'^racers/delete/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerDeleteView.as_view())),
     url(r'^racers/sessions/', login_required(racer_views.SessionListView.as_view())),

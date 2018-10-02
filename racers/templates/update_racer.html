@@ -6,7 +6,7 @@
 
 <form action="" method="post">{% csrf_token %}{% load widget_tweaks %}
     {% for field in form %}
-        <div class="form-group">
+	    <div class="form-group">
             <label for="{{field.name}}">{{field.label}}</label>
             {{field.errors}}
             {{field|add_class:"form-control"}}

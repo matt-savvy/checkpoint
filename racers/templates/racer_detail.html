@@ -30,6 +30,18 @@
 	  
       <dt>City</dt>
       <dd>{{object.city}}</dd>
+	  
+      <dt>Heat</dt>
+      <dd>{{object.heat}}</dd>
+	  
+      <dt>Track</dt>
+      <dd>{{object.track |yesno:"Fixed and fabulous,nope" }}</dd>
+	  
+      <dt>Cargo Race</dt>
+      <dd>{{object.track |yesno:"Cargo,hell no" }}</dd>
+	  
+      <dt>Packet?</dt>
+      <dd>{{object.packet |yesno:"Picked up,not picked up"}}</dd>
     </dl>   
 </div> 
 

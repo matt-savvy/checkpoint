@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block container %}
 <div class="page-header">
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
   <h1>Racers <small>NACCC PHL NACCC</small></h1>
 </div>
 
@@ -85,7 +86,8 @@
 
 
 <div class="table-responsive">
-<table class="table table-striped">
+<table id="racer_table" class="table table-striped">
+	<thead>
   <tr>
       <th>Racer Number</th>
       <th>Last Name</th>
@@ -96,11 +98,15 @@
       <th>City</th>
       <th>Team</th>
       <th>Category</th>
+	  <th>Heat</th>
 	  <th>Shirt Size</th>
 	  <th>Paid?</th>
       <th>Actions</th>
   </tr>
+</thead>
+<tbody>
       {% for racer in racers %}
+	  
           <tr>
               <td><a href = "/racers/details/{{racer.pk}}">{{racer.racer_number}}</a></td>
               <td>{{racer.last_name}}</td>
@@ -111,11 +117,12 @@
               <td>{{racer.city}}</td>	
               <td>{{racer.team}}</td>
               <td>{{racer.category_as_string}}</td>
+			  <td>{{racer.heat.get_fieldname_display}}
 			  <td>{{racer.shirt_size}}</td>
 			  <td>{% if racer.paid %}<span id="paid{{racer.pk}}" class="success">paid</span>{% else %} <span id="paid{{racer.pk}}" class="danger">NOT PAID</span> {% endif %}</td>
               <td>
 				  <a href="/racers/update/{{racer.pk}}/" class="btn btn-default btn-xs btn-info">Edit</a>
-				  <a href="/racers/delete/{{racer.pk}}/" class="btn btn-default btn-xs btn-danger">Delete</a>
+				  <a href="/racers/pickup/{{racer.pk}}/" class="btn btn-default btn-xs btn-success">Pickup</a>
 			  	{% if not racer.paid %}<button value="{{racer.pk}}" class="btn btn-defaul btn-xs btn-success paid">Paid</button>{% endif %}
 			  </td>
 				  
@@ -125,6 +132,7 @@
           <td colspan="7">No racers entered</td>
        </tr>
       {% endfor %}
+  </tbody>
 </table>
 </div>
 
@@ -132,5 +140,8 @@
 
 {% block javascript_imports %}
 	{% load staticfiles %}
-	<script src="{% static "js/racer.js" %}"></script>
+
+	
+	<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+	<script src="{% static 'js/racer.js' %}"></script>
 {% endblock %}

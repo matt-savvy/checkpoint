@@ -12,7 +12,7 @@ import uuid
 import os
 from django.conf import settings
 from racers.models import Racer, Volunteer
-from racers.forms import RacerForm, RegisterForm, ShirtForm, VolunteerForm
+from racers.forms import RacerForm, RegisterForm, ShirtForm, VolunteerForm, PickupForm
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from nacccusers.auth import AuthorizedRaceOfficalMixin
@@ -32,6 +32,7 @@ from django.contrib.sessions.backends.db import SessionStore
 from django.utils.six import BytesIO
 from rest_framework.parsers import JSONParser
 from django.db.models import Q
+from django.contrib import messages
 
 class RacerListView(AuthorizedRaceOfficalMixin, ListView):
     model = Racer
@@ -475,3 +476,19 @@ class VolunteerDetailView(AuthorizedRaceOfficalMixin, DetailView):
 class VolunteerEmailsListView(AuthorizedRaceOfficalMixin, ListView):
     model = Volunteer
     template_name = "list_emails.html"
+
+class RacerPacketPickupView(AuthorizedRaceOfficalMixin, UpdateView):
+    model = Racer
+    form_class = PickupForm
+    template_name = "update_racer.html"
+    
+    def form_valid(self, form):
+        self.object = form.save()
+        if self.object.cargo:
+            self.object.heat = Racer.HEAT_FIRST
+            
+        self.object.packet = True
+        self.object.save()
+        
+        messages.success(self.request, 'Racer has been logged, packet picked up!')    
+        return HttpResponseRedirect(self.get_success_url())
