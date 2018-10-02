@@ -112,7 +112,7 @@ class Racer(models.Model):
     
     @property
     def heat_string(self):
-        return self.HEAT_CHOICE_OPTIONS[self.heat]
+        return dict(self.HEAT_CHOICE_OPTIONS)[self.heat]
     
     def mark_as_paid(self):
         if not self.paid:
