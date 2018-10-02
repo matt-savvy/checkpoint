@@ -57,6 +57,7 @@ urlpatterns = patterns('',
     url(r'^volunteers/pdtreturn/$', racer_views.VolunteerRegFinished, name="volunteer-pdt_return_url"),
     url(r'^volunteers/thanks/$', racer_views.ThankYouView.as_view(), name="volunteer-thank-you"),
     url(r'^volunteers/emails/$', racer_views.VolunteerEmailsListView.as_view(), name="volunteer-emails"),
+    url(r'^volunteers/pickup/(?P<pk>[0-9]+)/$', login_required(racer_views.VolunteerPacketPickupView.as_view())),
     #
     url(r'^paypal/', include('paypal.standard.ipn.urls')),
     url(r'^racers/update/(?P<pk>[0-9]+)/$', login_required(racer_views.RacerUpdateView.as_view())),

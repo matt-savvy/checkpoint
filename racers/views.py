@@ -492,3 +492,15 @@ class RacerPacketPickupView(AuthorizedRaceOfficalMixin, UpdateView):
         
         messages.success(self.request, 'Racer has been logged, packet picked up!')    
         return HttpResponseRedirect(self.get_success_url())
+
+class VolunteerPacketPickupView(AuthorizedRaceOfficalMixin, UpdateView):
+    model = Volunteer
+    template_name = "update_racer.html"
+    
+    def form_valid(self, form):
+        self.object = form.save()
+        messages.success(self.request, 'Volunteer updated.')    
+        return HttpResponseRedirect(self.get_success_url())
+        
+    def get_success_url(self):
+        return "/volunteers/"

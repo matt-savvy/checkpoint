@@ -28,7 +28,8 @@
 </div>
 
 <div class="table-responsive">
-<table class="table table-striped">
+<table id="racer_table" class="table table-striped">
+	<thead>
   <tr>
       <th>Name</th>
 	  <th>Email</th>
@@ -36,8 +37,9 @@
       <th>City</th>
 	  <th>Shirt Size</th>
 	  <th>Paid?</th>
-
+      <th>Actions</th>
   </tr>
+</thead><tbody>
       {% for volunteer in object_list %}
           <tr>
               <td><a href = "/volunteers/details/{{volunteer.pk}}">{{volunteer}}</a></td>
@@ -45,14 +47,24 @@
               <td>{{volunteer.phone}}</td>
               <td>{{volunteer.city}}</td>	
 			  <td>{{volunteer.shirt_size}}</td>
-			  <td>{% if volunteer.paid %}<span id="paid{{volunteer.pk}}" class="success">paid</span>{% else %} <span id="paid{{volunteer.pk}}" class="danger">NOT PAID</span> {% endif %}</td>				  
+			  <td>{% if volunteer.paid %}<span id="paid{{volunteer.pk}}" class="success">paid</span>{% else %} <span id="paid{{volunteer.pk}}" class="danger">NOT PAID</span> {% endif %}</td>		
+			  		  <td>{% if not volunteer.packet %}<a href="/volunteers/pickup/{{volunteer.pk}}/" class="btn btn-default btn-xs btn-success">Pickup</a> {% else %}Picked{% endif %}
+					  </td>
            </tr>
       {% empty %}
       <tr>
           <td colspan="7">No volunteers entered</td>
        </tr>
       {% endfor %}
+  </tbody>
 </table>
 </div>
 
+{% endblock %}
+{% block javascript_imports %}
+	{% load staticfiles %}
+
+	
+	<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+	<script src="{% static 'js/racer.js' %}"></script>
 {% endblock %}
