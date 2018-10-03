@@ -56,6 +56,7 @@ def run_count(race_entry):
     
 def get_next_message(race, dispatcher=None):
     right_now = datetime.datetime.now(tz=pytz.utc)
+    overtime_manifest = Manifest.objects.filter(race=race).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
     
     #if we're at the five minute warning, so any messages we were going to "Get back to" are wiped
     if race.five_minute_warning:
@@ -77,12 +78,9 @@ def get_next_message(race, dispatcher=None):
         print "found unconfirmed"
         return old_unconfirmed_messages.first()
     
-    if race.overtime:
-        manifest = Manifest.objects.filter(race=race).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
-    else:
-        manifest = None
-    
-    
+     
+    import pdb
+    #pdb.set_trace()
     ##are there any clear racers? they get top priority
     race_entry = race.find_clear_racer()
 
@@ -107,8 +105,10 @@ def get_next_message(race, dispatcher=None):
             return message
             
         runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING)
-        if manifest:
-            runs = runs.filter(job__manifest=manifest)
+        if race.overtime:
+            runs = runs.filter(job__manifest=overtime_manifest)
+        elif not race.overtime and overtime_manifest:
+            runs = runs.exclude(job__manifest=overtime_manifest)
         
         if runs:
             #any runs with no ready time for whatver reason will get treated as if they are ready now
@@ -131,16 +131,16 @@ def get_next_message(race, dispatcher=None):
     runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
     
     ##we don't want to filter it down to jobs with no manifest otherwise racers with an assigned manifest get no work
-    if manifest:
-        runs = runs.filter(job__manifest=manifest)
+    if race.overtime and overtime_manifest:
+        runs = runs.filter(job__manifest=overtime_manifest)
+        
+    elif not race.overtime and overtime_manifest:
+        runs = runs.exclude(job__manifest=overtime_manifest)
     
     while runs.all().exists():
         race_entry = runs.first().race_entry
-        runs_to_assign = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
-        
-        if manifest:
-            runs_to_assign = runs_to_assign.filter(job__manifest=manifest)
-        
+        runs_to_assign = runs.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
+
         if run_count(race_entry) < race_entry.race.run_limit:
             return assign_runs(runs_to_assign, race_entry)
         else:

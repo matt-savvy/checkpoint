@@ -182,7 +182,8 @@ class get_next_message_TestCase(TestCase):
         
         next_message = get_next_message(self.race)
         self.assertEqual(next_message.pk, first_next_message.pk)
-        
+    
+    
     def test_get_next_message_runs_with_no_ready_time(self):
         """make sure if a job has no ready time, we act like it's ready now"""
         Run.objects.filter(status=Run.RUN_STATUS_ASSIGNED).delete()
@@ -482,16 +483,31 @@ class get_next_message_TestCase(TestCase):
         for run in next_message_runs:
             self.assertTrue(run.job in self.jobs_second)
     
-    def test_overtime_jobs_wont_get_dispatched_during_regular_hours(self):
+    def test_overtime_jobs_wont_get_dispatched_during_regular_hours_clear_racer(self):
         right_now = datetime.datetime.now(tz=pytz.utc) 
         Run.objects.all().delete()
         self.race.overtime = False
+        self.race.save()
         bonus_manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
         RaceEntry.objects.exclude(pk=self.race_entry_one.pk).all().delete()
         regular_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=None, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
         overtime_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=bonus_manifest, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
         
         next_message = get_next_message(self.race)
+        for run in next_message.runs.all():
+            self.assertNotEqual(run.job.manifest, bonus_manifest)
+
+    def test_overtime_jobs_wont_get_dispatched_during_regular_hours(self):
+        right_now = datetime.datetime.now(tz=pytz.utc) 
+        self.race.overtime = False
+        self.race.save()
+        bonus_manifest = ManifestFactory.create(race=self.race, manifest_type=Manifest.TYPE_CHOICE_BONUS)
+        assigned_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=None, status=Run.RUN_STATUS_ASSIGNED)
+        regular_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=None, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        overtime_runs = RunFactory.create_batch(3, race_entry=self.race_entry_one, job__manifest=bonus_manifest, status=Run.RUN_STATUS_PENDING, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        self.assertEqual(next_message.runs.count(), 3)
         for run in next_message.runs.all():
             self.assertNotEqual(run.job.manifest, bonus_manifest)
         
