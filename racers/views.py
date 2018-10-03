@@ -482,6 +482,9 @@ class RacerPacketPickupView(AuthorizedRaceOfficalMixin, UpdateView):
     form_class = PickupForm
     template_name = "update_racer.html"
     
+    def get_success_url(self):
+        return "/racers/"
+    
     def form_valid(self, form):
         self.object = form.save()
         if self.object.cargo:
