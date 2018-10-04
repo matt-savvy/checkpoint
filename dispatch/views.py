@@ -20,6 +20,7 @@ from raceentries.models import RaceEntry
 from ajax.serializers import RaceEntrySerializer, RacerSerializer
 import datetime
 import pytz
+from racelogs.models import RaceLog
 
 class NextMessage(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
@@ -67,8 +68,14 @@ class RiderResponse(APIView):
         
         if action == "CONFIRM":
             message = message.confirm()
+            
+            RaceLog(racer=message.race_entry.racer, race=message.race_entry.race, user=request.user, log="Racer confirmed message {}.".format(message_pk), current_grand_total=message.race_entry.grand_total, current_number_of_runs=message.race_entry.number_of_runs_completed).save()
+            
         elif action == "SNOOZE":
             message = message.snooze()
+            
+            RaceLog(racer=message.race_entry.racer, race=message.race_entry.race, user=request.user, log="Racer did not response to message {}.".format(message_pk), current_grand_total=message.race_entry.grand_total, current_number_of_runs=message.race_entry.number_of_runs_completed).save()
+            
         elif action == "UNDO":
             message.status = Message.MESSAGE_STATUS_DISPATCHING
             message.confirmed_time = None
@@ -77,7 +84,6 @@ class RiderResponse(APIView):
                 for run in message.runs.all():
                     run.run_status = Run.RUN_STATUS_DISPATCHING
                     run.save()
-            #TODO log this undo
         
         return Response(MessageSerializer(message).data, status=status.HTTP_200_OK)
         
@@ -195,6 +201,8 @@ class RadioAPIView(APIView):
         racer_obj.contact_info = radio
         racer_obj.save()
         available_numbers = self.get_numbers()
+        #RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer assigned race.", current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
+        
         return Response({'available_radios' : available_numbers, 'racer' : RacerSerializer(racer_obj).data}, status=status.HTTP_200_OK)
     
     def get(self, request, *args, **kwargs):           

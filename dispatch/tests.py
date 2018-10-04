@@ -48,7 +48,7 @@ class MessageTestCase(TestCase):
         message = Message(race=self.race, message_type=Message.MESSAGE_TYPE_NOTHING)
 
         self.assertTrue("Blank Message" in message.__unicode__())
-    
+        
     def test_confirm_message(self):
         self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_RACING
         self.race_entry.save()

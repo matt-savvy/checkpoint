@@ -54,7 +54,17 @@ class Message(models.Model):
             return u"ERROR"
         if self.message_type == self.MESSAGE_TYPE_NOTHING:
             return u"Blank Message"  
-            
+    
+    @property
+    def runs_string(self):
+        if self.runs.all():
+            runs_string = ""
+            for run in self.runs.all():
+                runs_string = "{} to {}; {}".format(run.job.pick_checkpoint.checkpoint_name, run.job.drop_checkpoint.checkpoint_name, runs_string)
+            return runs_string
+        else:
+            return ""
+        
     @property
     def message_type_as_string(self):
         return self.MESSAGE_TYPE_CHOICES[self.message_type][1]
@@ -75,7 +85,6 @@ class Message(models.Model):
         elif self.message_type == self.MESSAGE_TYPE_OFFICE:
             self.race_entry.entry_status = RaceEntry.ENTRY_STATUS_CUT
             self.race_entry.save()
-            ##if they confirm that they're cut, we wipe any other come to the office messages for this racer
             Message.objects.filter(race_entry=self.race_entry).filter(message_type=self.MESSAGE_TYPE_OFFICE).exclude(pk=self.pk).delete()
         
         #TODO add logging

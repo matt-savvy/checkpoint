@@ -9,6 +9,7 @@ import pytz
 import random 
 from checkpoints.models import Checkpoint 
 from time import sleep
+from freezegun import freeze_time
 
 def snooze_capped_runs(race_entry):
     runs = Run.objects.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING)
@@ -165,9 +166,11 @@ def get_next_message(race, dispatcher=None):
     message = Message(race=race, message_type=Message.MESSAGE_TYPE_NOTHING)
     message.save()
     return message
-    
+
+
 def simulate_race(race, NUMBER_OF_DISPATCHERS, checkpoints, speed=60):
     right_now = datetime.datetime.now(tz=pytz.utc)
+    
     messages_this_minute = 0
     racing_entries = RaceEntry.objects.filter(race=race).filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT))
     
@@ -201,7 +204,7 @@ def simulate_race(race, NUMBER_OF_DISPATCHERS, checkpoints, speed=60):
         
         if entry.last_action:
             long_enough = datetime.timedelta(seconds=random.randint(180, 360)) / speed
-            if datetime.datetime.now(tz=pytz.utc) - entry.last_action > long_enough:
+            if right_now - entry.last_action > long_enough:
                 #they did something 3-6 minutes ago, let's simulate another action
                 
                 #are they clear and cut? 
@@ -245,6 +248,5 @@ def simulate_race(race, NUMBER_OF_DISPATCHERS, checkpoints, speed=60):
     print "\n"
     
     sleep(60 / speed)
-    
     
     return checkpoints
