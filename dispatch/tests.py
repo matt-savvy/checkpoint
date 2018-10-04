@@ -183,7 +183,56 @@ class get_next_message_TestCase(TestCase):
         next_message = get_next_message(self.race)
         self.assertEqual(next_message.pk, first_next_message.pk)
     
-    
+    @freeze_time("2018-9-27 10:30:00")
+    def test_get_next_message_office_when_race_is_over_dispatch_prelim_clear_racer(self):
+        """if the race is over and you haven't finished, you should get told to come back!"""
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        self.race.race_type = Race.RACE_TYPE_DISPATCH_PRELIMS
+        self.race.race_start_time = None
+        self.race.time_limit = 55
+        self.race.save()
+        self.race_entry_one.start_time = right_now - datetime.timedelta(minutes=60)
+        self.race_entry_two.start_time = right_now - datetime.timedelta(minutes=61)
+        runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        self.assertEqual(next_message.runs.count(), 0)
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
+        
+    @freeze_time("2018-9-27 10:30:00")
+    def test_get_next_message_office_when_race_is_over_dispatch_prelim_busy_racer(self):
+        """if the race is over and you haven't finished, you should get told to come back!"""
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        self.race.race_type = Race.RACE_TYPE_DISPATCH_PRELIMS
+        self.race.race_start_time = None
+        self.race.time_limit = 55
+        self.race.save()
+        RunFactory(race_entry=self.race_entry_one, status=Run.RUN_STATUS_ASSIGNED)
+        RunFactory(race_entry=self.race_entry_two, status=Run.RUN_STATUS_ASSIGNED)
+        self.race_entry_one.start_time = right_now - datetime.timedelta(minutes=60)
+        self.race_entry_one.save()
+        self.race_entry_two.start_time = right_now - datetime.timedelta(minutes=61)
+        self.race_entry_two.save()
+        runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        self.assertEqual(next_message.runs.count(), 0)
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
+        
+    @freeze_time("2018-9-27 10:30:00")
+    def test_get_next_message_office_when_race_is_over_dispatch_final(self):
+        """if the race is over and you haven't finished, you should get told to come back!"""
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        self.race.race_type = Race.RACE_TYPE_DISPATCH_FINALS
+        self.race.race_start_time = right_now - datetime.timedelta(minutes=60)
+        self.race.time_limit = 55
+        self.race.save()
+        runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, utc_time_ready=right_now)
+        
+        next_message = get_next_message(self.race)
+        self.assertEqual(next_message.runs.count(), 0)
+        self.assertEqual(next_message.message_type, Message.MESSAGE_TYPE_OFFICE)
+        
     def test_get_next_message_runs_with_no_ready_time(self):
         """make sure if a job has no ready time, we act like it's ready now"""
         Run.objects.filter(status=Run.RUN_STATUS_ASSIGNED).delete()

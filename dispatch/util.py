@@ -58,11 +58,23 @@ def get_next_message(race, dispatcher=None):
     right_now = datetime.datetime.now(tz=pytz.utc)
     overtime_manifest = Manifest.objects.filter(race=race).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
     
+    if race.race_end_time:
+        if race.race_end_time <= right_now:
+            race_entries = RaceEntry.objects.filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT)).filter(race=race).order_by('start_time', 'starting_position')
+            for entry in race_entries:
+                office_messages = Message.objects.filter(race_entry=entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).exists()
+                if not office_messages:
+                    message = Message(race=race, race_entry=entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
+                    message.save()
+                    return message
+            
     #if we're at the five minute warning, so any messages we were going to "Get back to" are wiped
     if race.five_minute_warning:
         Message.objects.filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(message_type=Message.MESSAGE_TYPE_DISPATCH).filter(race_entry__race=race).delete()
         Message.objects.filter(Q(status=Message.MESSAGE_STATUS_DISPATCHING) | Q(status=Message.MESSAGE_STATUS_NONE)).filter(race_entry__race=race).filter(message_time__lte=right_now - datetime.timedelta(minutes=3)).delete()
-        
+    
+
+    
     ## are there any SNOOZED messages IN THIS RACE that already exist?
     snoozed_messages = Message.objects.filter(status=Message.MESSAGE_STATUS_SNOOZED).filter(race_entry__race=race).filter(message_time__lte=right_now)
     if snoozed_messages:
@@ -78,9 +90,6 @@ def get_next_message(race, dispatcher=None):
         print "found unconfirmed"
         return old_unconfirmed_messages.first()
     
-     
-    import pdb
-    #pdb.set_trace()
     ##are there any clear racers? they get top priority
     race_entry = race.find_clear_racer()
 
@@ -126,8 +135,7 @@ def get_next_message(race, dispatcher=None):
                 message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
                 message.save()
                 return message
-    
-            
+
     runs = Run.objects.filter(race_entry__race=race).filter(race_entry__entry_status=RaceEntry.ENTRY_STATUS_RACING).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
     
     ##we don't want to filter it down to jobs with no manifest otherwise racers with an assigned manifest get no work
@@ -139,6 +147,14 @@ def get_next_message(race, dispatcher=None):
     
     while runs.all().exists():
         race_entry = runs.first().race_entry
+        
+        if race_entry.race_end_time <= right_now:
+            office_messages = Message.objects.filter(race_entry=race_entry).filter(message_type=Message.MESSAGE_TYPE_OFFICE).exists()
+            if not office_messages:
+                message = Message(race=race, race_entry=race_entry, message_type=Message.MESSAGE_TYPE_OFFICE, status=Message.MESSAGE_STATUS_DISPATCHING)
+                message.save()
+                return message
+        
         runs_to_assign = runs.filter(race_entry=race_entry).filter(status=Run.RUN_STATUS_PENDING).filter(utc_time_ready__lte=right_now)
 
         if run_count(race_entry) < race_entry.race.run_limit:
