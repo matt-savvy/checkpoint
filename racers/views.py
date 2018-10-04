@@ -132,6 +132,9 @@ def RegFinished(request):
                 new_racer.paid = True
                 new_racer.paypal_tx = pdt_obj.txn_id
                 new_racer.save()
+                HEATS = [Racer.HEAT_FIRST, Racer.HEAT_SECOND, Racer.HEAT_THIRD, Racer.HEAT_FOURTH]
+                new_racer.heat = HEATS[new_racer.pk % 4]
+                new_racer.save()
                 s.delete()
                 
                 if 'session_key' in request:    
@@ -254,6 +257,13 @@ class RacerCreateView(AuthorizedRaceOfficalMixin, CreateView):
     template_name = 'create_racer.html'
     model = Racer
     form_class = RacerForm
+    
+    def form_valid(self, form):
+        self.object = form.save()
+        HEATS = [Racer.HEAT_FIRST, Racer.HEAT_SECOND, Racer.HEAT_THIRD, Racer.HEAT_FOURTH]
+        self.object.heat = HEATS[self.object.pk % 4]
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
     
     def get_success_url(self):
         messages.success(self.request, 'Racer was successfully created')

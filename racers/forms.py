@@ -8,7 +8,7 @@ class RacerForm(forms.ModelForm):
     racer_number = forms.ChoiceField(choices=available_numbers)
     class Meta:
         model = Racer
-    
+
     def __init__(self, *args, **kwargs):
         super(RacerForm, self).__init__(*args, **kwargs)
         racer_numbers = range(500, 1000)
@@ -20,7 +20,10 @@ class RacerForm(forms.ModelForm):
         available_numbers = [x for x in racer_numbers if x not in existing_numbers][:numbers_to_fill]
         available_numbers_tup = tuple([(element, str(element)) for element in available_numbers])
         self.fields['racer_number'].choices = available_numbers_tup
-    
+        if not kwargs['instance']:
+            if 'heat' in self.fields:
+                del self.fields['heat']
+                        
 class VolunteerForm(forms.ModelForm):
     class Meta:
         model = Volunteer

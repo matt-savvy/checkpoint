@@ -58,7 +58,7 @@ def run_count(race_entry):
 def get_next_message(race, dispatcher=None):
     right_now = datetime.datetime.now(tz=pytz.utc)
     overtime_manifest = Manifest.objects.filter(race=race).filter(manifest_type=Manifest.TYPE_CHOICE_BONUS).first()
-    
+
     if race.race_end_time:
         if race.race_end_time <= right_now:
             race_entries = RaceEntry.objects.filter(Q(entry_status=RaceEntry.ENTRY_STATUS_RACING) | Q(entry_status=RaceEntry.ENTRY_STATUS_CUT)).filter(race=race).order_by('start_time', 'starting_position')

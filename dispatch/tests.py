@@ -191,8 +191,12 @@ class get_next_message_TestCase(TestCase):
         self.race.race_start_time = None
         self.race.time_limit = 55
         self.race.save()
+        Run.objects.update(status=Run.RUN_STATUS_COMPLETED)
         self.race_entry_one.start_time = right_now - datetime.timedelta(minutes=60)
         self.race_entry_two.start_time = right_now - datetime.timedelta(minutes=61)
+        self.race_entry_one.save()
+        self.race_entry_two.save()
+        
         runs = RunFactory.create_batch(5, race_entry=self.race_entry_one, utc_time_ready=right_now)
         
         next_message = get_next_message(self.race)
