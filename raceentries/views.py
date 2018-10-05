@@ -277,6 +277,10 @@ class AdvanceView(AuthorizedRaceOfficalMixin, FormView):
                         if men_advanced <= advance_per_manifest_men:
                             re = RaceEntry(racer=racer.racer, race=advance_to, starting_position=starting_position)
                             re.save()
+                            if advance_to.race_type == Race.RACE_TYPE_DISPATCH_FINALS:
+                                advance_to.populate_runs(re)
+                            RaceLog(racer=re.racer, race=advance_to, user=self.request.user, log="Racer entered in race", current_grand_total=re.grand_total, current_number_of_runs=re.number_of_runs_completed).save()
+                            
                             men_advanced += 1
                             starting_position += len(manifests)
                     if wtf_racers:
@@ -284,6 +288,10 @@ class AdvanceView(AuthorizedRaceOfficalMixin, FormView):
                         if wtf_advanced <= advance_per_manifest_wtf:
                             re = RaceEntry(racer=racer.racer, race=advance_to, starting_position=starting_position)
                             re.save()
+                            if advance_to.race_type == Race.RACE_TYPE_DISPATCH_FINALS:
+                                advance_to.populate_runs(re)
+                            RaceLog(racer=re.racer, race=advance_to, user=self.request.user, log="Racer entered in race", current_grand_total=re.grand_total, current_number_of_runs=re.number_of_runs_completed).save()
+                            
                             wtf_advanced += 1
                             starting_position += len(manifests)
                     if men_advanced >= advance_per_manifest_men and wtf_advanced >= advance_per_manifest_wtf:
