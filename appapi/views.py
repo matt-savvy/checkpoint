@@ -209,7 +209,7 @@ class DropView(APIView):
         try:
             run = Run.objects.get(pk=confirm_code)
         except:
-            return Response({'error' : True, 'error_title' : 'Cannot Find Confirm Code', 'error_description' : "No jobs' assoicated with confirm code {}.".format(str(confirm_code))}, status=status.HTTP_200_OK)
+            return Response({'error' : True, 'error_title' : 'Cannot Find Confirm Code', 'error_description' : "No jobs assoicated with confirm code {}.".format(str(confirm_code))}, status=status.HTTP_200_OK)
             
         #Make sure racer is authorized to make drop
         if run.race_entry.racer.racer_number != racer_number:
