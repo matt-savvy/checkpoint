@@ -145,8 +145,6 @@ class RacerLookupView(AuthorizedRaceOfficalMixin, APIView):
     permission_classes = (IsAuthenticated,)
     
     def get(self, request, *args, **kwargs):
-        import pdb
-        pdb.set_trace()
         current_race = RaceControl.shared_instance().current_race
         
         race_entry = RaceEntry.objects.filter(race=current_race).filter(racer__racer_number=kwargs['racer']).first()
