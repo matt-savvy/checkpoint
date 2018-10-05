@@ -192,16 +192,17 @@ class RadioAPIView(APIView):
         
         return available_numbers 
         
-    def post(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):        
         racer = self.request.DATA.get('racer')
         radio = self.request.DATA.get('radio')
         
         racer_obj = RaceEntry.objects.get(pk=racer).racer
+        if not radio:
+            radio = ""
         racer_obj.radio_number = radio
         racer_obj.contact_info = radio
         racer_obj.save()
         available_numbers = self.get_numbers()
-        #RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer assigned race.", current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
         
         return Response({'available_radios' : available_numbers, 'racer' : RacerSerializer(racer_obj).data}, status=status.HTTP_200_OK)
     

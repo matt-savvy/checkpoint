@@ -53,6 +53,9 @@ class RadioForm extends React.Component {
 	handleAssign() {
 		this.props.assignRadio(this.state.radio);
 	}
+	handleReturn() {
+		this.props.returnRadio();
+	}
 	render() {
 		var disabled;
 		
@@ -76,7 +79,8 @@ class RadioForm extends React.Component {
 				</div>
 				
 				<button type="button" disabled={disabled} className="btn btn-lg btn-info" id="assign-radio-button" onClick={this.handleAssign.bind(this)} data-loading-text="Loading...">Assign Radio</button>
-			
+					
+				{this.props.currentRadio && <button type="button" disabled={disabled} className="btn btn-lg btn-warning" id="assign-radio-button" onClick={this.handleReturn.bind(this)} data-loading-text="Loading...">Return Radio</button>}
            	</div>
 		)
 	}
@@ -100,7 +104,8 @@ class RadioAssignScreen extends React.Component {
 				return;
 			} else {
 				response.json().then(function(data) {
-				this.setState({radioList: data.available_radios});
+					var availRadios = data.available_radios
+				this.setState({radioList: availRadios});
 				}.bind(this));
 			}
 		
@@ -145,11 +150,40 @@ class RadioAssignScreen extends React.Component {
 				return;
 			}
 			response.json().then(function(data) {
-				console.log(data);
+				
 					this.setState({feedback:"Radio Assigned", disabled:null, mode:MODE_RACER_CONFIRMED})
 				}.bind(this));
 		}.bind(this)) 
 	}
+	returnRadio() {
+		this.setState({disabled:'disabled'});
+		var csrfToken = getCookie('csrftoken');
+		var radioResponse = {};
+		radioResponse.racer = this.state.currentRacer.id;
+		radioResponse.radio = null;
+		var radioResponseJSON = JSON.stringify(radioResponse);
+		fetch("/dispatch/radios/api/", {
+		  headers: {
+			'X-CSRFToken': csrfToken,
+	      	'Accept': 'application/json',
+	      	'Content-Type': 'application/json',
+	      },
+		  credentials: 'include',
+		  method: "POST",
+		  body: radioResponseJSON
+		})
+		.then(function(response) {
+			
+        	if (response.status !== 200) {
+          		alert('Looks like there was a problem. Status Code: ' + response.status);
+				return;
+			}
+			response.json().then(function(data) {
+					this.setState({feedback:"Radio Returned", disabled:null, mode:MODE_RACER_CONFIRMED})
+				}.bind(this));
+		}.bind(this)) 
+	}
+	
 	racerLookup(racer) {		
 		this.setState({disabled:'disabled', feedback:null, currentMessage: null, error_description:null});
 		var url = "/dispatch/lookup/" + racer + "/"
@@ -207,7 +241,8 @@ class RadioAssignScreen extends React.Component {
 				<div>
 					{this.state.feedback && <div className="alert alert-warning" role="alert"> {this.state.feedback}</div>}
 					<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode}/>	
-					<RadioForm radioList={this.state.radioList} currentRadio={this.state.currentRacer.racer.radio_number} assignRadio={this.assignRadio.bind(this)} />
+					<RadioForm radioList={this.state.radioList} currentRadio={this.state.currentRacer.racer.radio_number} returnRadio={this.returnRadio.bind(this)} assignRadio={this.assignRadio.bind(this)} />
+				
 				</div>
 			)
 		} else if (this.state.mode == MODE_RACER_CONFIRMED) {
@@ -216,7 +251,7 @@ class RadioAssignScreen extends React.Component {
 					{this.state.feedback && <div className="alert alert-warning" role="alert"> {this.state.feedback}</div>}
 					<Racer racer={this.state.currentRacer} mode={this.state.mode}/>	
 					<button onClick={this.reset.bind(this)} className="btn btn-info btn-lg" disabled={this.state.disabled} value="NEXT RACER"><i className="fas fa-arrow-circle-right"></i> Next Racer</button>
-		
+					
 				</div>
 			)
 		}  else {
