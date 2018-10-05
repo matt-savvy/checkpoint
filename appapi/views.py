@@ -9,6 +9,7 @@ from .serializers import CheckpointSerializer, RacerSerializer
 from ajax.serializers import JobSerializer, RunSerializer, RaceEntrySerializer
 from checkpoints.models import Checkpoint
 from racers.models import Racer
+from races.models import Race
 from racecontrol.models import RaceControl
 from raceentries.models import RaceEntry
 from jobs.models import Job
@@ -68,7 +69,7 @@ class RacerCheckpointView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
-    def post(self, request, *args, **kwargs):        
+    def post(self, request, *args, **kwargs):
         current_race = RaceControl.shared_instance().current_race
         right_now = datetime.datetime.now(tz=pytz.utc)
         racer_number = request.DATA.get('racer_number')
@@ -98,7 +99,8 @@ class RacerCheckpointView(APIView):
                     serialized_racer = RacerSerializer(racer)
                                 
                     return Response({'racer' : serialized_racer.data, 'runs' : serialized_runs.data, 'error' : False, 'error_title' : None, 'error_description' : None}, status=status.HTTP_200_OK)
-
+            else:
+                return Response({'error' : True, 'error_title' : 'Cannot Find Racer', 'error_description' : 'Please refresh your browser.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error' : True, 'error_title' : 'Cannot Find Racer', 'error_description' : 'No racer found with racer number {}.'.format(str(racer_number))}, status=status.HTTP_200_OK)
 
@@ -112,6 +114,17 @@ class PickView(APIView):
         run_number = request.DATA.get('run')
         checkpoint = request.DATA.get('checkpoint')
         
+        
+        race_id = request.DATA.get('race')
+        
+        try:
+            race = Race.objects.get(pk=race_id)
+            if  current_race != race:
+                return Response({'error' : True, 'error_title' : 'Current Race Changed', 'error_description' : 'Please reload your browser to update race info.'.format(str(run.job.drop_checkpoint.checkpoint_name))}, status=status.HTTP_200_OK)
+        except:
+            return Response({'error' : True, 'error_title' : 'Race Not Found', 'error_description' : 'Please reload your browser to update race info.'.format(str(run.job.drop_checkpoint.checkpoint_name))}, status=status.HTTP_200_OK)
+        
+
         #pdb.set_trace()
         run = Run.objects.filter(pk=run_number).filter(race_entry__racer__racer_number=racer_number).filter()
         
@@ -180,6 +193,16 @@ class DropView(APIView):
     
     def post(self, request, *args, **kwargs):
         current_race = RaceControl.shared_instance().current_race
+        race_id = request.DATA.get('race')
+        
+        try:
+            race = Race.objects.get(pk=race_id)
+            if  current_race != race:
+                return Response({'error' : True, 'error_title' : 'Current Race Changed', 'error_description' : 'Please reload your browser to update race info.'.format(str(run.job.drop_checkpoint.checkpoint_name))}, status=status.HTTP_200_OK)
+        except:
+            return Response({'error' : True, 'error_title' : 'Race Not Found', 'error_description' : 'Please reload your browser to update race info.'.format(str(run.job.drop_checkpoint.checkpoint_name))}, status=status.HTTP_200_OK)
+             
+        
         racer_number = request.DATA.get('racer_number')
         confirm_code = request.DATA.get('confirm_code')
         checkpoint = request.DATA.get('checkpoint')

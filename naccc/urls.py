@@ -47,6 +47,7 @@ urlpatterns = patterns('',
     url(r'^racers/shirt$', racer_views.RacerUpdateShirtView.as_view(), name="shirt-view"),
     url(r'^racers/registered/$', racer_views.RacerListViewPublic.as_view(), name="already-registered-view"),
     url(r'^racers/heats/$', racer_views.RacerHeatsViewPublic.as_view(), name="heats-view"),
+    url(r'^racers/heats/print/$', racer_views.RacerHeatsPrintView.as_view(), name="heats-view"),
     
     url(r'^racers/pay/$', racer_views.view_that_asks_for_money, name="pay-view"), 
     url(r'^racers/pdtreturn/$', racer_views.RegFinished, name="pdt_return_url"),

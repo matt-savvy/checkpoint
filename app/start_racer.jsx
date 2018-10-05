@@ -196,6 +196,7 @@ class StartRacerScreen extends React.Component {
 		var riderResponse = {};
 		riderResponse.message = this.state.currentMessage.id;
 		riderResponse.action = "UNDO";
+		racerRequest.race = raceID;
 		var riderResponseJSON = JSON.stringify(riderResponse);
 		fetch("/dispatch/api/rider_response/", {
 		  headers: {

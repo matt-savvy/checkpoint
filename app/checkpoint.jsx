@@ -35,6 +35,7 @@ $.ajaxSetup({
 });
 
 const checkpoint = getCookie('checkpointID');
+const raceID = getCookie('raceID');
 
 class CancelButton extends React.Component {
 	constructor(props) {
@@ -289,6 +290,7 @@ class Checkpoint extends React.Component {
 		var racerRequest = {}
 		racerRequest.racer_number = racer;
 		racerRequest.checkpoint = checkpoint;
+		racerRequest.race = raceID;
 		var racerRequestJSON = JSON.stringify(racerRequest);
 		
 		fetch("/api/v1/racer/", {
@@ -326,6 +328,7 @@ class Checkpoint extends React.Component {
 		pickRequest.racer_number = this.state.racer.racer_number
 		pickRequest.run = run;
 		pickRequest.checkpoint = Number(checkpoint);
+		pickRequest.race = raceID;
 		var pickRequestJSON = JSON.stringify(pickRequest);
 		
 		//remove the run we're picking from the list anyway
@@ -372,6 +375,7 @@ class Checkpoint extends React.Component {
 		dropRequest.racer_number = this.state.racer.racer_number
 		dropRequest.confirm_code = code;
 		dropRequest.checkpoint = Number(checkpoint);
+		dropRequest.race = raceID;
 		var dropRequestJSON = JSON.stringify(dropRequest);
 		
 		fetch("/api/v1/drop/", {
@@ -387,7 +391,7 @@ class Checkpoint extends React.Component {
 		.then(function(response) {
 			
         	if (response.status !== 200) {
-          		alert('Looks like there was a problem. Status Code: ' + response.status);
+          		alert('Looks like there was a problem. Please reload your browser. Status Code: ' + response.status);
 				return;
 			}
 			response.json().then(function(data) {
