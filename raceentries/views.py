@@ -245,40 +245,49 @@ class AdvanceView(AuthorizedRaceOfficalMixin, FormView):
     def form_valid(self, form):
         advance_to = get_object_or_404(Race, pk=self.kwargs['pk'])
         advance_from = form.cleaned_data['advance_from']
-        racers = RaceEntry.objects.filter(race=advance_from).filter(entry_status=RaceEntry.ENTRY_STATUS_FINISHED)
+        all_finished_racers = RaceEntry.objects.filter(race=advance_from).filter(entry_status=RaceEntry.ENTRY_STATUS_FINISHED)
+        manifests = Manifest.objects.filter(race=advance_from)
+
+        advance_per_manifest_men = round(form.cleaned_data['men_to_advance'] / manifests.count())
+        advance_per_manifest_wtf = round(form.cleaned_data['wtf_to_advance'] / manifests.count())
+        
         if form.cleaned_data['advance_using'] == form.ADVANCE_FROM_POINTS:
-            for racer in racers:
-                racer.last_drop = Run.objects.filter(status=Run.RUN_STATUS_COMPLETED).order_by('utc_time_dropped').last()
-                racer.elapsed_time_til_last_drop = racer.last_drop.utc_time_dropped - racer.start_time
-            racers = list(racers)
-            racers.sort(key=lambda x: (-x.grand_total, x.elapsed_time_til_last_drop))
+            for x, manifest in enumerate(manifests):
+                racers = all_finished_racers.filter(manifest=manifest)
+                for racer in racers:
+                    racer.last_drop = Run.objects.filter(status=Run.RUN_STATUS_COMPLETED).order_by('utc_time_dropped').last()
+                    racer.elapsed_time_til_last_drop = racer.last_drop.utc_time_dropped - racer.start_time
+                racers = list(racers)
+                racers.sort(key=lambda x: (-x.grand_total, x.elapsed_time_til_last_drop))
             
-            men_racers = [entry for entry in racers if entry.racer.gender == Racer.GENDER_MALE]
-            wtf_racers = [entry for entry in racers if entry.racer.gender != Racer.GENDER_MALE]
-            men_advanced = 0
-            wtf_advanced = 0
-            try:
-                starting_position = RaceEntry.objects.filter(race=advance_to).order_by('starting_position').first().starting_position
-            except:
-                starting_position = 1
-            
-            while men_racers or wtf_racers:
-                if men_racers: 
-                    racer = men_racers.pop(0)
-                    if men_advanced <= form.cleaned_data['men_to_advance']:
-                        re = RaceEntry(racer=racer.racer, race=advance_to, starting_position=starting_position)
-                        re.save()
-                        men_advanced += 1
-                        starting_position += 1
-                if wtf_racers:
-                    racer = wtf_racers.pop(0)
-                    if wtf_advanced <= form.cleaned_data['wtf_to_advance']:
-                        re = RaceEntry(racer=racer.racer, race=advance_to, starting_position=starting_position)
-                        re.save()
-                        wtf_advanced += 1
-                        starting_position += 1
-                if men_advanced >= form.cleaned_data['men_to_advance'] and wtf_advanced >= form.cleaned_data['wtf_to_advance']:
-                    break 
+                men_racers = [entry for entry in racers if entry.racer.gender == Racer.GENDER_MALE]
+                wtf_racers = [entry for entry in racers if entry.racer.gender != Racer.GENDER_MALE]
+                men_advanced = 0
+                wtf_advanced = 0
+                try:
+                    starting_position = RaceEntry.objects.filter(race=advance_to).order_by('starting_position').first().starting_position + (100 * x) + x
+                except:
+                    starting_position = (100 * x) + x
+                    
+                starting_position = 1 + x
+                
+                while men_racers or wtf_racers:
+                    if men_racers: 
+                        racer = men_racers.pop(0)
+                        if men_advanced <= advance_per_manifest_men:
+                            re = RaceEntry(racer=racer.racer, race=advance_to, starting_position=starting_position)
+                            re.save()
+                            men_advanced += 1
+                            starting_position += len(manifests)
+                    if wtf_racers:
+                        racer = wtf_racers.pop(0)
+                        if wtf_advanced <= advance_per_manifest_wtf:
+                            re = RaceEntry(racer=racer.racer, race=advance_to, starting_position=starting_position)
+                            re.save()
+                            wtf_advanced += 1
+                            starting_position += len(manifests)
+                    if men_advanced >= advance_per_manifest_men and wtf_advanced >= advance_per_manifest_wtf:
+                        break
             if racers:
                 messages.success(self.request, '{} Racers have been advanced to {}.'.format(starting_position, advance_to))
             else:
