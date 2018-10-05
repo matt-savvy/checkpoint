@@ -114,15 +114,14 @@ class PickView(APIView):
         run_number = request.DATA.get('run')
         checkpoint = request.DATA.get('checkpoint')
         
-        
         race_id = request.DATA.get('race')
         
         try:
             race = Race.objects.get(pk=race_id)
             if  current_race != race:
-                return Response({'error' : True, 'error_title' : 'Current Race Changed', 'error_description' : 'Please reload your browser to update race info.'.format(str(run.job.drop_checkpoint.checkpoint_name))}, status=status.HTTP_200_OK)
+                return Response({'error' : True, 'error_title' : 'Current Race Changed', 'error_description' : 'Please reload your browser to update race info.'}, status=status.HTTP_200_OK)
         except:
-            return Response({'error' : True, 'error_title' : 'Race Not Found', 'error_description' : 'Please reload your browser to update race info.'.format(str(run.job.drop_checkpoint.checkpoint_name))}, status=status.HTTP_200_OK)
+            return Response({'error' : True, 'error_title' : 'Race Not Found', 'error_description' : 'Please reload your browser to update race info.'}, status=status.HTTP_200_OK)
         
 
         #pdb.set_trace()
@@ -198,9 +197,9 @@ class DropView(APIView):
         try:
             race = Race.objects.get(pk=race_id)
             if  current_race != race:
-                return Response({'error' : True, 'error_title' : 'Current Race Changed', 'error_description' : 'Please reload your browser to update race info.'.format(str(run.job.drop_checkpoint.checkpoint_name))}, status=status.HTTP_200_OK)
+                return Response({'error' : True, 'error_title' : 'Current Race Changed', 'error_description' : 'Please reload your browser to update race info.'}, status=status.HTTP_200_OK)
         except:
-            return Response({'error' : True, 'error_title' : 'Race Not Found', 'error_description' : 'Please reload your browser to update race info.'.format(str(run.job.drop_checkpoint.checkpoint_name))}, status=status.HTTP_200_OK)
+            return Response({'error' : True, 'error_title' : 'Race Not Found', 'error_description' : 'Please reload your browser to update race info.'}, status=status.HTTP_200_OK)
              
         
         racer_number = request.DATA.get('racer_number')
