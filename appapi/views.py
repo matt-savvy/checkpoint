@@ -108,14 +108,14 @@ class PickView(APIView):
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
     
-    def post(self, request, *args, **kwargs):     
+    def post(self, request, *args, **kwargs):
         current_race = RaceControl.shared_instance().current_race
         racer_number = request.DATA.get('racer_number')
         run_number = request.DATA.get('run')
         checkpoint = request.DATA.get('checkpoint')
         
         race_id = request.DATA.get('race')
-        
+
         try:
             race = Race.objects.get(pk=race_id)
             if  current_race != race:
