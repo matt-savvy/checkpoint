@@ -185,7 +185,7 @@ class RadioAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     
     def get_numbers(self):
-        radio_numbers = range(8, 90)
+        radio_numbers = [2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 41, 43, 44, 45, 46, 47, 48, 49, 50, 55, 56, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 85, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112]
         existing_numbers = Racer.objects.values_list('radio_number', flat=True)
         available_numbers = ["radio {}".format(str(x)) for x in radio_numbers]
         available_numbers = [x for x in available_numbers if x not in existing_numbers]
