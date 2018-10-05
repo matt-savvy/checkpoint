@@ -1,0 +1,33 @@
+{% extends 'base2.html' %}
+{% block container %}
+<div class="page-header">
+  <h1>REGISTERED RACERS</h1>
+</div>
+
+<h3>{{racers|length}} racers</h3>
+
+<div class="table-responsive">
+<table class="table table-striped">
+  <tr>
+      <th>Racer Number</th>
+      <th>Name</th>
+      <th>City</th>
+	  <th>Heat</th>
+
+  </tr>
+      {% for racer in racers %}
+          <tr>
+              <td>{{racer.racer_number}}</td>
+              <td>{{racer}}</td>
+              <td>{{racer.city}}</td>
+              <td>{{racer.heat_string}}</td>
+           </tr>
+      {% empty %}
+      <tr>
+          <td colspan="7">No one signed up yet, but check back to see who else is coming!</td>
+       </tr>
+      {% endfor %}
+</table>
+</div>
+
+{% endblock %}
