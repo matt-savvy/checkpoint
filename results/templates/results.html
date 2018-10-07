@@ -33,15 +33,16 @@
 
     <div class="container theme-showcase" role="main">
 	<h1>Championship Finals</h1>
-        <h2>Men Category</h2>
+        <h2>Men's Category</h2>
         <table class="table table-bordered">
           <tr>
               <th>Place</th>
               <th>Racer Name</th>
               <th>Racer Number</th>
-              <th>Gender</th>
               <th>City</th>
               <th>Team</th>
+			  <th>Company</th>
+			  <th>Category</th>
               <th>Earnings</th>
              </tr>
              {% for entry in race_entries_men %}
@@ -54,10 +55,11 @@
                            <th>Place</th>
                            <th>Racer Name</th>
                            <th>Racer Number</th>
-                           <th>Gender</th>
                            <th>City</th>
-                           <th>Team</th>
-                           <th>Earnings</th>
+			               <th>Team</th>
+			 			   <th>Company</th>
+			 			   <th>Category</th>
+			               <th>Earnings</th>
                           </tr>
                  {% endif %}
                  
@@ -67,9 +69,10 @@
                          <td>{{entry.place}}</td>
                          <td>{{the_racer.racer.display_name}}</td>
                          <td>{{the_racer.racer.racer_number}}</td>
-                         <td>{{the_racer.racer.gender}}</td>
                          <td>{{the_racer.racer.city}}</td>
                          <td>{{the_racer.racer.team}}</td>
+						 <td>{{the_racer.racer.company}}</td>
+						 <td>{{the_racer.racer.category_as_string}}</td>
                          <td>${{the_racer.grand_total}}</td>
                      </tr>
                  {% endfor %}
@@ -85,6 +88,8 @@
               <th>Gender</th>
               <th>City</th>
               <th>Team</th>
+			  <th>Company</th>
+			  <th>Category</th>
               <th>Earnings</th>
              </tr>
              {% for entry in race_entries_wtf %}
@@ -97,7 +102,6 @@
                            <th>Place</th>
                            <th>Racer Name</th>
                            <th>Racer Number</th>
-                           <th>Gender</th>
                            <th>City</th>
                            <th>Team</th>
                            <th>Earnings</th>
@@ -110,9 +114,10 @@
                          <td>{{entry.place}}</td>
                          <td>{{the_racer.racer.display_name}}</td>
                          <td>{{the_racer.racer.racer_number}}</td>
-                         <td>{{the_racer.racer.gender}}</td>
                          <td>{{the_racer.racer.city}}</td>
                          <td>{{the_racer.racer.team}}</td>
+                         <td>{{the_racer.racer.company}}</td>
+                         <td>{{the_racer.racer.category_as_string}}</td>
                          <td>${{the_racer.grand_total}}</td>
                      </tr>
                  {% endfor %}
