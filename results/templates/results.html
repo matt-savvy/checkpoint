@@ -32,7 +32,8 @@
   <body role="document">
 
     <div class="container theme-showcase" role="main">
-        <h1>{{race.race_name}} Results</h1>
+	<h1>Championship Finals</h1>
+        <h2>Men Category</h2>
         <table class="table table-bordered">
           <tr>
               <th>Place</th>
@@ -43,7 +44,7 @@
               <th>Team</th>
               <th>Earnings</th>
              </tr>
-             {% for entry in race_entries %}
+             {% for entry in race_entries_men %}
                  {% if show_cut %}
                  {% if entry.place == cut_line %}
              </table>
@@ -75,6 +76,51 @@
              {% endfor %}
         </table>
         
+		<h2>WTF Category</h2>
+        <table class="table table-bordered">
+          <tr>
+              <th>Place</th>
+              <th>Racer Name</th>
+              <th>Racer Number</th>
+              <th>Gender</th>
+              <th>City</th>
+              <th>Team</th>
+              <th>Earnings</th>
+             </tr>
+             {% for entry in race_entries_wtf %}
+                 {% if show_cut %}
+                 {% if entry.place == cut_line %}
+             </table>
+             <h2>{{cut_remark}}</h2>
+             <table class="table table-bordered">
+                       <tr>
+                           <th>Place</th>
+                           <th>Racer Name</th>
+                           <th>Racer Number</th>
+                           <th>Gender</th>
+                           <th>City</th>
+                           <th>Team</th>
+                           <th>Earnings</th>
+                          </tr>
+                 {% endif %}
+                 
+                 {% endif %}
+                 {% for the_racer in entry.racers %}
+                     <tr>
+                         <td>{{entry.place}}</td>
+                         <td>{{the_racer.racer.display_name}}</td>
+                         <td>{{the_racer.racer.racer_number}}</td>
+                         <td>{{the_racer.racer.gender}}</td>
+                         <td>{{the_racer.racer.city}}</td>
+                         <td>{{the_racer.racer.team}}</td>
+                         <td>${{the_racer.grand_total}}</td>
+                     </tr>
+                 {% endfor %}
+             {% endfor %}
+        </table>
+		
+		
+		
         {% if show_dq %}
         <h3> Disqualified Racers</h3>
         <table class="table table-bordered">
@@ -122,4 +168,4 @@
     {% block javascript_imports %}
     {% endblock %}
   </body>
-</html>
+</html></

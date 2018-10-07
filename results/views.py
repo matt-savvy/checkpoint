@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.generic.edit import FormView
+from racers.models import Racer
 from .forms import ResultsForm
 from raceentries.models import RaceEntry
 from nacccusers.auth import AuthorizedRaceOfficalMixin
@@ -11,13 +12,17 @@ class ResultsGenerationView(AuthorizedRaceOfficalMixin, FormView):
 
     def form_valid(self, form):
         race_entries = RaceEntry.objects.filter(race=form.cleaned_data['race']).filter(entry_status=RaceEntry.ENTRY_STATUS_FINISHED).order_by('-grand_total')
+        racers_men = race_entries.filter(racer__gender=Racer.GENDER_MALE)
+        racers_wtf = race_entries.exclude(racer__gender=Racer.GENDER_MALE)
         
         context = {
             'race'           : form.cleaned_data['race'],
-            'race_entries'   : self.place_racers(race_entries),
+            'race_entries_men' : self.place_racers(racers_men),
+            'race_entries_wtf' : self.place_racers(racers_wtf),
             'show_dnf'       : form.cleaned_data['show_dnf'],
             'show_dq'        : form.cleaned_data['show_dq'],
         }
+        
         if form.cleaned_data['cut_line'] != 0:
             context['show_cut'] = True
             context['cut_line'] = form.cleaned_data['cut_line']
