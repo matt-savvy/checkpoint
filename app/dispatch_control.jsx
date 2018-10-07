@@ -56,6 +56,9 @@ class Run extends React.Component {
 					<td>{this.props.run.status_as_string}</td>
 					<td>{this.props.run.localized_ready_time}</td>
 					<td>{this.props.run.localized_due_time}</td>
+			{this.props.dropTime && <td>{this.props.run.localized_drop_time}</td>}
+			{this.props.dropTime && <td>{this.props.run.points_awarded}</td>}
+			
 					<td>{this.props.run.job.service}</td>
 					<td>{this.props.run.job.manifest && this.props.run.job.manifest.manifest_name}</td>
 				</tr>
@@ -67,10 +70,11 @@ class Run extends React.Component {
 class RunTable extends React.Component {
 	render () {
 		var RunList = this.props.runs.map(function (run) {
-			return (<Run key={run.id} run={run} />)
-		});
-		
+			return (<Run key={run.id} dropTime={this.props.dropTime} run={run} />)
+		}.bind(this));
+		console.log(this.props.dropTime);
 		return (
+			
 			<div>
 				<h2>{this.props.label} <small> <span className="badge badge-pill badge-primary">{this.props.runs.length}</span> </small></h2>
 				<table className="table">
@@ -82,6 +86,8 @@ class RunTable extends React.Component {
 							<th scope="col">Status</th>
 							<th scope="col">Ready Time</th>
 							<th scope="col">Due Time</th>
+							{this.props.dropTime && <th scope="col">Drop time</th>}
+							{this.props.dropTime && <th scope="col">Points Awarded</th>}
 							<th scope="col">Service</th>
 							<th scope="col">Manifest</th>
 						</tr>
@@ -221,10 +227,10 @@ class DispatchControl extends React.Component {
 					
 					<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode}/>
 					<h3 className="text-center">{this.state.currentRacer.entry_status_as_string} {this.state.currentRacer.localized_start_time && <small>Racing since {this.state.currentRacer.localized_start_time}</small>}</h3>
-					<h4 className="text-center">Current Earnings : ${this.state.currentRacer.current_score} </h4>
+					<h4 className="text-center">Grand Total : ${this.state.currentRacer.grand_total} </h4>
 					<RunTable runs={openRuns} label="OPEN"/>
 					<RunTable runs={pendingRuns} label="PENDING"/>
-					<RunTable runs={completeRuns} label="COMPLETE"/>
+					<RunTable runs={completeRuns} dropTime={true} label="COMPLETE"/>
 				</div>
 			)
 		} else {

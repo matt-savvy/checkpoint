@@ -78,6 +78,14 @@ class Run(models.Model):
             return self.utc_time_ready.astimezone(eastern).strftime('%I:%M %p')
         else:
             return "N/A"
+            
+    @property
+    def localized_drop_time(self):
+        eastern = pytz.timezone('US/Eastern')
+        if self.utc_time_dropped:
+            return self.utc_time_dropped.astimezone(eastern).strftime('%I:%M %p')
+        else:
+            return "N/A"
     
     def assign(self, force=False):
         time_now = datetime.datetime.now(tz=pytz.utc)
