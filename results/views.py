@@ -11,7 +11,7 @@ class ResultsGenerationView(AuthorizedRaceOfficalMixin, FormView):
     success_url = "/results/"
 
     def form_valid(self, form):
-        race_entries = RaceEntry.objects.filter(race=form.cleaned_data['race']).filter(entry_status=RaceEntry.ENTRY_STATUS_FINISHED).order_by('-grand_total')
+        race_entries = RaceEntry.objects.filter(race=form.cleaned_data['race']).filter(entry_status=RaceEntry.ENTRY_STATUS_FINISHED).order_by('-grand_total', 'last_action')
         racers_men = race_entries.filter(racer__gender=Racer.GENDER_MALE)
         racers_wtf = race_entries.exclude(racer__gender=Racer.GENDER_MALE)
         
@@ -55,16 +55,13 @@ class ResultsGenerationView(AuthorizedRaceOfficalMixin, FormView):
                 }
                 first_run = False
             else:
-                if racer.grand_total == current_result_dict['earnings']:
-                    current_result_dict['racers'].append(racer)
-                else:
-                    results.append(current_result_dict)
-                    counter += 1
-                    current_result_dict = {
-                        'place'     : counter,
-                        'racers'    : [racer],
-                        'earnings'  : racer.grand_total
-                    }
+                results.append(current_result_dict)
+                counter += 1
+                current_result_dict = {
+                    'place'     : counter,
+                    'racers'    : [racer],
+                    'earnings'  : racer.grand_total
+                }
         results.append(current_result_dict)
         return results
             
