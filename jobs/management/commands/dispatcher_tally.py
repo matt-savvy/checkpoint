@@ -27,7 +27,7 @@ class Command(BaseCommand):
         logs = RaceLog.objects.filter(race__pk=2).filter(log__contains="Racer confirmed message ")
         for log in logs:
             pk = log.log.split("Racer confirmed message ")[1]
-            pk = log_pk.split(".")[0]
+            pk = pk.split(".")[0]
             message = Message.objects.filter(pk=pk).first()
             if message:
                 dispatcher = log.user
