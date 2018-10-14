@@ -39,7 +39,10 @@ def assign_runs(runs_to_assign, race_entry):
         
     for run in runs_to_assign:
         message.runs.add(run)
-        run.status = Run.RUN_STATUS_DISPATCHING    
+        run.status = Run.RUN_STATUS_DISPATCHING
+        if run.utc_time_ready:
+            if run.utc_time_ready > right_now:
+                run.utc_time_ready = right_now
         run.utc_time_assigned = right_now
         run.save()
     

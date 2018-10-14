@@ -262,6 +262,26 @@ class get_next_message_TestCase(TestCase):
             self.assertTrue(run.job in self.jobs_second)
             self.assertFalse(run.job in self.jobs_third)
     
+    @freeze_time("2018-9-27 10:30:00")
+    def test_future_jobs_get_ready_time_now(self):
+        """if we have to pull a future job, its ready time should turn to now"""
+        right_now = datetime.datetime.now(tz=pytz.utc)
+        plus_ten = right_now + datetime.timedelta(minutes=10)
+        Run.objects.filter(status=Run.RUN_STATUS_ASSIGNED).delete()
+        racer = self.race.find_clear_racer()
+        
+        run = Run.objects.filter(race_entry=racer).filter(status=Run.RUN_STATUS_PENDING).first()
+        run.utc_time_ready = plus_ten
+        run.save()
+        
+        next_message = get_next_message(self.race)
+        next_message_runs = next_message.runs.all()
+        
+        run = Run.objects.get(pk=run.pk)
+        
+        self.assertTrue(run in next_message_runs)
+        self.assertEqual(run.utc_time_ready, right_now)
+    
     def test_clear_racer_with_no_pending_jobs(self):
         "a clear racer with no pending jobs should be told to come back to the office"
         Run.objects.filter(status=Run.RUN_STATUS_ASSIGNED).delete()
