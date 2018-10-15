@@ -1,13 +1,14 @@
 from django.shortcuts import render
 from nacccusers.auth import AuthorizedRaceOfficalMixin
 
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 
 class HomeView(AuthorizedRaceOfficalMixin, TemplateView):
     template_name = "home.html"
 
-class WelcomeView(TemplateView):
-    template_name = "welcome.html"
+class WelcomeView(RedirectView):
+    permanent = True
+    url = "www.naccc2018.com"
     
 class ScheduleView(TemplateView):
     template_name = "schedule.html"
