@@ -8,7 +8,7 @@ class HomeView(AuthorizedRaceOfficalMixin, TemplateView):
 
 class WelcomeView(RedirectView):
     permanent = True
-    url = "www.naccc2018.com"
+    url = "http://www.naccc2018.com"
     
 class ScheduleView(TemplateView):
     template_name = "schedule.html"
