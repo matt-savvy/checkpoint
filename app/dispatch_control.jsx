@@ -47,7 +47,7 @@ class Run extends React.Component {
 		if (this.props.run.late) {
 			tableClass = "table expired"
 		}
-		
+
 		return (
 				<tr className={tableClass}>
 					<td>{this.props.run.id}</td>
@@ -58,7 +58,7 @@ class Run extends React.Component {
 					<td>{this.props.run.localized_due_time}</td>
 			{this.props.dropTime && <td>{this.props.run.localized_drop_time}</td>}
 			{this.props.dropTime && <td>{this.props.run.points_awarded}</td>}
-			
+
 					<td>{this.props.run.job.service}</td>
 					<td>{this.props.run.job.manifest && this.props.run.job.manifest.manifest_name}</td>
 				</tr>
@@ -74,7 +74,7 @@ class RunTable extends React.Component {
 		}.bind(this));
 		console.log(this.props.dropTime);
 		return (
-			
+
 			<div>
 				<h2>{this.props.label} <small> <span className="badge badge-pill badge-primary">{this.props.runs.length}</span> </small></h2>
 				<table className="table">
@@ -113,7 +113,7 @@ class DispatchControl extends React.Component {
 			error_description: null,
 		}
 	}
-	racerLookup(racer) {		
+	racerLookup(racer) {
 		this.setState({disabled:'disabled', feedback:null, error_description:null});
 		var url = "/dispatch/lookup/" + racer + "/?runs=True"
 		fetch(url, {
@@ -126,7 +126,7 @@ class DispatchControl extends React.Component {
 		})
 		.then(function(response) {
 			console.log(response);
-			
+
         	if (response.status == 500) {
           		alert('Looks like there was a problem. Status Code: ' + response.status);
 				return;
@@ -139,21 +139,21 @@ class DispatchControl extends React.Component {
 					console.log("promise");
 					if ((response.status == 200) && (data.racer)) {
 						console.log(data);
-						
+
 						this.setState({currentRacer: data.racer, runs: data.runs, mode: MODE_RACER_FOUND, currentMessage: null, disabled:null, error_description: null});
-		
-					 	
+
+
 					}
 				}.bind(this));
 			}
-			
-	
+
+
 		}.bind(this))
 	}
 	finishRacer() {
 		console.log("finishing racer");
 		this.setState({disabled:'disabled'});
-		
+
 		var csrfToken = getCookie('csrftoken');
 		var finishRequest = {};
 		finishRequest.racer = this.state.currentRacer.racer.racer_number;
@@ -170,14 +170,14 @@ class DispatchControl extends React.Component {
 		  body: finishRequestJSON
 		})
 		.then(function(response) {
-			
+
         	if (response.status !== 200) {
           		alert('Looks like there was a problem. Status Code: ' + response.status);
 				return;
 			}
 			response.json().then(function(data) {
 				console.log(data);
-				
+
 				if(!data.final_time) {
 					this.setState({feedback:data.error_description, disabled:null, mode:MODE_RACER_FOUND, showConfirm:true, currentMessage:null})
 				} else {
@@ -186,9 +186,9 @@ class DispatchControl extends React.Component {
 					currentRacer.entry_status = 2;
 				this.setState({feedback:null, currentRacer: currentRacer, disabled:null, showConfirm:false, finalTime:data.final_time})
 				}
-				
+
 				}.bind(this));
-		}.bind(this)) 
+		}.bind(this))
 	}
 	reset() {
 		this.setState({currentRacer:null, mode:MODE_LOOKUP_RACER, currentMessage:null, disabled:null, error_description:null})
@@ -201,12 +201,12 @@ class DispatchControl extends React.Component {
 	}
 	render(){
 		var still_racing;
-		
+
 		if (this.state.mode == MODE_LOOKUP_RACER) {
 			return (
 				<div>
 					{this.state.lastMessage && <button type="button" id="wrong-racer-button" onClick={this.handleLastRacer.bind(this)} className="btn btn" value="Show Last"><i className="fas fa-caret-left"></i> Prev</button>}
-					
+
 					<EnterRacer racerLookup={this.racerLookup.bind(this)} error_description={this.state.error_description}/>
 				</div>
 			)
@@ -214,17 +214,17 @@ class DispatchControl extends React.Component {
 			if ((this.state.currentRacer.entry_status == 1) || (this.state.currentRacer.entry_status == 5) | (this.state.currentRacer.entry_status == 6)){
 				still_racing = true;
 			}
-			
+
 			var openRuns = this.state.runs.filter(run => ((run.status == RUN_STATUS_ASSIGNED) || (run.status == RUN_STATUS_PICKED)|| (run.status == RUN_STATUS_DISPATCHING)));
 			var pendingRuns = this.state.runs.filter(run => (run.status == RUN_STATUS_PENDING));
 			var completeRuns = this.state.runs.filter(run => (run.status == RUN_STATUS_COMPLETED));
-			
+
 			return (
 				<div>
 					{this.state.feedback && <div className="alert alert-warning" role="alert"> {this.state.feedback}</div>}
 					{this.state.currentRacer && <p className="text-center"><button onClick={this.refresh.bind(this)} className="btn btn-primary"><i className="fa fa-refresh" aria-hidden="true"></i> Refresh</button></p>}
 					{still_racing && <p className="text-center"><button onClick={this.finishRacer.bind(this)} className="btn btn-warning">Finish Racer</button></p>}
-					
+
 					<Racer racer={this.state.currentRacer} reset={this.reset.bind(this)} mode={this.state.mode}/>
 					<h3 className="text-center">{this.state.currentRacer.entry_status_as_string} {this.state.currentRacer.localized_start_time && <small>Racing since {this.state.currentRacer.localized_start_time}</small>}</h3>
 					<h4 className="text-center">Grand Total : ${this.state.currentRacer.grand_total} </h4>
@@ -236,10 +236,10 @@ class DispatchControl extends React.Component {
 		} else {
 			return null;
 		}
-		
+
 	}
 }
 
 ReactDOM.render(
 	<DispatchControl />, document.getElementById('react-area')
-); 
+);

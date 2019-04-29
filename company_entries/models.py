@@ -69,6 +69,10 @@ class CompanyEntry(models.Model):
     #grand_total = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
     #number_of_runs_completed = models.IntegerField(default=0)
 
+    def get_runs(self):
+        from runs.models import Run
+        return Run.objects.filter(company_entry=self)
+
     def populate_runs(self):
         runs = self.race.populate_runs(company_entry=self)
 

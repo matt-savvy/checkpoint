@@ -4,13 +4,15 @@ from raceentries.models import RaceEntry
 from jobs.models import Job
 from checkpoints.models import Checkpoint
 from runs.models import Run
+from companies.models import Company
+from company_entries.models import CompanyEntry
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Racer
         fields = ('racer_number', 'first_name', 'last_name', 'nick_name', 'email', 'city', 'gender', 'category', 'shirt_size', 'paid', 'team', 'company')
-    
+
     def create(self, validated_data):
             return Racer(**validated_data)
 
@@ -18,7 +20,7 @@ class VolunteerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Volunteer
         fields = ('first_name', 'last_name', 'email', 'phone', 'city', 'shirt_size', 'paid')
-    
+
     def create(self, validated_data):
             return Volunteer(**validated_data)
 
@@ -37,7 +39,7 @@ class RaceEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = RaceEntry
         depth = 2
-        
+        fields = ('entry_status_as_string', 'localized_start_time', 'current_score', 'racer')
 
 class CheckpointSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,17 +49,33 @@ class JobSerializer(serializers.ModelSerializer):
     pick_checkpoint = CheckpointSerializer()
     drop_checkpoint = CheckpointSerializer()
     service = serializers.CharField(source='service')
-    
+
     class Meta:
         model = Job
         depth = 2
         fields = ('pick_checkpoint', 'drop_checkpoint', 'service', 'minutes_due_after_start', 'manifest')
-        
+
 class RunSerializer(serializers.ModelSerializer):
     job = JobSerializer()
     status_as_string = serializers.CharField(source='status_as_string')
     number_of_open_jobs = serializers.CharField(source='number_of_open_jobs')
-    
+
     class Meta:
         model = Run
         fields = ('id', 'job', 'status_as_string')
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ('name', )
+
+class CompanyEntrySerializer(serializers.ModelSerializer):
+    company = CompanySerializer()
+    #race = RaceSerializer()
+    race_entries = RaceEntrySerializer(source='get_race_entries', many=True)
+    runs = RunSerializer(source='get_runs', many=True)
+
+    class Meta:
+        model = CompanyEntry
+        fields = ('company', 'race_entries', 'runs')
+        #fields = ('company',)

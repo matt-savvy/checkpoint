@@ -20,6 +20,7 @@ import runs.views as run_views
 import racelogs.views as log_views
 import paypal.standard.ipn.signals
 import dispatch.views as dispatch_views
+import company_dispatch.views as company_dispatch_views
 
 admin.autodiscover()
 
@@ -30,11 +31,11 @@ urlpatterns = patterns('',
     url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
 
     url(r'^nunya/', include(admin.site.urls)),
-    url(r'^$', home_views.WelcomeView.as_view(), name="welcome-view"),
-    url(r'^$', home_views.EmailTemplate.as_view(), name="email-template"),
-    url(r'^contact/$', home_views.ContactView.as_view(), name="contact-view"),
-    url(r'^schedule/$', home_views.ScheduleView.as_view(), name="schedule"),
-    url(r'^info/$', home_views.WhatIsView.as_view(), name="info"),
+    #url(r'^$', home_views.WelcomeView.as_view(), name="welcome-view"),
+    #url(r'^$', home_views.EmailTemplate.as_view(), name="email-template"),
+    #url(r'^contact/$', home_views.ContactView.as_view(), name="contact-view"),
+    #url(r'^schedule/$', home_views.ScheduleView.as_view(), name="schedule"),
+    #url(r'^info/$', home_views.WhatIsView.as_view(), name="info"),
     # url(r'^$', login_required(home_views.HomeView.as_view())),
 
     #Racer URLs
@@ -126,15 +127,18 @@ urlpatterns = patterns('',
     url(r'^racecontrol/ajax/racestatus/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.RaceStatusView.as_view())),
     url(r'^racecontrol/ajax/massstart/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.MassStartView.as_view())),
     #Dispatch
-    url(r'^dispatch/api/next_message/$', login_required(dispatch_views.NextMessage.as_view())),
-    url(r'^dispatch/api/rider_response/$', login_required(dispatch_views.RiderResponse.as_view())),
-    url(r'^dispatch/$', login_required(dispatch_views.DispatchView.as_view())),
-    url(r'^dispatch/radios/$', login_required(dispatch_views.RadioAssignView.as_view()), name="assign-radios"),
-    url(r'^dispatch/radios/api/$', login_required(dispatch_views.RadioAPIView.as_view())),
-    url(r'^dispatch/start_racer/$', login_required(dispatch_views.StartViewDispatch.as_view())),
-    url(r'^dispatch/controls/$', login_required(dispatch_views.DispatchControlsView.as_view())),
-    url(r'^dispatch/lookup/(?P<racer>[0-9]+)/$', login_required(dispatch_views.RacerLookupView.as_view())),
-    url(r'^dispatch/messages/(?P<race>[0-9]+)/$', login_required(dispatch_views.MessageListView.as_view())),
+    #url(r'^dispatch/api/next_message/$', login_required(dispatch_views.NextMessage.as_view())),
+    #url(r'^dispatch/api/rider_response/$', login_required(dispatch_views.RiderResponse.as_view())),
+    #url(r'^dispatch/$', login_required(dispatch_views.DispatchView.as_view())),
+    #url(r'^dispatch/radios/$', login_required(dispatch_views.RadioAssignView.as_view()), name="assign-radios"),
+    #url(r'^dispatch/radios/api/$', login_required(dispatch_views.RadioAPIView.as_view())),
+    #url(r'^dispatch/start_racer/$', login_required(dispatch_views.StartViewDispatch.as_view())),
+    #url(r'^dispatch/controls/$', login_required(dispatch_views.DispatchControlsView.as_view())),
+    #url(r'^dispatch/lookup/(?P<racer>[0-9]+)/$', login_required(dispatch_views.RacerLookupView.as_view())),
+    #url(r'^dispatch/messages/(?P<race>[0-9]+)/$', login_required(dispatch_views.MessageListView.as_view())),
+    ##COMPANY DISPATCH VIEWS
+    url(r'^dispatch/$', login_required(company_dispatch_views.CompanyDispatchView.as_view())),
+
     #Ajax Views
     url(r'^ajax/racer/(?P<racer_number>[0-9]+)/$', login_required(ajax_views.RacerAjaxView.as_view())),
     url(r'^ajax/job/(?P<job_id>[0-9]+)/$', login_required(ajax_views.JobAjaxView.as_view())),

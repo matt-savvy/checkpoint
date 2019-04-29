@@ -89,6 +89,7 @@ INSTALLED_APPS = (
     'dispatch',
     'companies',
     'company_entries',
+    'company_dispatch',
 )
 
 PAYPAL_IDENTITY_TOKEN = "Orx5c4XVqv8VqZizQdUdJ3hQshLik2MuIRtF_boHKhZidzW262C-h1SkLVa"

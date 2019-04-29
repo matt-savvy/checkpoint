@@ -1,10 +1,7 @@
 module.exports = {
+	mode: 'development',
 	entry: {
-		'dispatch' : './app/dispatch.jsx',
-		'dispatch_control' : './app/dispatch_control.jsx',
-		'checkpoint' : './app/checkpoint.jsx',
-		'start_racer' : './app/start_racer.jsx',
-		'radio_assign' : './app/radio_assign.jsx'
+		company_dispatch : ['@babel/polyfill', './app/company_dispatch.jsx'],
 	},
 	output: {
 		path : __dirname,
@@ -26,7 +23,8 @@ module.exports = {
 			{
 				loader: 'babel-loader',
 				query:{
-					presets: ['react', 'es2015', 'stage-0']
+					presets: ["@babel/preset-env", "@babel/preset-react"],
+					plugins: ["@babel/plugin-proposal-class-properties"],
 				},
 				test: /\.jsx?$/,
 				exclude: /(node_modules|bower_components)/
