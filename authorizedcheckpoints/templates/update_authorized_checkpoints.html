@@ -2,14 +2,14 @@
 {% load widget_tweaks %}
 {% block container %}
 <ol class="breadcrumb">
-  <li><a href="/">NACCC PHL NACCC</a></li>
+  <li><a href="/"></a></li>
   <li><a href="/jobs/">Jobs</a></li>
   <li><a href="/jobs/race/{{object.race.id}}/">{{object.race}} Jobs</a></li>
   <li><a href="/jobs/details/{{object.id}}/">{{object}}</a></li>
   <li class="active">Update {{object}}</li>
 </ol>
 <div class="page-header">
-  <h1>Update Authorized Checkpoints <small>NACCC PHL NACCC</small></h1>
+  <h1>Update Authorized Checkpoints <small></small></h1>
 </div>
 
 <form action="" method="post">{% csrf_token %}

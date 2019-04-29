@@ -77,7 +77,6 @@ class Racer(models.Model):
     paid = models.BooleanField(default=False)
     paypal_tx = models.CharField(blank=True, max_length=100)
     team = models.CharField(blank=True, max_length=100)
-    company = models.CharField(blank=True, max_length=100)
     radio_number = models.CharField(choices=available_numbers_tup, blank=True, max_length=100)
     contact_info = models.CharField(blank=True, max_length=100)
 

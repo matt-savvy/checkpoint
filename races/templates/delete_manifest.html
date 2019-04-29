@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% block container %}
 <ol class="breadcrumb">
-  <li><a href="/">NACCC PHL NACCC</a></li>
+  <li><a href="/"></a></li>
   <li><a href="/races/manifests/">Manifests</a></li>
   <li class="active">Delete {{object}}</li>
 </ol>
 <div class="page-header">
-  <h1>Delete {{object.name}} <small>NACCC PHL NACCC</small></h1>
+  <h1>Delete {{object.name}} <small></small></h1>
 </div>
 
 <form action="" method="post">{% csrf_token %}

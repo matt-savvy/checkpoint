@@ -2,87 +2,51 @@
 {% block container %}
 <div class="page-header">
 	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
-  <h1>Racers <small>NACCC PHL NACCC</small></h1>
+  <h1>Racers <small></small></h1>
 </div>
 
 <div class="row">
-	<legend>{{racers|length}} racers 
-	
-	<br>
-	{% if include_unpaid %}
-	<a href="?include_unpaid=False">Exclude Unpaid</a>
-	{% else %}
-	<a href="?include_unpaid=True">Include Unpaid</a>
-	{% endif %}
-	</legend> 
-	
-	
+	<legend>{{racers|length}} racers
+	</legend>
+
+
 	<div class="col-md-4">
-		<P>Men : 
+		<P>Men :
 		{{total_men}}
 		</p>
-		
+
 		<p>WTF
 		{{total_wtf}}
 		</p>
-		
-		<P>Women : 
+
+		<P>Women :
 		{{total_women}}
 		</p>
 
-		<P>Trans : 
+		<P>Trans :
 		{{total_trans}}
 		</p>
 	</div>
-	
+
 
 	<div class="col-md-4">
-			{% if include_unpaid %}
-		<p>Unpaid : 
-			{{total_unpaid}}
-		</p>
-			{% endif %}
-	</div>
-	
-	
-	<div class="col-md-4">
 
-		<P>Working Messengers : 
+		<P>Working Messengers :
 		{{total_mess}}
 		</p>
 
-		<P>Non Messengers : 
+		<P>Non Messengers :
 		{{total_non}}
 		</p>
 
-		<P>Ex-Messengers : 
+		<P>Ex-Messengers :
 		{{total_ex}}
 		</p>
-		
-	</div>
-	
-	<div class="col-md-4">
-		<h4>Shirt Sizes</h4>
-		<P>S
-		{{total_s}}
-		</p>
 
-		<P>M : 
-		{{total_m}}
-		</p>
-
-		<P>L: 
-		{{total_l}}
-		</p>
-
-		<P>XL : 
-		{{total_xl}}
-		</p>
 	</div>
 </div>
 
 <p><a href="/racers/create/" class="btn btn-success">Add New Racer</a></p>
-
 
 
 <div class="table-responsive">
@@ -92,40 +56,28 @@
       <th>Racer Number</th>
       <th>Last Name</th>
       <th>First Name</th>
-      <th>Nick</th>
-	  <th>email</th>
-      <th>Sex</th>
-      <th>City</th>
-      <th>Team</th>
+      <th>Nickname</th>
+	  <th>Company</th>
+      <th>Gender</th>
       <th>Category</th>
-	  <th>Heat</th>
-	  <th>Shirt Size</th>
-	  <th>Paid?</th>
       <th>Actions</th>
   </tr>
 </thead>
 <tbody>
       {% for racer in racers %}
-	  
+
           <tr>
               <td><a href = "/racers/details/{{racer.pk}}">{{racer.racer_number}}</a></td>
               <td>{{racer.last_name}}</td>
               <td>{{racer.first_name}}</td>
               <td>{{racer.nick_name}}</td>
-			  <td>{{racer.email}}</td>
+			  <td>{{racer.company}}</td>
               <td>{{racer.gender}}</td>
-              <td>{{racer.city}}</td>	
-              <td>{{racer.team}}</td>
               <td>{{racer.category_as_string}}</td>
-			  <td>{{racer.heat_string}}
-			  <td>{{racer.shirt_size}}</td>
-			  <td>{% if racer.paid %}<span id="paid{{racer.pk}}" class="success">paid</span>{% else %} <span id="paid{{racer.pk}}" class="danger">NOT PAID</span> {% endif %}</td>
-              <td>
+			  <td>
 				  <a href="/racers/update/{{racer.pk}}/" class="btn btn-default btn-xs btn-info">Edit</a>
-				  {% if not racer.packet %}<a href="/racers/pickup/{{racer.pk}}/" class="btn btn-default btn-xs btn-success">Pickup</a> {% else %}Picked{% endif %}
-			  	{% if not racer.paid %}<button value="{{racer.pk}}" class="btn btn-defaul btn-xs btn-success paid">Paid</button>{% endif %}
 			  </td>
-				  
+
            </tr>
       {% empty %}
       <tr>
@@ -141,7 +93,7 @@
 {% block javascript_imports %}
 	{% load staticfiles %}
 
-	
+
 	<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 	<script src="{% static 'js/racer.js' %}"></script>
 {% endblock %}
