@@ -2,6 +2,7 @@ import factory
 import random
 from .models import Racer
 from faker import Faker
+from companies.factories import CompanyFactory
 fake = Faker()
 
 def get_racer_number():
@@ -9,10 +10,10 @@ def get_racer_number():
     racer_numbers =  [i for i in range(999)]
     racers = Racer.objects.all()
     racer_number = random.choice(racer_numbers)
-    
+
     while Racer.objects.filter(racer_number=racer_number).exists():
         racer_number = random.choice(racer_numbers)
-        
+
     return racer_number
 
 def get_random_gender():
@@ -35,6 +36,7 @@ def create_nick_name():
     return nickname
 
 class RacerFactory(factory.DjangoModelFactory):
+    company = factory.SubFactory(CompanyFactory)
     racer_number = factory.LazyFunction(get_racer_number)
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
@@ -42,6 +44,6 @@ class RacerFactory(factory.DjangoModelFactory):
     city = factory.Faker('city')
     gender = factory.LazyFunction(get_random_gender)
     category = factory.LazyFunction(get_random_category)
-    
+
     class Meta:
         model = Racer

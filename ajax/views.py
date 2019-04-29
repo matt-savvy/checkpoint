@@ -2,6 +2,7 @@ from django.shortcuts import render
 from ajax.serializers import RacerSerializer, RaceEntrySerializer, JobSerializer
 from racers.models import Racer
 from raceentries.models import RaceEntry
+from company_entries.models import CompanyEntry
 from rest_framework import generics
 from rest_framework.views import APIView
 from django.shortcuts import render, get_object_or_404
@@ -31,16 +32,16 @@ class RacerAjaxView(generics.RetrieveAPIView):
     queryset = Racer.objects.all()
     serializer_class = RacerSerializer
     lookup_field = 'racer_number'
-    
+
 class RaceEntryAjaxView(APIView):
     def get(self, request):
         race_entry = RaceEntry.objects.filter(race=request.GET['race']).filter(racer__racer_number=request.GET['racer'])
-        
+
         if len(race_entry) == 0:
             return Response({'detail' : 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
         serialized_entry = RaceEntrySerializer(race_entry[0])
         return Response(serialized_entry.data)
-        
+
 class StartRacerAjaxView(APIView):
     def post(self, request):
         racer_number = self.request.DATA['racer']
@@ -48,20 +49,20 @@ class StartRacerAjaxView(APIView):
         race_entry = RaceEntry.objects.filter(race__pk=race_id).filter(racer__racer_number=racer_number).first()
         if not race_entry:
             return Response({'detail' : 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
-            
+
         if self.request.DATA.get('unstart'):
             race_entry.unstart_racer()
             RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer un-started in race.", current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
-            
+
             return Response({'error_description' : "Racer un-started"}, status=status.HTTP_200_OK)
-            
-             
+
+
         if race_entry.start_racer():
             tz = pytz.timezone('US/Eastern')
             time_due_back_string = race_entry.time_due_back(tz).strftime('%I:%M %p')
-            
+
             RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer started in race.", current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
-            
+
             if race_entry.race.dispatch_race:
                 runs = Run.objects.filter(race_entry=race_entry)
                 runs_to_assign = runs.filter(utc_time_ready__lte=race_entry.start_time)
@@ -69,10 +70,10 @@ class StartRacerAjaxView(APIView):
                 from dispatch.serializers import MessageSerializer
                 message = assign_runs(runs_to_assign, race_entry)
                 return Response({'message': MessageSerializer(message).data, 'error_description' : None, 'due_back' : time_due_back_string}, status=status.HTTP_200_OK)
-                
+
             return Response({'due_back' : time_due_back_string})
         return Response(status=status.HTTP_400_BAD_REQUEST)
-        
+
 class FinishRacerAjaxView(APIView):
     def post(self, request):
         racer_number = self.request.DATA.get('racer')
@@ -98,7 +99,7 @@ class MarkAsPaidRacerAjaxView(APIView):
             return Response(status=status.HTTP_202_ACCEPTED)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-            
+
 class DQRacerAjaxView(APIView):
     def post(self, request):
         racer_number = self.request.DATA['racer']
@@ -112,7 +113,7 @@ class DQRacerAjaxView(APIView):
             race_entry[0].save()
             return Response()
         return Response(status=status.HTTP_400_BAD_REQUEST)
-        
+
 class UnDQRacerAjaxView(APIView):
     def post(self, request):
         racer_number = self.request.DATA['racer']
@@ -151,7 +152,7 @@ class CheckJobAjaxView(APIView):
                 job = job[0]
             serialized_job = JobSerializer(job)
             return Response(serialized_job.data, status=status.HTTP_200_OK)
-        
+
         return Response({'detail' : 'Racer has already done job'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdateRacerNotes(APIView):
@@ -164,21 +165,21 @@ class UpdateRacerNotes(APIView):
         race_entry.scratch_pad = racer_notes
         race_entry.save()
         return Response()
-        
+
 
 class RunAjaxView(APIView):
     def post(self, request):
         racer_number = self.request.DATA['racer']
         race_id = self.request.DATA['race']
         job_id = self.request.DATA['job']
-        
+
         try:
              job = Job.objects.get(job_id=job_id)
         except:
             return Response({'detail' : 'Job #{} not found'.format(str(job_id))}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         check_for_run = Run.objects.filter(race_entry__racer__racer_number=racer_number).filter(job=job).count()
-        
+
         if check_for_run == 0:
             race_entry = RaceEntry.objects.filter(race__pk=race_id).filter(racer__racer_number=racer_number)
             race_entry = race_entry[0]
@@ -189,10 +190,10 @@ class RunAjaxView(APIView):
             run.save()
             race_entry.add_up_points()
             race_entry.add_up_runs()
-            race_entry.save() 
+            race_entry.save()
             return Response()
         return Response({'detail' : 'Racer has already done job'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 class AwardRacerAjaxView(APIView):
     def post(self, request):
         racer = request.DATA['racer']
@@ -214,7 +215,7 @@ class DeductRacerAjaxView(APIView):
         race_entry.add_up_points()
         race_entry.save()
         return Response()
-    
+
 class DeleteRunAjaxView(APIView):
     def post(self, request):
         try:
@@ -247,6 +248,24 @@ class SetCurrentRace(APIView):
         rc.save()
         return Response()
 
+class MassStartCompanies(APIView):
+    def post(self, request, *args, **kwargs):
+        rc = RaceControl.shared_instance()
+        current_race = rc.current_race
+        company_entries = CompanyEntry.objects.filter(race=current_race)
+
+        if not rc.racers_started:
+            for company_entry in company_entries:
+                company_entry.start_racers()
+            rc.racers_started = True
+        else:
+            for company_entry in company_entries:
+                if company_entry.entry_status == CompanyEntry.ENTRY_STATUS_RACING:
+                    company_entry.finish_racers()
+            rc.racers_started = False
+        rc.save()
+        return Response()
+
 class MassStartRacers(APIView):
     def post(self, request, *args, **kwargs):
         rc = RaceControl.shared_instance()
@@ -274,7 +293,7 @@ class PostResultsStreamAjaxView(APIView):
     def post(self, request):
         race_id = self.request.DATA['race']
         endpoint = self.request.DATA['endpoint']
-        
+
         #Get all the unposted stream events and serialize them
         events = StreamEvent.objects.filter(race__pk=race_id).filter(published=False)
         serialized_events = []
@@ -290,7 +309,7 @@ class PostResultsStreamAjaxView(APIView):
                 'poster_photo'         : event.poster_photo
             }
             serialized_events.append(event_dict)
-        
+
         #Serialize the results
         standings = RaceEntry.objects.filter(race__pk=race_id).filter(
             ~Q(entry_status=RaceEntry.ENTRY_STATUS_ENTERED) |
@@ -308,29 +327,19 @@ class PostResultsStreamAjaxView(APIView):
                 'city'                 : standing.racer.city,
                 'team'                 : standing.racer.team,
                 'current_earnings'     : float(standing.grand_total),
-                "number_of_jobs"       : standing.number_of_jobs_completed                         
+                "number_of_jobs"       : standing.number_of_jobs_completed
             }
             serialized_standings.append(standing_dict)
             counter += 1
-            
+
         combined_results = {
             'events' : serialized_events,
             'standings' : serialized_standings
         }
-        
+
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
         r = requests.post(endpoint, data=json.dumps(combined_results), headers=headers)
-        
+
         events.update(published=True)
-        
+
         return Response(combined_results)
-            
-            
-    
-        
-        
-        
-            
-        
-        
-    

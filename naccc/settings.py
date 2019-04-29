@@ -87,6 +87,8 @@ INSTALLED_APPS = (
     'mobilecheckpoint',
     'racelogs',
     'dispatch',
+    'companies',
+    'company_entries',
 )
 
 PAYPAL_IDENTITY_TOKEN = "Orx5c4XVqv8VqZizQdUdJ3hQshLik2MuIRtF_boHKhZidzW262C-h1SkLVa"
@@ -203,4 +205,3 @@ try:
     from .local_settings import *
 except:
     pass
-    

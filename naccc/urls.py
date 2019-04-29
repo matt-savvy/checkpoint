@@ -24,11 +24,11 @@ import dispatch.views as dispatch_views
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    
+
     (r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
     (r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
     url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
-    
+
     url(r'^nunya/', include(admin.site.urls)),
     url(r'^$', home_views.WelcomeView.as_view(), name="welcome-view"),
     url(r'^$', home_views.EmailTemplate.as_view(), name="email-template"),
@@ -36,10 +36,10 @@ urlpatterns = patterns('',
     url(r'^schedule/$', home_views.ScheduleView.as_view(), name="schedule"),
     url(r'^info/$', home_views.WhatIsView.as_view(), name="info"),
     # url(r'^$', login_required(home_views.HomeView.as_view())),
-    
+
     #Racer URLs
     url(r'^racers/$', login_required(racer_views.RacerListView.as_view()), name="admin"),
-    
+
     url(r'^racers/numbers/$', login_required(racer_views.NumbersListView.as_view()), name="racer-numbers"),
     url(r'^racers/emails/$', login_required(racer_views.EmailListView.as_view()), name="racer-emails"),
     url(r'^racers/create/$', login_required(racer_views.RacerCreateView.as_view())),
@@ -48,11 +48,11 @@ urlpatterns = patterns('',
     url(r'^racers/registered/$', racer_views.RacerListViewPublic.as_view(), name="already-registered-view"),
     url(r'^racers/heats/$', racer_views.RacerHeatsViewPublic.as_view(), name="heats-view"),
     url(r'^racers/heats/print/$', racer_views.RacerHeatsPrintView.as_view(), name="heats-view"),
-    
-    url(r'^racers/pay/$', racer_views.view_that_asks_for_money, name="pay-view"), 
+
+    url(r'^racers/pay/$', racer_views.view_that_asks_for_money, name="pay-view"),
     url(r'^racers/pdtreturn/$', racer_views.RegFinished, name="pdt_return_url"),
     url(r'^racers/thanks/$', racer_views.ThankYouView.as_view(), name="thank-you"),
-    
+
     #volunteer URLS
     url(r'^volunteers/$', racer_views.VolunteerListView.as_view(), name="volunteer-register-view"),
     url(r'^volunteers/details/(?P<pk>[0-9]+)/$', login_required(racer_views.VolunteerDetailView.as_view())),
@@ -81,14 +81,14 @@ urlpatterns = patterns('',
     url(r'^races/update/(?P<pk>[0-9]+)/$', login_required(race_views.RaceUpdateView.as_view())),
     url(r'^races/details/(?P<pk>[0-9]+)/$', login_required(race_views.RaceDetailView.as_view())),
     url(r'^races/delete/(?P<pk>[0-9]+)/$', login_required(race_views.RaceDeleteView.as_view())),
-    
+
     url(r'^races/manifests/$', login_required(race_views.ManifestListView.as_view())),
     url(r'^races/manifests/create/$', login_required(race_views.ManifestCreateView.as_view())),
     url(r'^races/manifests/update/(?P<pk>[0-9]+)/$', login_required(race_views.ManifestUpdateView.as_view())),
     url(r'^races/manifests/details/(?P<pk>[0-9]+)/$', login_required(race_views.ManifestDetailView.as_view())),
     url(r'^races/manifests/delete/(?P<pk>[0-9]+)/$', login_required(race_views.ManifestDeleteView.as_view())),
-    
-    
+
+
     #Job URLs
     url(r'^jobs/$', login_required(job_views.JobRaceListView.as_view())),
     url(r'^jobs/race/(?P<race>[0-9]+)/$', login_required(job_views.JobListView.as_view())),
@@ -105,15 +105,15 @@ urlpatterns = patterns('',
     url(r'^raceentries/cuts/$', login_required(entry_views.CutListView.as_view())),
     #Race Control
     url(r'^racecontrol/$', login_required(racecontrol_views.RaceControlRaceListView.as_view())),
-    
+
     url(r'^racecontrol/race/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.RaceControlView.as_view())),
     url(r'^racecontrol/ajax/racerinfo/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.RacerInfoView.as_view())),
     url(r'^racecontrol/ajax/racerdetail$', login_required(racecontrol_views.RacerDetailAjaxView.as_view())),
     url(r'^racecontrol/ajax/racing/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.CurrentRacingView.as_view())),
     url(r'^racecontrol/ajax/notraced/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.NotRacedView.as_view())),
-    
-    
-    
+
+
+
     url(r'^racecontrol/ajax/start/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.StartView.as_view())),
     url(r'^racecontrol/ajax/dq/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.DQView.as_view())),
     url(r'^racecontrol/ajax/award/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.AwardView.as_view())),
@@ -125,7 +125,7 @@ urlpatterns = patterns('',
     url(r'^racecontrol/ajax/standings/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.StandingsView.as_view())),
     url(r'^racecontrol/ajax/racestatus/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.RaceStatusView.as_view())),
     url(r'^racecontrol/ajax/massstart/(?P<pk>[0-9]+)/$', login_required(racecontrol_views.MassStartView.as_view())),
-    #Dispatch 
+    #Dispatch
     url(r'^dispatch/api/next_message/$', login_required(dispatch_views.NextMessage.as_view())),
     url(r'^dispatch/api/rider_response/$', login_required(dispatch_views.RiderResponse.as_view())),
     url(r'^dispatch/$', login_required(dispatch_views.DispatchView.as_view())),
@@ -154,6 +154,8 @@ urlpatterns = patterns('',
     url(r'^ajax/setracestarttime/$', login_required(ajax_views.SetRaceStartTime.as_view())),
     url(r'^ajax/setcurrentrace/$', login_required(ajax_views.SetCurrentRace.as_view())),
     url(r'^ajax/massstartracers/$', login_required(ajax_views.MassStartRacers.as_view())),
+    url(r'^ajax/massstartcompanies/$', login_required(ajax_views.MassStartCompanies.as_view())),
+
     url(r'^ajax/racerpaid/$', login_required(ajax_views.MarkAsPaidRacerAjaxView.as_view())),
     #runs views
     url(r'^commission/(?P<race>[0-9]+)/(?P<racer>[0-9]+)/$', login_required(run_views.CommissionView.as_view())),
