@@ -129,6 +129,7 @@ class Race(models.Model):
                     ready_time = datetime.datetime.now(tz=pytz.utc)
 
                 run.utc_time_ready = ready_time + datetime.timedelta(minutes=job.minutes_ready_after_start)
+                run.utc_time_due = ready_time + datetime.timedelta(minutes=job.minutes_due_after_start)
                 run.save()
                 runs.append(run)
 

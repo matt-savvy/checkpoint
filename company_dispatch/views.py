@@ -7,6 +7,7 @@ from companies.models import Company
 from company_entries.models import CompanyEntry
 from racecontrol.models import RaceControl
 from json import dumps
+from django.core.serializers.json import DjangoJSONEncoder
 
 class CompanyDispatchView(DetailView):
     model = CompanyEntry
@@ -31,7 +32,7 @@ class CompanyDispatchView(DetailView):
         """get the initial data"""
         context = super(CompanyDispatchView, self).get_context_data(**kwargs)
         serializer = CompanyEntrySerializer(self.object)
-        context['company_entry'] = dumps(serializer.data)
+        context['company_entry'] = dumps(serializer.data, cls=DjangoJSONEncoder)
         #entries = self.object.get_race_entries()
         #race_entry_serializer = RaceEntrySerializer(entries, many=True)
         #context['race_entries'] = dumps(race_entry_serializer.data)
