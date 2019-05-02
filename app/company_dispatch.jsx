@@ -92,8 +92,37 @@ function UnassignDialog(props) {
 
 }
 
+class Clock extends React.Component {
+    constructor(props){
+        super(props);
+        this.state = {
+            timeNow:null,
+        }
+    }
+    static getDerivedStateFromProps(props, state) {
+        return {timeNow : props.timeNow}
+    }
+    tick() {
+       this.setState(prevState => ({
+         timeNow: prevState.timeNow + 1
+       }));
+    }
+    componentDidMount() {
+        this.interval = setInterval(() => this.tick(), 1000);
+    }
+    componentWillUnmount() {
+        clearInterval(this.interval);
+    }
+    render() {
+        const clock = moment(this.state.timeNow).format('HH:mm:ss A');
+        return (
+            <Badge variant="light">{clock}</Badge>
+        )
+    }
+}
+
 function NavBar(props){
-   const clock = moment(props.timeNow).format('HH:mm A');
+
    return (
       <Nav variant="pills" activeKey={props.viewMode} onSelect={k => props.update(k)}>
         <Nav.Item>
@@ -112,7 +141,7 @@ function NavBar(props){
 		  <NavDropdown.Item active={props.sortMode == SORT_CHECKPOINT} eventKey={SORT_CHECKPOINT}>Checkpoint</NavDropdown.Item>
 		</NavDropdown>
         <Button onClick={props.refresh} variant="secondary">Refresh</Button>
-        <Badge variant="light">{clock}</Badge>
+        <Clock now={props.timeNow} />
 	</Nav>
     )
 }
@@ -137,9 +166,6 @@ class Run extends React.Component {
             showAssign : false,
             showUnassign : false,
         }
-    }
-    componentDidMount() {
-        console.log("run mount");
     }
     startAssign = () => {
         this.setState({showAssign : true});
@@ -252,9 +278,7 @@ function RunList(props) {
 }
 
 function RacerCard(props) {
-    let raceEntryView = props.collection.getDynamicView(props.raceEntry.id);
-    raceEntryView.applySimpleSort(props.sortMode);
-    let runs = raceEntryView.data();
+    let runs = props.raceEntry.results.data();
     //filter runs by active / complete
 	return(
 		<Card>
@@ -278,13 +302,6 @@ class App extends React.Component {
 		runs.ensureUniqueIndex('id');
 		runs.insert(init['runs']);
 		let unassignedRuns = runs.addDynamicView(DISPLAY_UNASSIGNED, {sortPriority : 'active'});
-        unassignedRuns.applySort(this.deadlineSort);
-
-		init['race_entries'].forEach(raceEntry => {
-			let raceEntryView = runs.addDynamicView(raceEntry.id, {sortPriority : 'active'});
-            raceEntryView.applyWhere(function(run){return run.race_entry && run.race_entry.id == raceEntry.id});
-
-		});
 
 		this.state = {
 			viewMode: DISPLAY_UNASSIGNED,
@@ -292,23 +309,21 @@ class App extends React.Component {
 			db: db,
 			raceEntries: init['race_entries'],
             loading: false,
+            time: Date.now(),
 		}
 		this.viewModes = [DISPLAY_UNASSIGNED, DISPLAY_NEW]
 		this.sortModes = [SORT_READY_TIME, SORT_DEADLINE, SORT_CHECKPOINT]
 	}
-
+    componentDidMount() {
+        this.clockTimer = setInterval(() => this.setState({ time: Date.now() }), 5000);
+        this.refreshTimer = setInterval(() => this.refresh(), 30000);
+    }
+    componentWillUnmount() {
+        clearInterval(this.clockTimer);
+        clearInterval(this.refreshTimer);
+    }
 	changeSortMode = (mode) => {
         let db = this.state.db;
-        let allRuns = db.getCollection('runs').getDynamicView(DISPLAY_UNASSIGNED);
-
-        if (mode == SORT_READY_TIME) {
-            allRuns.applySort(this.readySort);
-        } else if (mode == SORT_DEADLINE) {
-            allRuns.applySort(this.deadlineSort);
-        } else if (mode == SORT_CHECKPOINT) {
-            allRuns.applySort(this.checkpointSort);
-        }
-
 		this.setState({db: db, sortMode : mode});
 	}
 	changeViewMode = (mode) => {
@@ -351,6 +366,7 @@ class App extends React.Component {
                 //if {error_description in response}
                 let db = this.updateTable([response.data]);
                 this.setState({db: db, loading : false});
+                this.refresh();
             })
             .catch(error => {
                 alert(error);
@@ -358,11 +374,14 @@ class App extends React.Component {
             })
     }
     refresh = () => {
+        clearInterval(this.refreshTimer);
         this.setState({loading : true});
         axios.get('/dispatch/refresh/')
             .then(response => {
                 let db = this.updateTable(response.data);
                 this.setState({db: db, loading : false});
+                
+                this.refreshTimer = setInterval(() => this.refresh(), 30000);
             })
             .catch(error => {
                 alert(error);
@@ -383,32 +402,51 @@ class App extends React.Component {
     readySort = (run1, run2) => {
             let time1 = Date.parse(run1.utc_time_ready);
             let time2 = Date.parse(run2.utc_time_ready);
-            if (time1 > time2) {return 1}
-            if (time1 < time2) {return -1}
+            if (time1 < time2) {return 1}
+            if (time1 > time2) {return -1}
             return 0;
     }
     deadlineSort = (run1, run2) => {
             let time1 = Date.parse(run1.utc_time_due);
             let time2 = Date.parse(run2.utc_time_due);
-            if (time1 > time2) {return 1}
-            if (time1 < time2) {return -1}
+            if (time1 < time2) {return 1}
+            if (time1 > time2) {return -1}
             return 0;
     }
     checkpointSort = (run1, run2) => {
-            if (run1.job.pick_checkpoint.checkpoint_name > run2.job.pick_checkpoint.checkpoint_name) {return 1}
-            if (run1.job.pick_checkpoint.checkpoint_name < run2.job.pick_checkpoint.checkpoint_name) {return -1}
+            if (run1.job.pick_checkpoint.checkpoint_name < run2.job.pick_checkpoint.checkpoint_name) {return 1}
+            if (run1.job.pick_checkpoint.checkpoint_name > run2.job.pick_checkpoint.checkpoint_name) {return -1}
             return 0;
     }
+    futureFilter = (run) => {
+
+            return Date.parse(run.utc_time_ready) < Date.now();
+    }
     render () {
-
         let timeNow = Date.now();
-		var runs, allRuns, allRunsView;
-		runs = this.state.db.getCollection('runs')
+		let runs, allRuns,unassignedResults, runsResults;
 
-        allRunsView = runs.getDynamicView(DISPLAY_UNASSIGNED);
-        allRunsView.applyFind({'race_entry' : null});
+		runs = this.state.db.getCollection('runs');
+        runsResults = runs.chain();
 
-		allRuns = allRunsView.data();
+        runsResults = runsResults.where(this.futureFilter);
+        if (this.state.sortMode == SORT_READY_TIME) {
+            runsResults = runsResults.sort(this.readySort);
+        } else if (this.state.sortMode == SORT_DEADLINE) {
+            runsResults = runsResults.sort(this.deadlineSort);
+        } else if (this.state.sortMode == SORT_CHECKPOINT) {
+            runsResults = runsResults.sort(this.checkpointSort);
+        }
+
+        this.state.raceEntries.forEach(raceEntry =>{
+            let racerResults = runsResults.copy();
+            racerResults = racerResults.where(function(run){return run.race_entry && run.race_entry.id == raceEntry.id});
+            //racerResults = racerResults.sort{function(run)}
+            raceEntry.results = racerResults;
+        })
+        runsResults = runsResults.find({'race_entry' : null});
+
+		allRuns = runsResults.data();
 
 		return (
 			<>
@@ -421,7 +459,7 @@ class App extends React.Component {
                 </RunList>
 
 				<CardDeck>
-					{this.state.raceEntries.map(raceEntry => <RacerCard timeNow={timeNow} sortMode={this.state.sortMode} collection={runs} raceEntry={raceEntry} key={raceEntry.id} raceEntries={this.state.raceEntries} assign={this.assign} unassign={this.unassign} />)}
+					{this.state.raceEntries.map(raceEntry => <RacerCard timeNow={timeNow} sortMode={this.state.sortMode} raceEntry={raceEntry} key={raceEntry.id} raceEntries={this.state.raceEntries} assign={this.assign} unassign={this.unassign} />)}
 				</CardDeck>
 			</>
 		)
