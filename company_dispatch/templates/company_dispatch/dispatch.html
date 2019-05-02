@@ -30,12 +30,16 @@
 
 	{% load staticfiles %}
 	<script type="text/javascript">
-		const init = {{ company_entry|safe }};
+		const init = {{ init|safe }};
         const head = {{ head|safe }};
 		console.log(init);
 	</script>
 
 	<script src="{% static 'js/jquery.js' %}"></script>
-	<script src="{% static 'js/company_dispatch.js' %}"></script>
+    {% if js_file == 'company_dispatch' %}
+	   <script src="{% static 'js/company_dispatch.js' %}"></script>
+    {% elif js_file == 'company_scoreboard' %}
+        <script src="{% static 'js/company_scoreboard.js' %}"></script>
+    {% endif %}
     <script src="{% static 'js/bootstrap.js' %}"></script>
 	</html>

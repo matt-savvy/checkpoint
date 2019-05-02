@@ -7,8 +7,38 @@ from companies.models import Company
 from company_entries.models import CompanyEntry
 from racecontrol.models import RaceControl
 from runs.models import RunChangeLog
+from races.models import Race
 from json import dumps
 from django.core.serializers.json import DjangoJSONEncoder
+
+
+class CompanyScoreboard(DetailView):
+    model = Race
+    template_name = 'company_dispatch/dispatch.html'
+
+    method_decorator(ensure_csrf_cookie)
+    def dispatch(self, request, *args, **kwargs):
+        if not self.request.user.is_superuser:
+            return HttpResponseForbidden()
+        return super(CompanyScoreboard, self).dispatch(request, *args, **kwargs)
+
+    def get_object(self, queryset=None):
+        rc = RaceControl.shared_instance()
+        race = rc.current_race
+        return race
+
+    def get_context_data(self, **kwargs):
+        """get the initial data"""
+        context = super(CompanyScoreboard, self).get_context_data(**kwargs)
+        company_entries = CompanyEntry.objects.filter(race=self.object)
+        company_entry_serializer = CompanyEntrySerializer(company_entries, many=True)
+        context['init'] = dumps(company_entry_serializer.data, cls=DjangoJSONEncoder)
+        changelogs = RunChangeLog.objects.order_by('pk')
+        if changelogs:
+            context['head'] = changelogs.last().pk
+        context['js_file'] = 'company_scoreboard'
+        return context
+
 
 class CompanyDispatchView(DetailView):
     model = CompanyEntry
@@ -32,10 +62,11 @@ class CompanyDispatchView(DetailView):
         """get the initial data"""
         context = super(CompanyDispatchView, self).get_context_data(**kwargs)
         serializer = CompanyEntrySerializer(self.object)
-        context['company_entry'] = dumps(serializer.data, cls=DjangoJSONEncoder)
+        context['init'] = dumps(serializer.data, cls=DjangoJSONEncoder)
         changelogs = RunChangeLog.objects.filter(company_pk=self.object.pk).order_by('pk')
         if changelogs:
             context['head'] = changelogs.last().pk
+        context['js_file'] = 'company_dispatch'
         #entries = self.object.get_race_entries()
         #race_entry_serializer = RaceEntrySerializer(entries, many=True)
         #context['race_entries'] = dumps(race_entry_serializer.data)

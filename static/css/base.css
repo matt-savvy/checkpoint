@@ -46,6 +46,10 @@ div.overlord {
   margin-bottom: 20px;
 }
 
+.racer-badge {
+	float:right !important;
+}
+
 .responsive-img {
     max-width: 100%;
     height: auto;

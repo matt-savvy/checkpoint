@@ -8,7 +8,7 @@ axios.defaults.xsrfCookieName = 'csrftoken'
 import {Badge, Button, ButtonGroup, Card, CardDeck, Col, Form, Jumbotron, ListGroup, Nav, NavDropdown, Modal, Row} from 'react-bootstrap';
 
 const DISPLAY_UNASSIGNED = "unassigned";
-const DISPLAY_NEW = "new";
+const DISPLAY_ASSIGNED = "racers";
 
 const SORT_READY_TIME = "utc_time_ready";
 const SORT_DEADLINE = "utc_time_due";
@@ -122,19 +122,22 @@ class Clock extends React.Component {
 }
 
 function NavBar(props){
-
    return (
       <Nav variant="pills" activeKey={props.viewMode} onSelect={k => props.update(k)}>
         <Nav.Item>
           <Nav.Link eventKey={DISPLAY_UNASSIGNED} href="#">
             Unassigned
+           &nbsp;<Badge pill variant="light">{props.count}</Badge>
           </Nav.Link>
         </Nav.Item>
+
         <Nav.Item>
-          <Nav.Link eventKey={DISPLAY_NEW} title="Item">
-            New Jobs
-          </Nav.Link>
+            <Nav.Link eventKey={DISPLAY_ASSIGNED} title="Item">
+                Racers
+            </Nav.Link>
         </Nav.Item>
+
+
 		<NavDropdown title="Sort" id="nav-dropdown">
 		  <NavDropdown.Item active={props.sortMode == SORT_READY_TIME} eventKey={SORT_READY_TIME}>Ready Time</NavDropdown.Item>
 		  <NavDropdown.Item active={props.sortMode == SORT_DEADLINE} eventKey={SORT_DEADLINE}>Deadline</NavDropdown.Item>
@@ -256,7 +259,7 @@ class Run extends React.Component {
 function NothingToShow(props) {
     return (
         <Jumbotron>
-          <h2>All Clear!</h2>
+          <h1>All Clear!</h1>
               <p>
                 {props.message || "Nothing to show right now."}
               </p>
@@ -268,7 +271,7 @@ function RunList(props) {
 	return (
 		<Card>
 			<Card.Header>
-				{props.category}  <Badge pill variant="primary">{props.count}</Badge>
+				{props.category}
 			</Card.Header>
 	        <ListGroup>
 				{props.children}
@@ -278,13 +281,23 @@ function RunList(props) {
 }
 
 function RacerCard(props) {
-    let runs = props.raceEntry.results.data();
-    //filter runs by active / complete
+    let runs;
+    let activeRuns = props.raceEntry.results.copy();
+    let completeRuns = props.raceEntry.results.copy();
+    activeRuns = activeRuns.find({'status_as_string' : {'$ne' : 'Completed'}});
+    completeRuns = completeRuns.find({'status_as_string' : {'$eq' : 'Completed'}});
+    runs = activeRuns.data();
+    //TODO add dropped late counter
+    //TODO add $$$ counter
+
 	return(
 		<Card>
 			<Card.Header>
-				{props.raceEntry.racer.racer_number} - {props.raceEntry.racer.display_name}
-				<Badge pill variant="primary">{runs.length}</Badge>
+				#{props.raceEntry.racer.racer_number} - {props.raceEntry.racer.display_name}
+				<span style={{float:'right'}}>
+                    <Badge pill variant="primary">Active {activeRuns.count()}</Badge>
+                    <Badge pill variant="success">Complete {completeRuns.count()}</Badge>
+                </span>
 			</Card.Header>
 			{runs.map(run => <Run run={run} key={run.id} {...props} />)}
             {runs.length == 0 && <NothingToShow message="This racer has no active jobs."/>}
@@ -312,7 +325,7 @@ class App extends React.Component {
             head: head,
             time: Date.now(),
 		}
-		this.viewModes = [DISPLAY_UNASSIGNED, DISPLAY_NEW]
+		this.viewModes = [DISPLAY_UNASSIGNED, DISPLAY_ASSIGNED]
 		this.sortModes = [SORT_READY_TIME, SORT_DEADLINE, SORT_CHECKPOINT]
 	}
     componentDidMount() {
@@ -417,8 +430,8 @@ class App extends React.Component {
             return 0;
     }
     checkpointSort = (run1, run2) => {
-            if (run1.job.pick_checkpoint.checkpoint_name < run2.job.pick_checkpoint.checkpoint_name) {return 1}
-            if (run1.job.pick_checkpoint.checkpoint_name > run2.job.pick_checkpoint.checkpoint_name) {return -1}
+            if (run1.job.pick_checkpoint.checkpoint_name > run2.job.pick_checkpoint.checkpoint_name) {return 1}
+            if (run1.job.pick_checkpoint.checkpoint_name < run2.job.pick_checkpoint.checkpoint_name) {return -1}
             return 0;
     }
     futureFilter = (run) => {
@@ -451,19 +464,28 @@ class App extends React.Component {
 
 		allRuns = runsResults.data();
 
+        //TODO add total complete, dropped late counter
+        //TODO add $$$ earned - counter
+        //TODO add time remaining counter
+
 		return (
 			<>
 			   <div className="mb-2 board-tabs">
-					<NavBar timeNow={timeNow} refresh={this.refresh} viewMode={this.state.viewMode} sortMode={this.state.sortMode} update={this.updateNavBar} />
+					<NavBar count={runsResults.count()} timeNow={timeNow} refresh={this.refresh} viewMode={this.state.viewMode} sortMode={this.state.sortMode} update={this.updateNavBar} />
 			   </div>
-				<RunList category="Unassigned" count={allRuns.length}>
+
+                {(this.state.viewMode == DISPLAY_UNASSIGNED) &&
+                <RunList category="Unassigned" count={allRuns.length}>
 					{allRuns.map(run => <Run timeNow={timeNow} run={run} key={run.id} raceEntries={this.state.raceEntries} assign={this.assign} /> )}
                     {allRuns.length == 0 && <NothingToShow />}
                 </RunList>
+                }
 
-				<CardDeck>
-					{this.state.raceEntries.map(raceEntry => <RacerCard timeNow={timeNow} sortMode={this.state.sortMode} raceEntry={raceEntry} key={raceEntry.id} raceEntries={this.state.raceEntries} assign={this.assign} unassign={this.unassign} />)}
-				</CardDeck>
+				{(this.state.viewMode == DISPLAY_ASSIGNED) &&
+                    <CardDeck>
+			               {this.state.raceEntries.map(raceEntry => <RacerCard timeNow={timeNow} sortMode={this.state.sortMode} raceEntry={raceEntry} key={raceEntry.id} raceEntries={this.state.raceEntries} assign={this.assign} unassign={this.unassign} />)}
+                   </CardDeck>
+               }
 			</>
 		)
 	}
