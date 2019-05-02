@@ -401,4 +401,28 @@ class DispatchAssignView(APIView):
 
 class DispatchUnassignView(APIView):
     def post(self, request, *args, **kwargs):
-        pass
+        rc = RaceControl.shared_instance()
+        if not rc.racers_started:
+            return Response({'error_description' : "Race has not started yet!"}, status=status.HTTP_200_OK)
+
+        company_entry = CompanyEntry.objects.filter(company__dispatcher=request.user).filter(race=rc.current_race).first()
+        if not company_entry:
+            return HttpResponseForbidden
+
+        if not company_entry.race == rc.current_race:
+            return HttpResponseForbidden
+
+        run = Run.objects.get(pk=request.DATA.get('run_pk'))
+        allowed_run_statuses = [Run.RUN_STATUS_ASSIGNED]
+        if not run.status in allowed_run_statuses:
+            return Response({'error_description' : "Job status invalid: This job cannot be unassigned."}, status=status.HTTP_200_OK)
+
+        time_now = datetime.datetime.now(tz=pytz.utc)
+        run.status = Run.RUN_STATUS_PENDING
+        run.determination = Run.DETERMINATION_NOT_PICKED
+        run.utc_time_assigned = None
+        run.race_entry = None
+        run.save()
+        run = RunSerializer(run)
+
+        return Response(run.data, status=status.HTTP_200_OK)

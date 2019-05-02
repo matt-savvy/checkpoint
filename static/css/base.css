@@ -89,5 +89,18 @@ div.overlord {
 .board-tabs {
 	padding-top:10px;
 	padding-bottom:5px;
+}
 
+.list-group-item .list-group-item-danger {
+	 background-image: linear-gradient(#ffefaa,#ff9900) !important;
+	 background-color: #ff9900 !important;
+}
+
+.list-group-item .list-group-item-urgent {
+ 	background-image: linear-gradient(#ffefaa,#ffe155) !important;
+}
+
+.list-group-item .list-group-item-complete {
+	background-image:linear-gradient(#dff0d8,#99FFAA) !important;
+	background-color: #dff0d8 !important;
 }

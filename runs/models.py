@@ -16,7 +16,7 @@ class Run(models.Model):
         (RUN_STATUS_PICKED, 'Picked'), ## job is picked up
         (RUN_STATUS_COMPLETED, 'Completed'), ##job is dropped
         (RUN_STATUS_ASSIGNED, 'Assigned'), ## job is assigned and active
-        (RUN_STATUS_PENDING, 'Pending'), ## job has not been accepted or un-accepted
+        (RUN_STATUS_PENDING, 'Unassigned'), ## job has not been accepted or un-accepted
         (RUN_STATUS_DISPATCHING, 'Dispatching') ## job is available and is in a message. so we don't double dispatch the same work.
     )
 
