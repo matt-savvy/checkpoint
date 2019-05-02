@@ -55,7 +55,10 @@ class Run(models.Model):
         ordering = ['utc_time_ready', 'race_entry__starting_position']
 
     def __unicode__(self):
-        return u"({}){}:{}".format(self.RUN_STATUS_CHOICES[self.status][1], self.race_entry.racer, self.job)
+        if self.race_entry:
+            return u"({}){}:{}".format(self.RUN_STATUS_CHOICES[self.status][1], self.race_entry, self.job)
+        else:
+            return u"({}){}:{}".format(self.RUN_STATUS_CHOICES[self.status][1], self.company_entry, self.job)
 
     def status_as_string(self):
         return self.RUN_STATUS_CHOICES[self.status][1]

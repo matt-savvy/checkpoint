@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from ajax.serializers import RacerSerializer, RaceEntrySerializer, JobSerializer
+from django.http import HttpResponseForbidden
+from ajax.serializers import RacerSerializer, RaceEntrySerializer, JobSerializer, RunSerializer, RaceEntrySerializer
 from racers.models import Racer
 from raceentries.models import RaceEntry
 from company_entries.models import CompanyEntry
@@ -8,6 +9,7 @@ from rest_framework.views import APIView
 from django.shortcuts import render, get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.viewsets import ModelViewSet
 from jobs.models import Job
 from runs.models import Run
 from races.models import Race
@@ -343,3 +345,60 @@ class PostResultsStreamAjaxView(APIView):
         events.update(published=True)
 
         return Response(combined_results)
+
+class DispatchRefreshView(generics.ListAPIView):
+    serializer_class = RunSerializer
+    queryset = Run.objects.all()
+    allowed_methods = [u'GET', u'HEAD', u'OPTIONS', u'POST']
+
+    def get_queryset(self):
+        company_entry = CompanyEntry.objects.filter(company__dispatcher=self.request.user)
+        if company_entry:
+            return self.queryset.filter(company_entry=company_entry)
+        else:
+            return self.queryset
+
+class DispatchAssignView(APIView):
+    def post(self, request, *args, **kwargs):
+        rc = RaceControl.shared_instance()
+        if not rc.racers_started:
+            return Response({'error_description' : "Race has not started yet!"}, status=status.HTTP_200_OK)
+
+        company_entry = CompanyEntry.objects.filter(company__dispatcher=request.user).filter(race=rc.current_race).first()
+        if not company_entry:
+            return HttpResponseForbidden
+
+        if not company_entry.race == rc.current_race:
+            return HttpResponseForbidden
+
+        race_entry = RaceEntry.objects.get(pk=request.DATA.get('race_entry_pk'))
+
+        if not race_entry.racer.company == company_entry.company:
+            return HttpResponseForbidden
+
+        allowed_race_entry_statuses = [RaceEntry.ENTRY_STATUS_RACING, RaceEntry.ENTRY_STATUS_ENTERED]
+        if not race_entry.entry_status in allowed_race_entry_statuses:
+            return Response({'error_description' : "Racer status invalid: Racer must be Racing or assigned."}, status=status.HTTP_200_OK)
+
+
+        run = Run.objects.get(pk=request.DATA.get('run_pk'))
+        allowed_run_statuses = [Run.RUN_STATUS_PENDING, Run.RUN_STATUS_ASSIGNED]
+        if not run.status in allowed_run_statuses:
+            return Response({'error_description' : "Job status invalid: Job must be pending or assigned."}, status=status.HTTP_200_OK)
+
+
+        time_now = datetime.datetime.now(tz=pytz.utc)
+        run.status = Run.RUN_STATUS_ASSIGNED
+        run.determination = Run.DETERMINATION_NOT_PICKED
+        run.utc_time_assigned = time_now
+        run.race_entry = race_entry
+        run.save()
+        run = RunSerializer(run)
+        #TODO log
+        #RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer un-started in race.", current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
+
+        return Response(run.data, status=status.HTTP_200_OK)
+
+class DispatchUnassignView(APIView):
+    def post(self, request, *args, **kwargs):
+        pass

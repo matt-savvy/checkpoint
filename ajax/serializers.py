@@ -39,7 +39,7 @@ class RaceEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = RaceEntry
         depth = 2
-        fields = ('entry_status_as_string', 'localized_start_time', 'current_score', 'racer')
+        fields = ('entry_status_as_string', 'localized_start_time', 'current_score', 'racer', 'id')
 
 class CheckpointSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,12 +58,13 @@ class JobSerializer(serializers.ModelSerializer):
 
 class RunSerializer(serializers.ModelSerializer):
     job = JobSerializer()
+    race_entry = RaceEntrySerializer()
     status_as_string = serializers.CharField(source='status_as_string')
     number_of_open_jobs = serializers.CharField(source='number_of_open_jobs')
 
     class Meta:
         model = Run
-        fields = ('id', 'job', 'status_as_string', 'utc_time_ready', 'utc_time_due', 'utc_time_picked', 'utc_time_dropped')
+        fields = ('id', 'race_entry', 'job', 'status_as_string', 'utc_time_ready', 'utc_time_due', 'utc_time_picked', 'utc_time_dropped')
 
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
@@ -78,5 +79,4 @@ class CompanyEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CompanyEntry
-        fields = ('company', 'race_entries', 'runs')
-        #fields = ('company',)
+        fields = ('company', 'id', 'race_entries', 'runs')
