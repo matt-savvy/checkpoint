@@ -45,6 +45,8 @@ class CheckpointSerializer(serializers.ModelSerializer):
     class Meta:
         model = Checkpoint
 
+    
+
 class JobSerializer(serializers.ModelSerializer):
     pick_checkpoint = CheckpointSerializer()
     drop_checkpoint = CheckpointSerializer()

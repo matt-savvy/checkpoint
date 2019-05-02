@@ -10,9 +10,9 @@ import {Badge, Button, ButtonGroup, Card, CardDeck, Col, Form, Jumbotron, ListGr
 const DISPLAY_UNASSIGNED = "unassigned";
 const DISPLAY_NEW = "new";
 
-const SORT_READY_TIME = "utc_time_due";
-const SORT_DEADLINE = "utc_time_ready";
-const SORT_CHECKPOINT = "job.pick_checkpoint.checkpoint_name";
+const SORT_READY_TIME = "utc_time_ready";
+const SORT_DEADLINE = "utc_time_due";
+const SORT_CHECKPOINT = "checkpoint";
 
 class AssignDialog extends React.Component{
     constructor(props) {
@@ -107,13 +107,26 @@ function NavBar(props){
           </Nav.Link>
         </Nav.Item>
 		<NavDropdown title="Sort" id="nav-dropdown">
-		  <NavDropdown.Item active={props.sortMode ==SORT_READY_TIME} eventKey={SORT_READY_TIME}>Ready Time</NavDropdown.Item>
+		  <NavDropdown.Item active={props.sortMode == SORT_READY_TIME} eventKey={SORT_READY_TIME}>Ready Time</NavDropdown.Item>
 		  <NavDropdown.Item active={props.sortMode == SORT_DEADLINE} eventKey={SORT_DEADLINE}>Deadline</NavDropdown.Item>
 		  <NavDropdown.Item active={props.sortMode == SORT_CHECKPOINT} eventKey={SORT_CHECKPOINT}>Checkpoint</NavDropdown.Item>
 		</NavDropdown>
         <Button onClick={props.refresh} variant="secondary">Refresh</Button>
         <Badge variant="light">{clock}</Badge>
 	</Nav>
+    )
+}
+
+function Checkpoint(props) {
+    return (
+        <>
+            <strong>{props.checkpoint.checkpoint_name}</strong>
+            <br />
+            {props.checkpoint.address_line_1}
+            <br />
+            {props.checkpoint.address_line_2}
+            <br />
+        </>
     )
 }
 
@@ -124,6 +137,9 @@ class Run extends React.Component {
             showAssign : false,
             showUnassign : false,
         }
+    }
+    componentDidMount() {
+        console.log("run mount");
     }
     startAssign = () => {
         this.setState({showAssign : true});
@@ -162,7 +178,7 @@ class Run extends React.Component {
         let timeRemaining = deadlineMoment - nowMoment;
         if (timeRemaining < 0) {
             late = true;
-            styleClassName = "late";
+            styleClassName = "expired";
         } else {
             let totalTime = deadlineMoment - readyMoment;
             urgent = ((timeRemaining / totalTime) < 0.55);
@@ -174,36 +190,23 @@ class Run extends React.Component {
             <>
 			<div className={`list-group-item ${styleClassName}`}>
     			<Row>
-      				<Col><i>From:</i><br/>
-				          <strong>{run.job.pick_checkpoint.checkpoint_name}</strong><br />
-				          {run.job.pick_checkpoint.line1}
-						  <br />
-						  {run.job.pick_checkpoint.line2}
-				          <br />
-
-			        <p>
-					  ({run.job.service}) {readyTime} to {deadline}
-					  <br />
-					  Ready {readyFromNow}
-			          <br />
-					  Due {deadlineFromNow}
-
-                    </p>
-
+      				<Col>
+                        <em>From:</em><br/>
+				          <Checkpoint checkpoint={run.job.pick_checkpoint} />
+	                       <br />
+	                     ({run.job.service}) {readyTime} to {deadline}
+		                    <br />
+	                       Ready {readyFromNow}
+			                        <br />
+                           Due {deadlineFromNow}
 	      		  </Col>
 			      <Col>
-				  	<i>To:</i><br/>
-			          <strong>{run.job.drop_checkpoint.checkpoint_name}</strong> <br/>
-					  {run.job.drop_checkpoint.line1}
-					  <br />
-					  {run.job.drop_checkpoint.line2}
-                      <br />
-                      <p className="job-summary">
-                          <span>${run.job.points}</span> <br />
-                      </p>
-                      {run.id}
-                      <br />
-                      {run.status_as_string}
+				  	<em>To:</em><br/>
+			          <Checkpoint checkpoint={run.job.drop_checkpoint} />
+                        <br />
+                          ${run.job.points} <br />
+                          #ID{run.id} <br />
+                          {run.status_as_string}
 
 			      </Col>
                 </Row>
@@ -274,10 +277,11 @@ class App extends React.Component {
 
 		runs.ensureUniqueIndex('id');
 		runs.insert(init['runs']);
-		runs.addDynamicView(DISPLAY_UNASSIGNED);
-		runs.addDynamicView(DISPLAY_NEW);
+		let unassignedRuns = runs.addDynamicView(DISPLAY_UNASSIGNED, {sortPriority : 'active'});
+        unassignedRuns.applySort(this.deadlineSort);
+
 		init['race_entries'].forEach(raceEntry => {
-			let raceEntryView = runs.addDynamicView(raceEntry.id);
+			let raceEntryView = runs.addDynamicView(raceEntry.id, {sortPriority : 'active'});
             raceEntryView.applyWhere(function(run){return run.race_entry && run.race_entry.id == raceEntry.id});
 
 		});
@@ -294,7 +298,18 @@ class App extends React.Component {
 	}
 
 	changeSortMode = (mode) => {
-		this.setState({sortMode : mode});
+        let db = this.state.db;
+        let allRuns = db.getCollection('runs').getDynamicView(DISPLAY_UNASSIGNED);
+
+        if (mode == SORT_READY_TIME) {
+            allRuns.applySort(this.readySort);
+        } else if (mode == SORT_DEADLINE) {
+            allRuns.applySort(this.deadlineSort);
+        } else if (mode == SORT_CHECKPOINT) {
+            allRuns.applySort(this.checkpointSort);
+        }
+
+		this.setState({db: db, sortMode : mode});
 	}
 	changeViewMode = (mode) => {
 		console.log("change view mode", mode);
@@ -365,15 +380,36 @@ class App extends React.Component {
 
         return db;
     }
-	render () {
-        const timeNow = Date.now();
+    readySort = (run1, run2) => {
+            let time1 = Date.parse(run1.utc_time_ready);
+            let time2 = Date.parse(run2.utc_time_ready);
+            if (time1 > time2) {return 1}
+            if (time1 < time2) {return -1}
+            return 0;
+    }
+    deadlineSort = (run1, run2) => {
+            let time1 = Date.parse(run1.utc_time_due);
+            let time2 = Date.parse(run2.utc_time_due);
+            if (time1 > time2) {return 1}
+            if (time1 < time2) {return -1}
+            return 0;
+    }
+    checkpointSort = (run1, run2) => {
+            if (run1.job.pick_checkpoint.checkpoint_name > run2.job.pick_checkpoint.checkpoint_name) {return 1}
+            if (run1.job.pick_checkpoint.checkpoint_name < run2.job.pick_checkpoint.checkpoint_name) {return -1}
+            return 0;
+    }
+    render () {
+
+        let timeNow = Date.now();
 		var runs, allRuns, allRunsView;
 		runs = this.state.db.getCollection('runs')
-        allRunsView = runs.getDynamicView(this.state.viewMode);
+
+        allRunsView = runs.getDynamicView(DISPLAY_UNASSIGNED);
         allRunsView.applyFind({'race_entry' : null});
-		allRunsView.applySimpleSort(this.state.sortMode);
+
 		allRuns = allRunsView.data();
-        // dynamic views based on status
+
 		return (
 			<>
 			   <div className="mb-2 board-tabs">
