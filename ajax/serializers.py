@@ -7,6 +7,10 @@ from runs.models import Run
 from companies.models import Company
 from company_entries.models import CompanyEntry
 
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ('name', )
 
 class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,9 +31,10 @@ class VolunteerSerializer(serializers.ModelSerializer):
 class RacerSerializer(serializers.ModelSerializer):
     display_name = serializers.CharField(source='display_name')
     category_as_string = serializers.CharField(source='category_as_string')
+    company = CompanySerializer()
     class Meta:
         model = Racer
-        fields = ('racer_number', 'first_name', 'last_name', 'nick_name', 'city', 'gender', 'category', 'display_name', 'category_as_string', 'radio_number', 'contact_info')
+        fields = ('racer_number', 'first_name', 'last_name', 'nick_name', 'city', 'gender', 'category', 'display_name', 'category_as_string', 'radio_number', 'contact_info', 'company')
 
 class RaceEntrySerializer(serializers.ModelSerializer):
     entry_status_as_string = serializers.CharField(source='entry_status_as_string')
@@ -45,7 +50,6 @@ class CheckpointSerializer(serializers.ModelSerializer):
     class Meta:
         model = Checkpoint
 
-    
 
 class JobSerializer(serializers.ModelSerializer):
     pick_checkpoint = CheckpointSerializer()
@@ -68,10 +72,6 @@ class RunSerializer(serializers.ModelSerializer):
         model = Run
         fields = ('id', 'race_entry', 'job', 'status_as_string', 'utc_time_ready', 'utc_time_due', 'utc_time_picked', 'utc_time_dropped')
 
-class CompanySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Company
-        fields = ('name', )
 
 class CompanyEntrySerializer(serializers.ModelSerializer):
     company = CompanySerializer()
