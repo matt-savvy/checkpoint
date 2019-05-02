@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
 from jobs.models import Job
-from runs.models import Run
+from runs.models import Run, RunChangeLog
 from races.models import Race
 from racecontrol.models import RaceControl
 from streamer.models import StreamEvent
@@ -351,12 +351,25 @@ class DispatchRefreshView(generics.ListAPIView):
     queryset = Run.objects.all()
     allowed_methods = [u'GET', u'HEAD', u'OPTIONS', u'POST']
 
-    def get_queryset(self):
-        company_entry = CompanyEntry.objects.filter(company__dispatcher=self.request.user)
+    def post(self, request, *args, **kwargs):
+        qs = self.queryset
+        company_entry = CompanyEntry.objects.filter(company__dispatcher=self.request.user).first()
+
         if company_entry:
-            return self.queryset.filter(company_entry=company_entry)
-        else:
-            return self.queryset
+            qs = qs.filter(company_entry=company_entry)
+
+            head_id = self.request.DATA.get('head', 0)
+            if head_id:
+                changes = RunChangeLog.objects.filter(company_pk=company_entry.pk).filter(id__gt=head_id).order_by('pk')
+
+                if changes:
+                    head_id = changes.last().pk
+
+                changes_pks = changes.values_list('run_pk', flat=True)
+                qs = qs.filter(pk__in=changes_pks)
+
+        serialized_runs = RunSerializer(qs)
+        return Response({'runs' : serialized_runs.data, 'head' : head_id}, status=status.HTTP_200_OK)
 
 class DispatchAssignView(APIView):
     def post(self, request, *args, **kwargs):

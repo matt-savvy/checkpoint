@@ -30,7 +30,8 @@
 
 	{% load staticfiles %}
 	<script type="text/javascript">
-		const init = {{ company_entry|safe }}
+		const init = {{ company_entry|safe }};
+        const head = {{ head|safe }};
 		console.log(init);
 	</script>
 

@@ -71,7 +71,7 @@ class CompanyEntry(models.Model):
 
     def get_runs(self):
         from runs.models import Run
-        return Run.objects.filter(company_entry=self)
+        return Run.objects.filter(company_entry=self).order_by('pk')
 
     def populate_runs(self):
         runs = self.race.populate_runs(company_entry=self)

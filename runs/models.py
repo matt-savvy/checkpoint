@@ -67,6 +67,17 @@ class Run(models.Model):
         index = [i for i, v in enumerate(self.DETERMINATION_CHOICES) if v[0] == self.determination]
         return self.DETERMINATION_CHOICES[index[0]][1]
 
+    def save(self, *args, **kwargs):
+        super(Run, self).save(*args, **kwargs)
+
+        try:
+            change_log = RunChangeLog()
+            change_log.company_pk = self.company_entry.pk
+            change_log.run_pk = self.pk
+            change_log.save()
+        except:
+            pass
+
     @property
     def localized_due_time(self):
         eastern = pytz.timezone('US/Eastern')
@@ -158,3 +169,7 @@ class Run(models.Model):
             if not self.utc_time_dropped <= self.utc_time_due:
                 return True
         return False
+
+class RunChangeLog(models.Model):
+    company_pk = models.IntegerField()
+    run_pk = models.IntegerField()

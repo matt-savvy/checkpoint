@@ -309,6 +309,7 @@ class App extends React.Component {
 			db: db,
 			raceEntries: init['race_entries'],
             loading: false,
+            head: head,
             time: Date.now(),
 		}
 		this.viewModes = [DISPLAY_UNASSIGNED, DISPLAY_NEW]
@@ -376,11 +377,13 @@ class App extends React.Component {
     refresh = () => {
         clearInterval(this.refreshTimer);
         this.setState({loading : true});
-        axios.get('/dispatch/refresh/')
+        let requestObj = {head: this.state.head}
+        axios.post('/dispatch/refresh/', requestObj)
             .then(response => {
-                let db = this.updateTable(response.data);
-                this.setState({db: db, loading : false});
-                
+                console.log(response.data.runs);
+                let db = this.updateTable(response.data.runs);
+
+                this.setState({db: db, loading : false, head: response.data.head});
                 this.refreshTimer = setInterval(() => this.refresh(), 30000);
             })
             .catch(error => {
