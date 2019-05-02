@@ -35,7 +35,6 @@ class AssignDialog extends React.Component{
         }
 
         if (this.props.run.race_entry && (this.props.run.race_entry.id == this.state.value)){
-            console.log("catch");
             this.props.handleClose();
             return;
         }

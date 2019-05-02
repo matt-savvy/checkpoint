@@ -10,7 +10,7 @@ from company_entries.models import CompanyEntry
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
-        fields = ('name', )
+        fields = ('name', 'id')
 
 class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,10 +67,11 @@ class RunSerializer(serializers.ModelSerializer):
     race_entry = RaceEntrySerializer()
     status_as_string = serializers.CharField(source='status_as_string')
     number_of_open_jobs = serializers.CharField(source='number_of_open_jobs')
+    determination_as_string = serializers.CharField(source='determination_as_string')
 
     class Meta:
         model = Run
-        fields = ('id', 'race_entry', 'job', 'status_as_string', 'utc_time_ready', 'utc_time_due', 'utc_time_picked', 'utc_time_dropped')
+        fields = ('id', 'race_entry', 'job', 'status_as_string', 'utc_time_ready', 'utc_time_due', 'utc_time_picked', 'utc_time_dropped', 'determination_as_string')
 
 
 class CompanyEntrySerializer(serializers.ModelSerializer):

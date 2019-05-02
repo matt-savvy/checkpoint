@@ -10,8 +10,9 @@ import {Badge, Button, ButtonGroup, Card, CardDeck, Col, Form, Jumbotron, ListGr
 const DISPLAY_COMPANIES = "companies";
 const DISPLAY_RACERS = "racers";
 
-const SORT_JOBS = "jobs";
-const SORT_POINTS = "points";
+const SORT_COMPLETE_JOBS = "completedRuns";
+const SORT_ACTIVE_JOBS = "activeRuns";
+const SORT_POINTS = "totalScore";
 
 function NavBar(props){
    return (
@@ -30,8 +31,9 @@ function NavBar(props){
 
 
 		<NavDropdown title="Sort" id="nav-dropdown">
-		  <NavDropdown.Item active={props.sortMode == SORT_JOBS} eventKey={SORT_JOBS}>Ready Time</NavDropdown.Item>
-		  <NavDropdown.Item active={props.sortMode == SORT_POINTS} eventKey={SORT_POINTS}>Deadline</NavDropdown.Item>
+		<NavDropdown.Item active={props.sortMode == SORT_COMPLETE_JOBS} eventKey={SORT_COMPLETE_JOBS}>Complete Jobs</NavDropdown.Item>
+		  <NavDropdown.Item active={props.sortMode == SORT_ACTIVE_JOBS} eventKey={SORT_ACTIVE_JOBS}>Active Jobs</NavDropdown.Item>
+		  <NavDropdown.Item active={props.sortMode == SORT_POINTS} eventKey={SORT_POINTS}>Points</NavDropdown.Item>
 		</NavDropdown>
         <Button onClick={props.refresh} variant="secondary">Refresh</Button>
 	</Nav>
@@ -82,32 +84,45 @@ function RacerList(props) {
 
 function CompanyList(props) {
 
-	return props.companies.map(company =>
-		<Card key={company.name} >
-			<Card.Body>
-				<Table>
-					<thead>
-						<tr>
-							<th></th>
-							<th>Active Jobs</th>
-							<th>Complete Jobs</th>
-							<th>Late Jobs</th>
-							<th>Total Points</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><h2>{company.name}</h2></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-						</tr>
-					</tbody>
-				</Table>
-				<RacerList key={company.name} runs={props.runs} viewMode={props.viewMode} raceEntries={company.raceEntries} />
-			</Card.Body>
-		</Card>
+	return props.companies.map(company => {
+		let totalRunsView = props.runs.getDynamicView(company.name);
+		let activeRuns = totalRunsView.resultset.copy().where(run => run.status_as_string != "Completed");
+		let completedRuns = totalRunsView.resultset.copy().where(run => run.status_as_string == "Completed")
+
+		let lateRuns = completedRuns.where(run => run.determination_as_string == "Late");
+
+		let raceEntryScores = company.raceEntries.map(raceEntry => raceEntry.current_score);
+		let totalScore = raceEntryScores.reduce((total, num) => total + num);
+
+		return (
+			<Card key={company.name} >
+				<Card.Body>
+					<Table>
+						<thead>
+							<tr>
+								<th></th>
+								<th>Active Jobs</th>
+								<th>Complete Jobs</th>
+								<th>Late Jobs</th>
+								<th>Total Points</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><h2>{company.name}</h2></td>
+								<td>{activeRuns.count()}</td>
+								<td>{completedRuns.count()}</td>
+								<td>{lateRuns.count()}</td>
+								<td>${totalScore}</td>
+							</tr>
+						</tbody>
+					</Table>
+					<RacerList key={company.name} runs={props.runs} viewMode={props.viewMode} raceEntries={company.raceEntries} />
+				</Card.Body>
+			</Card>
+		)
+	}
+
 	)
 }
 
@@ -118,30 +133,35 @@ class App extends React.Component {
 		let db = new loki('checkpoint-scoreboard.db');
 		let runs = db.addCollection('runs');
 		runs.ensureUniqueIndex('id');
-		//let raceEntries = db.addCollection('raceEntries');
-		//raceEntries.ensureUniqueIndex('id');
 		let companyList = [];
 		let raceEntriesList = [];
 
 		init.forEach((obj) => {
 			let company = obj.company;
 			delete company['runs'];
+			obj['runs'].forEach(run => {
+				run.company = company;
+			})
 			runs.insert(obj['runs']);
-			runs.addDynamicView(company.name);
+
+			let companyView = runs.addDynamicView(company.name);
+			companyView = companyView.applyWhere(run => run.company.id == company.id);
+
 			obj.race_entries.forEach(raceEntry => {
 				raceEntriesList.push(raceEntry);
 				let raceEntryView = runs.addDynamicView(raceEntry.id);
 				raceEntryView.applyWhere(run => (run.race_entry) && (run.race_entry.id == raceEntry.id));
 			});
 
-
 			company['raceEntries'] = obj.race_entries;
 			companyList.push(company);
 		});
 
+		let totalRunsView = runs.getDynamicView('59 Minute Messenger');
+
 		this.state = {
 			viewMode: DISPLAY_COMPANIES,
-			sortMode: SORT_JOBS,
+			sortMode: SORT_POINTS,
 			db: db,
             loading: false,
             head: head,
@@ -149,7 +169,7 @@ class App extends React.Component {
 			raceEntries : raceEntriesList,
 		}
 		this.viewModes = [DISPLAY_RACERS, DISPLAY_COMPANIES]
-		this.sortModes = [SORT_JOBS, SORT_POINTS]
+		this.sortModes = [SORT_COMPLETE_JOBS, SORT_ACTIVE_JOBS, SORT_POINTS]
 	}
     componentDidMount() {
         this.refreshTimer = setInterval(() => this.refresh(), 30000);
@@ -207,6 +227,33 @@ class App extends React.Component {
     render () {
 		let runs = this.state.db.getCollection('runs');
 
+		this.state.companies.forEach(company => {
+			let totalRunsView = runs.getDynamicView(company.name);
+			let activeRuns = totalRunsView.resultset.copy().where(run => run.status_as_string != "Completed");
+			let completedRuns = totalRunsView.resultset.copy().where(run => run.status_as_string == "Completed")
+
+			let lateRuns = completedRuns.where(run => run.determination_as_string == "Late");
+
+			let raceEntryScores = company.raceEntries.map(raceEntry => raceEntry.current_score);
+			let totalScore = raceEntryScores.reduce((total, num) => total + num);
+
+			company.activeRuns = activeRuns.count()
+			company.completedRuns = completedRuns.count()
+			company.totalScore = totalScore;
+		})
+
+		let companies = this.state.companies;
+		let sortMode = this.state.sortMode;
+
+		companies.sort((company1, company2) => {
+			if (company1[sortMode] < company2[sortMode]) {
+				return 1
+			}
+			if (company1[sortMode] > company2[sortMode]) {
+				return -1
+			}
+			return 0
+		});
 
 		return (
 			<>
