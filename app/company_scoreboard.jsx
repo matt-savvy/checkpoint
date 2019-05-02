@@ -42,7 +42,6 @@ function NavBar(props){
 function RacerRow(props) {
 	const raceEntry = props.raceEntry;
 	let racerRunsView = props.runs.getDynamicView(raceEntry.id);
-	//console.log(props);
 	return (
 		<tr>
 			{(props.viewMode == DISPLAY_RACERS) && <td>{raceEntry.racer.company.name}</td>}
@@ -50,9 +49,9 @@ function RacerRow(props) {
 			<td>{raceEntry.racer.racer_number}</td>
 			<td>{raceEntry.racer.gender}</td>
 			<td>{raceEntry.entry_status_as_string}</td>
-			<td>{}</td>
-			<td>{}</td>
-			<td>{}</td>
+			<td>{raceEntry.activeRuns}</td>
+			<td>{raceEntry.completedRuns}</td>
+			<td>{raceEntry.totalScore}</td>
 			<td>{racerRunsView.count()}</td>
 		</tr>
 	)
@@ -85,15 +84,6 @@ function RacerList(props) {
 function CompanyList(props) {
 
 	return props.companies.map(company => {
-		let totalRunsView = props.runs.getDynamicView(company.name);
-		let activeRuns = totalRunsView.resultset.copy().where(run => run.status_as_string != "Completed");
-		let completedRuns = totalRunsView.resultset.copy().where(run => run.status_as_string == "Completed")
-
-		let lateRuns = completedRuns.where(run => run.determination_as_string == "Late");
-
-		let raceEntryScores = company.raceEntries.map(raceEntry => raceEntry.current_score);
-		let totalScore = raceEntryScores.reduce((total, num) => total + num);
-
 		return (
 			<Card key={company.name} >
 				<Card.Body>
@@ -110,10 +100,10 @@ function CompanyList(props) {
 						<tbody>
 							<tr>
 								<td><h2>{company.name}</h2></td>
-								<td>{activeRuns.count()}</td>
-								<td>{completedRuns.count()}</td>
-								<td>{lateRuns.count()}</td>
-								<td>${totalScore}</td>
+								<td>{company.activeRuns}</td>
+								<td>{company.completedRuns}</td>
+								<td>{company.lateRuns}</td>
+								<td>${company.totalScore}</td>
 							</tr>
 						</tbody>
 					</Table>
@@ -224,36 +214,56 @@ class App extends React.Component {
     futureFilter = (run) => {
             return Date.parse(run.utc_time_ready) < Date.now();
     }
-    render () {
-		let runs = this.state.db.getCollection('runs');
+	createTotals = (object, totalRunsView) => {
+		let activeRuns = totalRunsView.resultset.copy().where(run => run.status_as_string != "Completed");
+		let completedRuns = totalRunsView.resultset.copy().where(run => run.status_as_string == "Completed")
 
-		this.state.companies.forEach(company => {
-			let totalRunsView = runs.getDynamicView(company.name);
-			let activeRuns = totalRunsView.resultset.copy().where(run => run.status_as_string != "Completed");
-			let completedRuns = totalRunsView.resultset.copy().where(run => run.status_as_string == "Completed")
+		let lateRuns = completedRuns.where(run => run.determination_as_string == "Late");
 
-			let lateRuns = completedRuns.where(run => run.determination_as_string == "Late");
+		var totalScore;
+		if (object.raceEntries) {
+			let raceEntryScores = object.raceEntries.map(raceEntry => raceEntry.current_score);
+			totalScore = raceEntryScores.reduce((total, num) => total + num);
+		} else {
+			totalScore = object.current_score;
+		}
 
-			let raceEntryScores = company.raceEntries.map(raceEntry => raceEntry.current_score);
-			let totalScore = raceEntryScores.reduce((total, num) => total + num);
-
-			company.activeRuns = activeRuns.count()
-			company.completedRuns = completedRuns.count()
-			company.totalScore = totalScore;
-		})
-
-		let companies = this.state.companies;
+		object.activeRuns = activeRuns.count()
+		object.completedRuns = completedRuns.count()
+		object.totalScore = totalScore;
+		return object;
+	}
+	sort = (objects) => {
 		let sortMode = this.state.sortMode;
 
-		companies.sort((company1, company2) => {
-			if (company1[sortMode] < company2[sortMode]) {
+		objects.sort((obj1, obj2) => {
+			if (obj1[sortMode] < obj2[sortMode]) {
 				return 1
 			}
-			if (company1[sortMode] > company2[sortMode]) {
+			if (obj1[sortMode] > obj2[sortMode]) {
 				return -1
 			}
 			return 0
 		});
+
+		return objects;
+	}
+    render () {
+		let runs = this.state.db.getCollection('runs');
+
+		this.state.companies.map(company => {
+			let totalRunsView = runs.getDynamicView(company.name);
+			return this.createTotals(company, totalRunsView);
+		})
+
+		this.state.raceEntries.forEach(raceEntry => {
+			let totalRunsView = runs.getDynamicView(raceEntry.id);
+			return this.createTotals(raceEntry, totalRunsView);
+		})
+
+		let companies = this.sort(this.state.companies);
+		let raceEntries = this.sort(this.state.raceEntries);
+		let sortMode = this.state.sortMode;
 
 		return (
 			<>
@@ -266,7 +276,7 @@ class App extends React.Component {
                 }
 
 				{(this.state.viewMode == DISPLAY_RACERS) &&
-					<RacerList key="allRacersList" runs={runs} viewMode={this.state.viewMode} raceEntries={this.state.raceEntries} />
+					<RacerList key="allRacersList" runs={runs} viewMode={this.state.viewMode} raceEntries={raceEntries} />
                }
 			</>
 		)
