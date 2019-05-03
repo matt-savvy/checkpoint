@@ -40,11 +40,12 @@ class RaceEntrySerializer(serializers.ModelSerializer):
     entry_status_as_string = serializers.CharField(source='entry_status_as_string')
     localized_start_time = serializers.CharField(source='localized_start_time')
     current_score = serializers.CharField(source='calculate_current_score')
+
     racer = RacerSerializer()
     class Meta:
         model = RaceEntry
         depth = 2
-        fields = ('entry_status_as_string', 'localized_start_time', 'current_score', 'racer', 'id')
+        fields = ('entry_status_as_string', 'localized_start_time', 'current_score', 'racer', 'id', 'grand_total', 'points_earned')
 
 class CheckpointSerializer(serializers.ModelSerializer):
     class Meta:
@@ -73,13 +74,13 @@ class RunSerializer(serializers.ModelSerializer):
         model = Run
         fields = ('id', 'race_entry', 'job', 'status_as_string', 'utc_time_ready', 'utc_time_due', 'utc_time_picked', 'utc_time_dropped', 'determination_as_string')
 
-
 class CompanyEntrySerializer(serializers.ModelSerializer):
     company = CompanySerializer()
     #race = RaceSerializer()
     race_entries = RaceEntrySerializer(source='get_race_entries', many=True)
     runs = RunSerializer(source='get_runs', many=True)
+    entry_status_as_string = serializers.CharField('entry_status_as_string')
 
     class Meta:
         model = CompanyEntry
-        fields = ('company', 'id', 'race_entries', 'runs')
+        fields = ('company', 'id', 'race_entries', 'runs', 'entry_status_as_string', 'grand_total', 'points_earned')

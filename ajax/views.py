@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponseForbidden
-from ajax.serializers import RacerSerializer, RaceEntrySerializer, JobSerializer, RunSerializer, RaceEntrySerializer
+from ajax.serializers import RacerSerializer, RaceEntrySerializer, JobSerializer, RunSerializer, RaceEntrySerializer, CompanyEntrySerializer
 from racers.models import Racer
 from raceentries.models import RaceEntry
 from company_entries.models import CompanyEntry
@@ -453,3 +453,31 @@ class DispatchUnassignView(APIView):
         run = RunSerializer(run)
 
         return Response(run.data, status=status.HTTP_200_OK)
+
+
+class DispatchScoreboardRefreshView(APIView):
+    allowed_methods = [u'GET']
+
+    def post(self, request, *args, **kwargs):
+        rc = RaceControl.shared_instance()
+        current_race = rc.current_race
+
+        company_entries = CompanyEntry.objects.filter(race=current_race)
+        serializer = CompanyEntrySerializer
+        serialized_company_entries = CompanyEntrySerializer(company_entries)
+
+        runs = Run.objects.filter(company_entry__in=company_entries)
+
+        head_id = self.request.DATA.get('head', 0)
+        if head_id:
+            changes = RunChangeLog.objects.filter(id__gt=head_id).order_by('pk')
+
+            if changes:
+                head_id = changes.last().pk
+
+            changes_pks = changes.values_list('run_pk', flat=True)
+            runs = runs.filter(pk__in=changes_pks)
+
+        serialized_runs = RunSerializer(runs)
+
+        return Response({'runs' : serialized_runs.data, 'company_entries' : serialized_company_entries.data, 'head' : head_id}, status=status.HTTP_200_OK)
