@@ -1,9 +1,12 @@
 from django.db import models
+from django.utils.timezone import utc
+from django.db.models import Avg
 from companies.models import Company
 from races.models import Race
 import datetime
 import pytz
-from django.utils.timezone import utc
+import decimal
+
 
 class CompanyEntry(models.Model):
     ENTRY_STATUS_ENTERED    = 0
@@ -35,7 +38,14 @@ class CompanyEntry(models.Model):
     dq_time = models.DateTimeField(blank=True, null=True)
     dq_reason = models.CharField(blank=True, max_length=255)
 
+    points_earned = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+    supplementary_points = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+    deductions = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+    grand_total = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+
     scratch_pad = models.TextField(blank=True)
+
+
 
     class Meta:
         unique_together = (("company", "race"))
@@ -99,12 +109,39 @@ class CompanyEntry(models.Model):
 
         runs = Run.objects.filter(company_entry=self).delete()
 
+    def add_up_points(self):
+        from runs.models import Run
+        runs = Run.objects.filter(company_entry=self)
+        total = runs.aggregate(Sum('points_earned'))
+        self.points_earned = total
+        self.calculate_grand_total()
+
+    def calculate_grand_total(self):
+        self.grand_total = (decimal.Decimal(self.points_earned) + decimal.Decimal(self.supplementary_points)) - decimal.Decimal(self.deductions)
+
+    def finish(self):
+        from runs.models import Run
+        if self.entry_status == self.ENTRY_STATUS_RACING:
+            self.finish_racers()
+
+            self.entry_status = self.ENTRY_STATUS_FINISHED
+            self.end_time = datetime.datetime.utcnow().replace(tzinfo=utc)
+
+            self.points_earned = sum(self.get_race_entries().values_list('points_earned', flat=True))
+
+            runs = Run.objects.filter(status=Run.RUN_STATUS_PENDING).filter(company_entry=self)
+            runs.update(determination=Run.DETERMINATION_NOT_DROPPED)
+
+            #get all the runs that are due before the end of the race.
+            runs = runs.filter(utc_time_due__lte=self.race.race_end_time)
+            for ru in runs:
+                ru.points_awarded = decimal.Decimal(-ru.job.points)
+                ru.save()
+
+            self.save()
+
     def finish_racers(self):
         entries = self.get_race_entries()
         for entry in entries:
             entry.finish_racer()
-
-        self.entry_status = self.ENTRY_STATUS_FINISHED
-        self.end_time = datetime.datetime.utcnow().replace(tzinfo=utc)
-        self.save()
-        ##score all jobs?
+            entry.save()

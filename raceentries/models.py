@@ -130,8 +130,8 @@ class RaceEntry(models.Model):
             self.end_time = datetime.datetime.utcnow().replace(tzinfo=utc)
 
 
-            first_message = Message.objects.filter(race_entry=self).order_by('message_time').first()
-            last_drop = Run.objects.filter(status=Run.RUN_STATUS_COMPLETED).filter(race_entry=self).order_by('utc_time_dropped').last()
+            #first_message = Message.objects.filter(race_entry=self).order_by('message_time').first()
+            #last_drop = Run.objects.filter(status=Run.RUN_STATUS_COMPLETED).filter(race_entry=self).order_by('utc_time_dropped').last()
 
             if self.race.race_type == Race.RACE_TYPE_DISPATCH_PRELIMS:
                 if first_message and last_drop:

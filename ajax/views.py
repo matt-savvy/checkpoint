@@ -263,7 +263,7 @@ class MassStartCompanies(APIView):
         else:
             for company_entry in company_entries:
                 if company_entry.entry_status == CompanyEntry.ENTRY_STATUS_RACING:
-                    company_entry.finish_racers()
+                    company_entry.finish()
             rc.racers_started = False
         rc.save()
         return Response()
