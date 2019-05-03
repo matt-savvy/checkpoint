@@ -93,6 +93,9 @@ class CompanyEntry(models.Model):
 
         self.entry_status = self.ENTRY_STATUS_RACING
         self.start_time = datetime.datetime.utcnow().replace(tzinfo=utc)
+        self.points_earned = '0.00'
+        self.deductions = '0.00'
+        self.grand_total = '0.00'
         self.save()
         self.populate_runs()
 
@@ -145,3 +148,8 @@ class CompanyEntry(models.Model):
         for entry in entries:
             entry.finish_racer()
             entry.save()
+
+    #@property
+    #def race_end_time(self):
+    #    if self.start_time:
+    #        return self.start_time + datetime.timedelta(minutes=self.race.time_limit)

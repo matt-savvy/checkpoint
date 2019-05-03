@@ -258,7 +258,7 @@ class Run extends React.Component {
 function NothingToShow(props) {
     return (
         <Jumbotron>
-          <h1>All Clear!</h1>
+          <h1>{props.header || "All Clear."}</h1>
               <p>
                 {props.message || "Nothing to show right now."}
               </p>
@@ -376,7 +376,10 @@ class App extends React.Component {
         axios.post(url, requestObj)
             .then(response => {
                 console.log(response);
-                //if {error_description in response}
+                if (response.data.error_description) {
+                    alert(response.data.error_description);
+                    return;
+                }
                 let db = this.updateTable([response.data]);
                 this.setState({db: db, loading : false});
                 this.refresh();
@@ -408,8 +411,13 @@ class App extends React.Component {
         let collection = db.getCollection('runs');
         data.forEach(entry => {
             let run = collection.findOne({'id' : entry.id})
-            let updatedRun = {...run, ...entry}
-            collection.update(updatedRun);
+            if (run) {
+                let updatedRun = {...run, ...entry}
+                collection.update(updatedRun);
+            } else {
+                collection.insert(entry);
+            }
+
         })
 
         return db;

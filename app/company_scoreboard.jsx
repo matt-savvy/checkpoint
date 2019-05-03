@@ -205,8 +205,12 @@ class App extends React.Component {
         let collection = db.getCollection('runs');
         data.forEach(entry => {
             let run = collection.findOne({'id' : entry.id})
-            let updatedRun = {...run, ...entry}
-            collection.update(updatedRun);
+			if (run) {
+				let updatedRun = {...run, ...entry}
+				collection.update(updatedRun);
+			} else {
+				collection.insert(entry);
+			}
         })
 
         return db;

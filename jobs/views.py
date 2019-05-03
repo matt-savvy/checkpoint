@@ -18,27 +18,27 @@ class JobRaceListView(ListView):
     model = Job
     template_name = "jobs_race_select.html"
     context_object_name = 'jobs'
-    
+
     def get_queryset(self):
         return Job.objects.all()
-    
+
     def get_context_data(self, **kwargs):
         context = super(JobRaceListView, self).get_context_data(**kwargs)
         from django.db.models import Count
-        
+
         races = Race.objects.annotate(num_jobs=Count('job'))
 
         context['races'] = races
         return context
-    
+
 class JobListView(ListView):
     model = Job
     template_name = 'list_jobs.html'
     context_object_name = 'jobs'
-    
+
     def get_queryset(self):
         return Job.objects.filter(race__pk=self.kwargs['race']).order_by('job_id')
-        
+
     def get_context_data(self, **kwargs):
         context = super(JobListView, self).get_context_data(**kwargs)
         race = Race.objects.get(pk=self.kwargs['race'])
@@ -51,7 +51,7 @@ class JobListView(ListView):
 
         context['checkpoints'] = checkpoints
         return context
-    
+
 class JobDetailView(DetailView):
     template_name = 'job_detail.html'
     model = Job
@@ -60,7 +60,7 @@ class JobCreateView(CreateView):
     template_name = 'create_job.html'
     model = Job
     form_class = JobForm
-    
+
     def get_initial(self):
         """
         Returns the initial data to use for forms on this view.
@@ -82,7 +82,7 @@ class JobCreateView(CreateView):
             except:
                 pass
         return initial
-    
+
     def form_valid(self, form):
         self.object = form.save(commit=False)
         print form.cleaned_data['service']
@@ -95,14 +95,14 @@ class JobCreateView(CreateView):
         else:
             self.object.points = Job.PAYOUT_REGULAR
             self.object.minutes_due_after_start = Job.SERVICE_REGULAR
-        
+
         if self.object.manifest:
             if self.object.manifest.manifest_type == Manifest.TYPE_CHOICE_BONUS:
                 self.object.points = str(1.5 * float(self.object.points))
-        
+
         self.object.save()
         return HttpResponseRedirect(self.get_success_url())
-    
+
     def get_success_url(self):
         messages.success(self.request, 'Job was successfully created.')
         if 'save-another' in self.request.POST:
@@ -111,12 +111,12 @@ class JobCreateView(CreateView):
             else:
                 return '/jobs/create/?race={}'.format(self.object.race.pk)
         return super(JobCreateView, self).get_success_url()
-    
+
 class JobUpdateView(UpdateView):
     template_name = 'update_job.html'
     model = Job
     form_class = JobForm
-    
+
     def form_valid(self, form):
         self.object = form.save(commit=False)
         if form.cleaned_data['service'] == 'rush':
@@ -132,10 +132,10 @@ class JobUpdateView(UpdateView):
         if self.object.manifest:
             if self.object.manifest.manifest_type == Manifest.TYPE_CHOICE_BONUS:
                 self.object.points = str(1.5 * float(self.object.points))
-        
+
         self.object.save()
         return HttpResponseRedirect(self.get_success_url())
-    
+
 class JobDeleteView(DeleteView):
     model = Job
     template_name = 'delete_job.html'
@@ -144,7 +144,7 @@ class JobDeleteView(DeleteView):
 class JobCheckView(ListView):
     template_name="job_check.html"
     context_object_name = 'jobs'
-    
+
     def get_queryset(self):
         race = Race.objects.get(pk=self.kwargs['race'])
         jobs = Job.objects.filter(race=race).order_by('job_id')
@@ -161,6 +161,3 @@ class JobCheckView(ListView):
             job_dict['payout'] = job.points
             timed_jobs.append(job_dict)
         return timed_jobs
-        
-    
-    

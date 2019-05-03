@@ -377,12 +377,19 @@ class DispatchAssignView(APIView):
         if not rc.racers_started:
             return Response({'error_description' : "Race has not started yet!"}, status=status.HTTP_200_OK)
 
-        company_entry = CompanyEntry.objects.filter(company__dispatcher=request.user).filter(race=rc.current_race).first()
+        current_race = rc.current_race
+
+        time_now = datetime.datetime.now(tz=pytz.utc)
+
+        company_entry = CompanyEntry.objects.filter(company__dispatcher=request.user).filter(race=current_race).first()
         if not company_entry:
             return HttpResponseForbidden
 
         if not company_entry.race == rc.current_race:
             return HttpResponseForbidden
+
+        if current_race.race_end_time and time_now >= current_race.race_end_time:
+            return Response({'error': True, 'error_title': "Race is over!", "error_description": "The race has ended. No further actions will be allowed."}, status=status.HTTP_200_OK)
 
         race_entry = RaceEntry.objects.get(pk=request.DATA.get('race_entry_pk'))
 
@@ -400,7 +407,6 @@ class DispatchAssignView(APIView):
             return Response({'error_description' : "Job status invalid: Job must be pending or assigned."}, status=status.HTTP_200_OK)
 
 
-        time_now = datetime.datetime.now(tz=pytz.utc)
         run.status = Run.RUN_STATUS_ASSIGNED
         run.determination = Run.DETERMINATION_NOT_PICKED
         run.utc_time_assigned = time_now
@@ -418,19 +424,27 @@ class DispatchUnassignView(APIView):
         if not rc.racers_started:
             return Response({'error_description' : "Race has not started yet!"}, status=status.HTTP_200_OK)
 
-        company_entry = CompanyEntry.objects.filter(company__dispatcher=request.user).filter(race=rc.current_race).first()
+        current_race = rc.current_race
+
+        time_now = datetime.datetime.now(tz=pytz.utc)
+
+        company_entry = CompanyEntry.objects.filter(company__dispatcher=request.user).filter(race=current_race).first()
         if not company_entry:
             return HttpResponseForbidden
 
         if not company_entry.race == rc.current_race:
             return HttpResponseForbidden
 
+        if current_race.race_end_time and time_now >= current_race.race_end_time:
+            return Response({'error': True, 'error_title': "Race is over!", "error_description": "The race has ended. No further actions will be allowed."}, status=status.HTTP_200_OK)
+
+
         run = Run.objects.get(pk=request.DATA.get('run_pk'))
         allowed_run_statuses = [Run.RUN_STATUS_ASSIGNED]
         if not run.status in allowed_run_statuses:
             return Response({'error_description' : "Job status invalid: This job cannot be unassigned."}, status=status.HTTP_200_OK)
 
-        time_now = datetime.datetime.now(tz=pytz.utc)
+
         run.status = Run.RUN_STATUS_PENDING
         run.determination = Run.DETERMINATION_NOT_PICKED
         run.utc_time_assigned = None

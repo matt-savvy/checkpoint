@@ -7,9 +7,9 @@
   <button class="btn btn-danger" id="change-current-race-button">Change Current Race</button>
   {% endif %}
   </div>
-  <div class="col-md-4">  
+  <div class="col-md-4">
   {% if start_time_set %}
-  <h2 class="text-success">Start time is set at {{race_start_date}} {{race_start_time}} (CST)</h2>
+  <h2 class="text-success">Start time is set at {{race_start_date}} {{race_start_time}} (EST)</h2>
   {% else %}
   <h2 class="text-danger">Start Time Not Set</h2>
   {% endif %}
@@ -18,6 +18,6 @@
   <p><button class="btn btn-primary" id="set-race-start-time-button">Set Start Time</button>
   </div>
   <div class="col-md-4">
-      
+
   </div>
 </div>
