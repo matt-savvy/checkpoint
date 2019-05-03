@@ -134,8 +134,8 @@ urlpatterns = patterns('',
     #url(r'^dispatch/radios/$', login_required(dispatch_views.RadioAssignView.as_view()), name="assign-radios"),
     #url(r'^dispatch/radios/api/$', login_required(dispatch_views.RadioAPIView.as_view())),
     #url(r'^dispatch/start_racer/$', login_required(dispatch_views.StartViewDispatch.as_view())),
-    #url(r'^dispatch/controls/$', login_required(dispatch_views.DispatchControlsView.as_view())),
-    #url(r'^dispatch/lookup/(?P<racer>[0-9]+)/$', login_required(dispatch_views.RacerLookupView.as_view())),
+    url(r'^dispatch/controls/$', login_required(dispatch_views.DispatchControlsView.as_view())),
+    url(r'^dispatch/lookup/(?P<racer>[0-9]+)/$', login_required(dispatch_views.RacerLookupView.as_view())),
     #url(r'^dispatch/messages/(?P<race>[0-9]+)/$', login_required(dispatch_views.MessageListView.as_view())),
 
     ##COMPANY DISPATCH VIEWS
