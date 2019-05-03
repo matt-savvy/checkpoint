@@ -53,7 +53,7 @@ function RacerRow(props) {
 			<td>{raceEntry.entry_status_as_string}</td>
 			<td>{raceEntry.activeRuns}</td>
 			<td>{raceEntry.completedRuns}</td>
-			<td>{raceEntry.points_earned}</td>
+			<td>${raceEntry.points_earned}</td>
 			<td>{(raceEntry.grand_total != 0) && <>${raceEntry.grand_total}</>}</td>
 		</tr>
 	)
@@ -107,7 +107,7 @@ function CompanyList(props) {
 								<td>{company.activeRuns}</td>
 								<td>{company.completedRuns}</td>
 								<td>{company.lateRuns}</td>
-								<td>{company.points_earned}</td>
+								<td>${company.points_earned}</td>
 								<td>{(company.grand_total != 0) && <>${company.grand_total}</>}</td>
 
 							</tr>
@@ -209,9 +209,13 @@ class App extends React.Component {
 					delete companyEntry['race_entries'];
 					companyList.push(companyEntry);
 
+					companyEntry['raceEntries'].forEach(raceEntry => {
+						raceEntryList.push(raceEntry);
+					})
+
 				})
 
-                this.setState({db: db, companies:companyList, loading : false, head: response.data.head});
+                this.setState({db: db, companies:companyList, raceEntries: raceEntryList, loading : false, head: response.data.head});
                 this.refreshTimer = setInterval(() => this.refresh(), 30000);
             })
             .catch(error => {
