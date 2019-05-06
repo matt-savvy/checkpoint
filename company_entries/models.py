@@ -129,8 +129,6 @@ class CompanyEntry(models.Model):
             self.entry_status = self.ENTRY_STATUS_FINISHED
             self.end_time = datetime.datetime.utcnow().replace(tzinfo=utc)
 
-            self.points_earned = sum(self.get_race_entries().values_list('points_earned', flat=True))
-
             runs = Run.objects.filter(status=Run.RUN_STATUS_PENDING).filter(company_entry=self)
             runs.update(determination=Run.DETERMINATION_NOT_DROPPED)
 
@@ -140,7 +138,9 @@ class CompanyEntry(models.Model):
                 ru.points_awarded = decimal.Decimal(-ru.job.points)
                 ru.save()
 
-            self.save()
+            self.add_up_points()
+            return True
+        return False
 
     def finish_racers(self):
         entries = self.get_race_entries()
