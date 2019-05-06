@@ -155,7 +155,8 @@ class PickView(APIView):
         if run.status == Run.RUN_STATUS_PICKED:
             pick_time_localized = localize_time(run.utc_time_picked)
             return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer already picked up job.', 'error_description' : 'The racer has already picked job {}, the confirm code was {} at {}.'.format(str(run.job), str(run.pk), pick_time_localized)}, status=status.HTTP_200_OK)
-        elif run.status == Run.RUN_STATUS_COMPLETED:
+
+        if run.status == Run.RUN_STATUS_COMPLETED:
             drop_time_localized = localize_time(run.utc_time_dropped)
             return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer already delivered job.', 'error_description' : 'The racer has already completed job {}.'.format(drop_time_localized)}, status=status.HTTP_200_OK)
 

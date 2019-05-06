@@ -3,6 +3,7 @@ module.exports = {
 	entry: {
 		company_dispatch : ['@babel/polyfill', './app/company_dispatch.jsx'],
 		company_scoreboard : ['@babel/polyfill', './app/company_scoreboard.jsx'],
+		checkpoint: ['@babel/polyfill', './app/checkpoint.jsx'],
 	},
 	output: {
 		path : __dirname,
