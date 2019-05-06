@@ -144,7 +144,7 @@ class App extends React.Component {
 			delete companyEntry['runs'];
 
 			let companyView = runs.addDynamicView(companyEntry.company.name);
-			companyView = companyView.applyWhere(run => run.company.id == companyEntry.company.id);
+			companyView = companyView.applyWhere(run => run.company_entry.id == companyEntry.id);
 
 			companyEntry.race_entries.forEach(raceEntry => {
 				raceEntriesList.push(raceEntry);
@@ -227,22 +227,24 @@ class App extends React.Component {
         let db = this.state.db;
         let collection = db.getCollection('runs');
         data.forEach(entry => {
-            let run = collection.findOne({'id' : entry.id})
+
+            let run = collection.findOne({'id' : entry.id});
 			if (run) {
 				let updatedRun = {...run, ...entry}
 				collection.update(updatedRun);
 			} else {
-				collection.insert(entry);
+				collection.insertOne(entry);
 			}
         })
 
         return db;
     }
     futureFilter = (run) => {
-            return Date.parse(run.utc_time_ready) < Date.now();
+        return Date.parse(run.utc_time_ready) < Date.now();
     }
 	createTotals = (object, totalRunsView) => {
 		let activeRuns = totalRunsView.resultset.copy().where(run => run.status_as_string != "Completed");
+        activeRuns = activeRuns.where(this.futureFilter);
 		let completedRuns = totalRunsView.resultset.copy().where(run => run.status_as_string == "Completed");
 		let lateRuns = totalRunsView.resultset.copy().where(run => (run.status_as_string == "Completed") && (run.determination_as_string == "Late"));
 

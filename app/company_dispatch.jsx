@@ -422,7 +422,7 @@ class App extends React.Component {
                 let updatedRun = {...run, ...entry}
                 collection.update(updatedRun);
             } else {
-                collection.insert(entry);
+                collection.insertOne(entry);
             }
 
         })

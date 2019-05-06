@@ -73,7 +73,8 @@ class RunSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Run
-        fields = ('id', 'race_entry', 'job', 'status_as_string', 'utc_time_ready', 'utc_time_due', 'utc_time_picked', 'utc_time_dropped', 'determination_as_string')
+        fields = ('id', 'race_entry', 'job', 'status_as_string', 'utc_time_ready', 'utc_time_due', 'utc_time_picked', 'utc_time_dropped', 'determination_as_string', 'company_entry')
+        depth = 1
 
 class RaceSerializer(serializers.ModelSerializer):
     class Meta:

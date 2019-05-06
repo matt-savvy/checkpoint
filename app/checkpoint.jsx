@@ -335,7 +335,7 @@ class Checkpoint extends React.Component {
         let availableRuns = this.state.availableRuns.filter(availableRun => {
             return availableRun.id != run;
         });
-        console.log("a runs", availableRuns);
+
 
 		console.log(pickRequestJSON);
 		fetch("/api/v1/pick/", {
