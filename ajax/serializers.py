@@ -1,9 +1,10 @@
 from rest_framework import serializers
+from races.models import Race
 from racers.models import Racer, Volunteer
 from raceentries.models import RaceEntry
+from runs.models import Run
 from jobs.models import Job
 from checkpoints.models import Checkpoint
-from runs.models import Run
 from companies.models import Company
 from company_entries.models import CompanyEntry
 
@@ -74,13 +75,18 @@ class RunSerializer(serializers.ModelSerializer):
         model = Run
         fields = ('id', 'race_entry', 'job', 'status_as_string', 'utc_time_ready', 'utc_time_due', 'utc_time_picked', 'utc_time_dropped', 'determination_as_string')
 
+class RaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Race
+        fields = ('race_start_time', 'time_limit')
+
 class CompanyEntrySerializer(serializers.ModelSerializer):
     company = CompanySerializer()
-    #race = RaceSerializer()
+    race = RaceSerializer()
     race_entries = RaceEntrySerializer(source='get_race_entries', many=True)
     runs = RunSerializer(source='get_runs', many=True)
     entry_status_as_string = serializers.CharField('entry_status_as_string')
 
     class Meta:
         model = CompanyEntry
-        fields = ('company', 'id', 'race_entries', 'runs', 'entry_status_as_string', 'grand_total', 'points_earned')
+        fields = ('company', 'race', 'id', 'race_entries', 'runs', 'entry_status_as_string', 'grand_total', 'points_earned')

@@ -40,3 +40,5 @@ class Command(BaseCommand):
 
         company_entries = CompanyEntry.objects.filter(race=race)
         company_entries.update(entry_status=CompanyEntry.ENTRY_STATUS_ENTERED, start_time=None)
+
+        

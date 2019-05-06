@@ -243,21 +243,16 @@ class App extends React.Component {
     }
 	createTotals = (object, totalRunsView) => {
 		let activeRuns = totalRunsView.resultset.copy().where(run => run.status_as_string != "Completed");
-		let completedRuns = totalRunsView.resultset.copy().where(run => run.status_as_string == "Completed")
+		let completedRuns = totalRunsView.resultset.copy().where(run => run.status_as_string == "Completed");
+		let lateRuns = totalRunsView.resultset.copy().where(run => (run.status_as_string == "Completed") && (run.determination_as_string == "Late"));
 
-		let lateRuns = completedRuns.where(run => run.determination_as_string == "Late");
-
-		//var totalScore;
-		if (object.raceEntries) {
-			let raceEntryScores = object.raceEntries.map(raceEntry => raceEntry.current_score);
-		//	totalScore = raceEntryScores.reduce((total, num) => total + num);
-		} else {
-		//	totalScore = object.current_score;
-		}
+		//if (object.raceEntries) {
+		//	let raceEntryScores = object.raceEntries.map(raceEntry => raceEntry.points_awarded);
+        //}
 
 		object.activeRuns = activeRuns.count()
 		object.completedRuns = completedRuns.count()
-		//object.totalScore = totalScore;
+        object.lateRuns = lateRuns.count();
 		return object;
 	}
 	sort = (objects) => {
@@ -276,7 +271,6 @@ class App extends React.Component {
 		return objects;
 	}
     render () {
-		//console.log(this.state.companies);
 		let runs = this.state.db.getCollection('runs');
 
 		this.state.companies.map(company => {

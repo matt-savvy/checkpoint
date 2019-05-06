@@ -121,6 +121,13 @@ class Run(models.Model):
             self.race_entry.save()
             print "{} picked up {}".format(self.race_entry.racer, self.job)
 
+            try:
+                self.company_entry.add_up_points()
+                self.company_entry.save()
+            except:
+                pass
+
+
     def drop(self):
         if self.status == self.RUN_STATUS_PICKED:
             self.utc_time_dropped = datetime.datetime.now(tz=pytz.utc)
@@ -155,6 +162,12 @@ class Run(models.Model):
 
             print "{} dropped off {}".format(self.race_entry.racer, self.job)
             self.save()
+
+            try:
+                self.company_entry.add_up_points()
+                self.company_entry.save()
+            except:
+                pass
 
     @property
     def late(self):

@@ -114,9 +114,8 @@ class CompanyEntry(models.Model):
 
     def add_up_points(self):
         from runs.models import Run
-        runs = Run.objects.filter(company_entry=self)
-        total = runs.aggregate(Sum('points_earned'))
-        self.points_earned = total
+        total = self.get_runs().aggregate(total=models.Sum('points_awarded'))
+        self.points_earned = total['total']
         self.calculate_grand_total()
 
     def calculate_grand_total(self):

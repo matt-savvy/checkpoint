@@ -107,10 +107,10 @@ class Clock extends React.Component {
        }));
     }
     componentDidMount() {
-        this.interval = setInterval(() => this.tick(), 1000);
+        //this.interval = setInterval(() => this.tick(), 1000);
     }
     componentWillUnmount() {
-        clearInterval(this.interval);
+        //clearInterval(this.interval);
     }
     render() {
         const clock = moment(this.state.timeNow).format('HH:mm:ss A');
@@ -209,7 +209,7 @@ class Run extends React.Component {
             styleClassName = "expired";
         } else {
             let totalTime = deadlineMoment - readyMoment;
-            urgent = ((timeRemaining / totalTime) < 0.55);
+            urgent = ((timeRemaining / totalTime) < 0.30);
             if (urgent) {
                 styleClassName = "urgent";
             }
@@ -323,6 +323,7 @@ class App extends React.Component {
             loading: false,
             head: head,
             time: Date.now(),
+            startTime: init.race.race_start_time,
 		}
 		this.viewModes = [DISPLAY_UNASSIGNED, DISPLAY_ASSIGNED]
 		this.sortModes = [SORT_READY_TIME, SORT_DEADLINE, SORT_CHECKPOINT]
@@ -425,15 +426,15 @@ class App extends React.Component {
     readySort = (run1, run2) => {
             let time1 = Date.parse(run1.utc_time_ready);
             let time2 = Date.parse(run2.utc_time_ready);
-            if (time1 < time2) {return 1}
-            if (time1 > time2) {return -1}
+            if (time1 < time2) {return -1}
+            if (time1 > time2) {return 1}
             return 0;
     }
     deadlineSort = (run1, run2) => {
             let time1 = Date.parse(run1.utc_time_due);
             let time2 = Date.parse(run2.utc_time_due);
-            if (time1 < time2) {return 1}
-            if (time1 > time2) {return -1}
+            if (time1 < time2) {return -1}
+            if (time1 > time2) {return 1}
             return 0;
     }
     checkpointSort = (run1, run2) => {
@@ -442,11 +443,11 @@ class App extends React.Component {
             return 0;
     }
     futureFilter = (run) => {
-
-            return Date.parse(run.utc_time_ready) < Date.now();
+        return Date.parse(run.utc_time_ready) < Date.now();
     }
     render () {
         let timeNow = Date.now();
+
 		let runs, allRuns,unassignedResults, runsResults;
 
 		runs = this.state.db.getCollection('runs');
@@ -464,7 +465,6 @@ class App extends React.Component {
         this.state.raceEntries.forEach(raceEntry =>{
             let racerResults = runsResults.copy();
             racerResults = racerResults.where(function(run){return run.race_entry && run.race_entry.id == raceEntry.id});
-            //racerResults = racerResults.sort{function(run)}
             raceEntry.results = racerResults;
         })
         runsResults = runsResults.find({'race_entry' : null});
