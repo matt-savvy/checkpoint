@@ -122,7 +122,7 @@ class Clock extends React.Component {
 
 function NavBar(props){
    return (
-      <Nav variant="pills" activeKey={props.viewMode} onSelect={k => props.update(k)}>
+      <Nav variant="pills" activeKey={props.viewMode} onSelect={(k, e) => props.update(k, e)}>
         <Nav.Item>
           <Nav.Link eventKey={DISPLAY_UNASSIGNED} href="#">
             Unassigned
@@ -137,7 +137,7 @@ function NavBar(props){
         </Nav.Item>
 
 
-		<NavDropdown title="Sort" id="nav-dropdown">
+		<NavDropdown role="downdown" title="Sort" id="nav-dropdown">
 		  <NavDropdown.Item active={props.sortMode == SORT_READY_TIME} eventKey={SORT_READY_TIME}>Ready Time</NavDropdown.Item>
 		  <NavDropdown.Item active={props.sortMode == SORT_DEADLINE} eventKey={SORT_DEADLINE}>Deadline</NavDropdown.Item>
 		  <NavDropdown.Item active={props.sortMode == SORT_CHECKPOINT} eventKey={SORT_CHECKPOINT}>Checkpoint</NavDropdown.Item>
@@ -322,11 +322,11 @@ class App extends React.Component {
 			raceEntries: init['race_entries'],
             loading: false,
             head: head,
-            time: Date.now(),
-            startTime: init.race.race_start_time,
 		}
-		this.viewModes = [DISPLAY_UNASSIGNED, DISPLAY_ASSIGNED]
-		this.sortModes = [SORT_READY_TIME, SORT_DEADLINE, SORT_CHECKPOINT]
+
+		this.viewModes = [DISPLAY_UNASSIGNED, DISPLAY_ASSIGNED];
+		this.sortModes = [SORT_READY_TIME, SORT_DEADLINE, SORT_CHECKPOINT];
+
 	}
     componentDidMount() {
         this.clockTimer = setInterval(() => this.setState({ time: Date.now() }), 5000);
@@ -341,10 +341,16 @@ class App extends React.Component {
 		this.setState({db: db, sortMode : mode});
 	}
 	changeViewMode = (mode) => {
-		console.log("change view mode", mode);
 		this.setState({viewMode : mode});
 	}
-	updateNavBar = (mode) => {
+	updateNavBar = (mode, e) => {
+        if (e) {
+            e.target.blur();
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+        }
+
 		if (this.viewModes.includes(mode)) {
 			this.changeViewMode(mode);
 		}
