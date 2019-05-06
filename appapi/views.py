@@ -124,12 +124,11 @@ class PickView(APIView):
             return Response({'error' : True, 'error_title' : 'Race Not Found', 'error_description' : 'Please reload your browser to update race info.'}, status=status.HTTP_200_OK)
 
 
-        #pdb.set_trace()
         run = Run.objects.filter(pk=run_number).filter(race_entry__racer__racer_number=racer_number).filter()
 
         #Check for run
         if not run.exists():
-            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Cannot Find Job', 'error_description' : 'No job found.'}, status=status.HTTP_200_OK)
+            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Cannot Find Job', 'error_description' : 'No job found for this racer. Please contact your dispatcher.'}, status=status.HTTP_200_OK)
 
         #run is valid
         run = run.first()
@@ -155,10 +154,13 @@ class PickView(APIView):
 
         if run.status == Run.RUN_STATUS_PICKED:
             pick_time_localized = localize_time(run.utc_time_picked)
-            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer already picked up job.', 'error_description' : 'The racer has already picked job {}, the confirm code was {} at {}'.format(str(run.job), str(run.pk), pick_time_localized)}, status=status.HTTP_200_OK)
+            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer already picked up job.', 'error_description' : 'The racer has already picked job {}, the confirm code was {} at {}.'.format(str(run.job), str(run.pk), pick_time_localized)}, status=status.HTTP_200_OK)
         elif run.status == Run.RUN_STATUS_COMPLETED:
             drop_time_localized = localize_time(run.utc_time_dropped)
-            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer already delivered job.', 'error_description' : 'The racer has already done job {}, the confirm code was {}'.format(str(run.job), drop_time_localized)}, status=status.HTTP_200_OK)
+            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Racer already delivered job.', 'error_description' : 'The racer has already completed job {}.'.format(drop_time_localized)}, status=status.HTTP_200_OK)
+
+        if run.status == Run.RUN_STATUS_PENDING:
+            return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Job not assigned to this racer.', 'error_description' : 'This job is not assigned to this racer, please contact your dispatcher.'}, status=status.HTTP_200_OK)
 
         #check if job is ready
         if datetime.datetime.now(tz=pytz.utc) <= run.utc_time_ready:
@@ -172,7 +174,7 @@ class PickView(APIView):
         #    due_time_localized = localize_time(due_time)
         #    return Response({'confirm_code' : None, 'error' : True, 'error_title' : 'Job is Dead.', 'error_description' : 'Job died at {}.'.format(due_time_localized)}, status=status.HTTP_200_OK)
 
-        #All checks have passed, lets create the run
+        #All checks have passed, lets assign the run
         run.pick()
 
         try:
@@ -225,12 +227,15 @@ class DropView(APIView):
             drop_time_localized = run.utc_time_dropped.astimezone(eastern).strftime('%I:%M %p')
             return Response({'error' : True, 'error_title' : 'Job already dropped off', 'error_description' : 'The run was already dropped off at {}.'.format(str(drop_time_localized))}, status=status.HTTP_200_OK)
 
+        if run.status != Run.RUN_STATUS_PICKED:
+            return Response({'error' : True, 'error_title' : 'Job was never picked up!', 'error_description' : 'This run has not been picked up yet!'}, status=status.HTTP_200_OK)
+
         run.drop()
 
         run.race_entry.add_up_points()
         run.race_entry.add_up_runs()
         run.race_entry.save()
-        
+
         try:
             RaceLog(racer=run.race_entry.racer, race=run.race_entry.race, user=request.user, log="Racer dropped off job #{}".format(str(run.job.job_id)), current_grand_total=run.race_entry.grand_total, current_number_of_runs=run.race_entry.number_of_runs_completed).save()
         except:
