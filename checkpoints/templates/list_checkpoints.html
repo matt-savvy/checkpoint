@@ -17,12 +17,17 @@
   <tr>
       <th>Number</th>
       <th>Name</th>
+      <th>Address Line 1</th>
+      <th>Line 2</th>
+
 	  <th>Mobile Checkpoint Link</th>
   </tr>
       {% for checkpoint in checkpoints %}
           <tr>
               <td><a href="/checkpoints/details/{{checkpoint.id}}/">{{checkpoint.checkpoint_number}}</td>
               <td>{{checkpoint.checkpoint_name}}</td>
+              <td>{{checkpoint.address_line_1}}</td>
+              <td>{{checkpoint.address_line_2}}</td>
 			  <td><a href="{% url "mobile_checkpoint" pk=checkpoint.id %}">Mobile Checkpoint</a></td>
            </tr>
       {% empty %}
