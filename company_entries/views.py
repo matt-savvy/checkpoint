@@ -7,11 +7,18 @@ from .forms import CompanyEntryForm
 from companies.models import Company
 from races.models import Race
 from racelogs.models import RaceLog
+from racecontrol.models import RaceControl
 
 class CompanyEntryFinishView(AuthorizedRaceOfficalMixin, FormView):
     form_class = CompanyEntryForm
     template_name = "company_entries/form.html"
     success_url = "/dispatch/finish/"
+
+    def get_form(self, form_class):
+        form = super(CompanyEntryFinishView, self).get_form(form_class)
+        rc = RaceControl.shared_instance()
+        form.fields['company_entry'].queryset = CompanyEntry.objects.filter(race=rc.current_race).filter(entry_status=CompanyEntry.ENTRY_STATUS_RACING)
+        return form
 
     def form_valid(self, form):
         company_entry = form.cleaned_data['company_entry']

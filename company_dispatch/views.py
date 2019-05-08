@@ -13,7 +13,6 @@ from races.models import Race
 from json import dumps
 from django.core.serializers.json import DjangoJSONEncoder
 
-
 class CompanyScoreboard(DetailView):
     model = Race
     template_name = 'company_dispatch/dispatch.html'

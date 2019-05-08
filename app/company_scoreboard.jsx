@@ -93,7 +93,8 @@ function CompanyList(props) {
 					<Table>
 						<thead>
 							<tr>
-								<th></th>
+								<th><h2>{company.company.name}</h2></th>
+                                <th>Status</th>
 								<th>Active Jobs</th>
 								<th>Complete Jobs</th>
 								<th>Late Jobs</th>
@@ -103,7 +104,8 @@ function CompanyList(props) {
 						</thead>
 						<tbody>
 							<tr>
-								<td><h2>{company.company.name}</h2></td>
+								<td></td>
+                                <td>{company.entry_status_as_string}</td>
 								<td>{company.activeRuns}</td>
 								<td>{company.completedRuns}</td>
 								<td>{company.lateRuns}</td>

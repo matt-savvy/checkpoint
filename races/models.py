@@ -84,6 +84,7 @@ class Race(models.Model):
         from raceentries.models import RaceEntry
         from jobs.models import Job
         from runs.models import Run
+        print("populate runs")
         runs = []
 
         if not race_entry and not company_entry:
