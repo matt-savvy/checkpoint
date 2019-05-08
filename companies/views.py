@@ -29,6 +29,7 @@ class CompanyDetailView(AuthorizedRaceOfficalMixin, DetailView):
 class CompanyUpdateView(AuthorizedRaceOfficalMixin, UpdateView):
     model = Company
     template_name = "companies/create_company.html"
+    success_url = "/companies/"
 
 class CompanyListView(AuthorizedRaceOfficalMixin, ListView):
     model = Company
