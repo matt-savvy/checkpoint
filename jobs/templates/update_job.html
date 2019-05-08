@@ -19,9 +19,14 @@
             {{field.errors}}
             {{field|add_class:"form-control"}}
          </div>
-        
+
     {% endfor %}
     <input type="submit" value="Update {{object}}" class="btn btn-default"/>
 </form>
 
+{% endblock %}
+
+{% block javascript_imports %}
+{% load static %}
+<script src="{% static 'js/create_job.js' %}"></script>
 {% endblock %}

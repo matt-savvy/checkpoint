@@ -49,6 +49,11 @@ class CompanyDispatchView(DetailView):
     def dispatch(self, request, *args, **kwargs):
         try:
             self.company = Company.objects.get(dispatcher=request.user)
+
+            company_pk = request.GET.get('company')
+            if company_pk and request.user.is_superuser:
+                self.company = Company.objects.get(pk=company_pk)
+
         except:
             return HttpResponseForbidden()
         return super(CompanyDispatchView, self).dispatch(request, *args, **kwargs)
@@ -66,6 +71,9 @@ class CompanyDispatchView(DetailView):
         changelogs = RunChangeLog.objects.filter(company_pk=self.object.pk).order_by('pk')
         if changelogs:
             context['head'] = changelogs.last().pk
+        else:
+            context['head'] = 0
+            
         context['js_file'] = 'company_dispatch'
         #entries = self.object.get_race_entries()
         #race_entry_serializer = RaceEntrySerializer(entries, many=True)

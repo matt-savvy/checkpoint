@@ -17,10 +17,15 @@
             {{field.errors}}
             {{field|add_class:"form-control"}}
          </div>
-        
+
     {% endfor %}
     <input type="submit" value="Save Job" class="btn btn-success"/>
     <input class="btn btn-success" type="submit" name="save-another" value="Save and Create Another Job" />
 </form>
 
+{% endblock %}
+
+{% block javascript_imports %}
+{% load static %}
+<script src="{% static 'js/create_job.js' %}"></script>
 {% endblock %}

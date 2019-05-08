@@ -9,12 +9,13 @@ from .forms import JobForm
 from races.models import Manifest
 import datetime
 import pytz
+from nacccusers.auth import AuthorizedRaceOfficalMixin
 from checkpoints.models import Checkpoint
 from django.db.models import Count, Q
 from races.models import Race
 from jobs.models import Job
 
-class JobRaceListView(ListView):
+class JobRaceListView(AuthorizedRaceOfficalMixin, ListView):
     model = Job
     template_name = "jobs_race_select.html"
     context_object_name = 'jobs'
@@ -31,7 +32,7 @@ class JobRaceListView(ListView):
         context['races'] = races
         return context
 
-class JobListView(ListView):
+class JobListView(AuthorizedRaceOfficalMixin, ListView):
     model = Job
     template_name = 'list_jobs.html'
     context_object_name = 'jobs'
@@ -50,13 +51,14 @@ class JobListView(ListView):
             checkpoint.num_drops = jobs.filter(drop_checkpoint=checkpoint).count()
 
         context['checkpoints'] = checkpoints
+        context['race'] = race
         return context
 
-class JobDetailView(DetailView):
+class JobDetailView(AuthorizedRaceOfficalMixin, DetailView):
     template_name = 'job_detail.html'
     model = Job
 
-class JobCreateView(CreateView):
+class JobCreateView(AuthorizedRaceOfficalMixin, CreateView):
     template_name = 'create_job.html'
     model = Job
     form_class = JobForm
@@ -79,29 +81,11 @@ class JobCreateView(CreateView):
             try:
                 race = Race.objects.get(pk=race)
                 initial['race'] = race
+                job_ids = Job.objects.filter(race=race).values_list('job_id', flat=True) or [0]
+                initial['job_id'] = max(job_ids) + 1
             except:
                 pass
         return initial
-
-    def form_valid(self, form):
-        self.object = form.save(commit=False)
-        print form.cleaned_data['service']
-        if form.cleaned_data['service'] == 'rush':
-            self.object.points = Job.PAYOUT_RUSH
-            self.object.minutes_due_after_start = Job.SERVICE_RUSH
-        elif form.cleaned_data['service'] == 'double_rush':
-            self.object.points = Job.PAYOUT_DOUBLE_RUSH
-            self.object.minutes_due_after_start = Job.SERVICE_DOUBLE_RUSH
-        else:
-            self.object.points = Job.PAYOUT_REGULAR
-            self.object.minutes_due_after_start = Job.SERVICE_REGULAR
-
-        if self.object.manifest:
-            if self.object.manifest.manifest_type == Manifest.TYPE_CHOICE_BONUS:
-                self.object.points = str(1.5 * float(self.object.points))
-
-        self.object.save()
-        return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
         messages.success(self.request, 'Job was successfully created.')
@@ -112,36 +96,17 @@ class JobCreateView(CreateView):
                 return '/jobs/create/?race={}'.format(self.object.race.pk)
         return super(JobCreateView, self).get_success_url()
 
-class JobUpdateView(UpdateView):
+class JobUpdateView(AuthorizedRaceOfficalMixin, UpdateView):
     template_name = 'update_job.html'
     model = Job
     form_class = JobForm
 
-    def form_valid(self, form):
-        self.object = form.save(commit=False)
-        if form.cleaned_data['service'] == 'rush':
-            self.object.points = Job.PAYOUT_RUSH
-            self.object.minutes_due_after_start = Job.SERVICE_RUSH
-        elif form.cleaned_data['service'] == 'double_rush':
-            self.object.points = Job.PAYOUT_DOUBLE_RUSH
-            self.object.minutes_due_after_start = Job.SERVICE_DOUBLE_RUSH
-        else:
-            self.object.points = Job.PAYOUT_REGULAR
-            self.object.minutes_due_after_start = Job.SERVICE_REGULAR
-
-        if self.object.manifest:
-            if self.object.manifest.manifest_type == Manifest.TYPE_CHOICE_BONUS:
-                self.object.points = str(1.5 * float(self.object.points))
-
-        self.object.save()
-        return HttpResponseRedirect(self.get_success_url())
-
-class JobDeleteView(DeleteView):
+class JobDeleteView(AuthorizedRaceOfficalMixin, DeleteView):
     model = Job
     template_name = 'delete_job.html'
     success_url = '/jobs/'
 
-class JobCheckView(ListView):
+class JobCheckView(AuthorizedRaceOfficalMixin, ListView):
     template_name="job_check.html"
     context_object_name = 'jobs'
 

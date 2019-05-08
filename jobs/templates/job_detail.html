@@ -17,7 +17,7 @@
     <dl>
       <dt>Job Id</dt>
       <dd>{{object.job_id}}</dd>
-      <dt>Job Race</dt>
+      <dt>Race</dt>
       <dd>{{object.race}}</dd>
       <dt>Pick Checkpoint</dt>
       <dd>{{object.pick_checkpoint}}</dd>
@@ -27,12 +27,14 @@
       <dt>Minutes Ready After Start</dt>
       <dd>{{object.minutes_ready_after_start}}</dd>
 
-
-      <dt>{% if object.race.dispatch_race %}Minutes Due After Assignment{% else %}Minutes Due After Start{% endif %}</dt>
+      <dt>Minutes Due After Ready Time
       <dd>{{object.minutes_due_after_start}}</dd>
 
       <dt>Points</dt>
       <dd>{{object.points}}</dd>
+
+      <dt>Special Instructions</dt>
+      <dd>{{object.special_instructions}}</dd>
     </dl>
 </div>
 

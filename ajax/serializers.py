@@ -56,13 +56,12 @@ class CheckpointSerializer(serializers.ModelSerializer):
 class JobSerializer(serializers.ModelSerializer):
     pick_checkpoint = CheckpointSerializer()
     drop_checkpoint = CheckpointSerializer()
-    service = serializers.CharField(source='service')
     points = serializers.CharField()
 
     class Meta:
         model = Job
         depth = 2
-        fields = ('pick_checkpoint', 'drop_checkpoint', 'service', 'points', 'minutes_due_after_start')
+        fields = ('pick_checkpoint', 'drop_checkpoint', 'service_label', 'points', 'minutes_due_after_start', 'special_instructions')
 
 class RunSerializer(serializers.ModelSerializer):
     job = JobSerializer()

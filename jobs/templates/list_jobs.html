@@ -9,7 +9,7 @@
   <h1>{{jobs.0.race}} Jobs <small></small></h1>
 </div>
 
-<p><a href="/jobs/create/" class="btn btn-success">Add New Job</a></p>
+<p><a href="/jobs/create/?race={{ race.id }}" class="btn btn-success">Add New Job</a></p>
 <div class="table">
 	<table class="table">
 		<tr>
@@ -17,7 +17,7 @@
 			<th>Outgoing Jobs</th>
 			<th>Incoming Jobs</th>
 		</tr>
-		
+
 		{% for checkpoint in checkpoints %}
 			<tr>
 				<td>{{ checkpoint.checkpoint_name }} </td>
@@ -25,8 +25,7 @@
 				<td>{{ checkpoint.num_drops }}</td>
 			</tr>
 		{% endfor %}
-		</tr>
-			
+
 	</table>
 
 
@@ -40,7 +39,8 @@
 	  <th>Service</th>
       <th>Points</th>
       <th>Minutes Ready After Start</th>
-	  <th>Ready Time</td>
+	  <th>Ready Time</th>
+      <th>Minutes Due After Ready</th>
   </tr>
       {% for job in jobs %}
           <tr>
@@ -52,6 +52,7 @@
               <td>{{job.points}}</td>
 			  <td>{{job.minutes_ready_after_start}}</td>
 			  <td>{{job.abosolute_ready_time}}</td>
+              <td>{{job.minutes_due_after_start}}</td>
            </tr>
       {% empty %}
       <tr>

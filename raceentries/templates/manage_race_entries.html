@@ -11,8 +11,8 @@
 <div>
     <p>
         <a href="/raceentries/advance/{{race.id}}/" class="btn btn-default">Advance From Race Results</a>
-		
-		<a href="{% url 'assign-radios' %}" class="btn btn-default">Assign Radios</a>
+
+		{# <a href="{% url 'assign-radios' %}" class="btn btn-default">Assign Radios</a> #}
     </p>
 </div>
 <div class="row">
@@ -25,7 +25,7 @@
       <table class="table table-striped">
         <tr>
             <th>{% if race.race_type != race.RACE_TYPE_DISPATCH_FINALS %}<input type="checkbox" id="select-all-not-entered">{% endif %}</th>
-			
+
             <th>Racer Number</th>
             <th>Last Name</th>
             <th>First Name</th>
@@ -36,14 +36,14 @@
         {% for racer in not_in_race %}
         <tr>
             <td>{% if race.race_type != race.RACE_TYPE_DISPATCH_FINALS %}<input type="checkbox" name="enter-in-race[]" value="{{racer.id}}" class='not-in-race-checkboxes'>{% endif %}</td>
-			
+
             <td>{{racer.racer_number}}</td>
             <td>{{racer.last_name}}</td>
             <td>{{racer.first_name}}</td>
             <td>{{racer.gender}}</td>
 			<td>{{racer.radio_number}}</td>
 			<td>{{racer.contact_info}}</td>
-        </tr> 
+        </tr>
         {% empty %}
         <tr>
             <td colspan="6">All Racers in Race</td>
@@ -65,7 +65,7 @@
           <table class="table table-striped">
             <tr>
                 <th><input type="checkbox" id="select-all-entered"></th>
-				
+
 				<th>Starting Position</th>
                 <th>Racer Number</th>
                 <th>Last Name</th>
@@ -86,7 +86,7 @@
 				<td>{{entry.racer.radio_number}}</td>
 				<td>{{entry.racer.contact_info}}</td>
 				<td>{{entry.manifest.manifest_name}}</td>
-            </tr> 
+            </tr>
             {% empty %}
             <tr>
                 <td colspan="6">No Racers entered in Race</td>
@@ -104,7 +104,7 @@
 {% block javascript_imports %}
 <script type="text/javascript">
 $(document).ready(function() {
-    
+
     $('#remove-form').submit(function() {
         var check = confirm("Are you sure you want to remove these racers from the race? If you remove a racer who has already been started in the event; that information will be lost forever");
         if (check) {
@@ -112,23 +112,23 @@ $(document).ready(function() {
         }
         return false;
     })
-    
+
     function updateNotInRaceCheckboxes(checked) {
         $('.not-in-race-checkboxes').each(function() {
-            this.checked = checked; 
+            this.checked = checked;
         });
     }
-    
+
     function updateEnteredInRaceCheckboxes(checked) {
         $('.entered-in-race-checkboxes').each(function() {
-            this.checked = checked; 
+            this.checked = checked;
         });
     }
-    
+
     $('#select-all-not-entered').click(function() {
         updateNotInRaceCheckboxes(this.checked);
     });
-    
+
     $('#select-all-entered').click(function() {
         updateEnteredInRaceCheckboxes(this.checked);
     });

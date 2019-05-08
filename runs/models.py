@@ -108,7 +108,7 @@ class Run(models.Model):
             self.status = self.RUN_STATUS_ASSIGNED
             self.determination = self.DETERMINATION_NOT_PICKED
             self.utc_time_assigned = time_now
-            self.utc_time_due = time_now + datetime.timedelta(minutes=self.job.minutes_due_after_start)
+            #self.utc_time_due = time_now + datetime.timedelta(minutes=self.job.minutes_due_after_start)
             self.save()
 
     def pick(self):

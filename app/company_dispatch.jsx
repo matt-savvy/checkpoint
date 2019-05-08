@@ -216,40 +216,41 @@ class Run extends React.Component {
         }
 		return (
             <>
-			<div className={`list-group-item ${styleClassName}`}>
-    			<Row>
-      				<Col>
-                        <em>From:</em><br/>
-				          <Checkpoint checkpoint={run.job.pick_checkpoint} />
-	                       <br />
-	                     ({run.job.service}) {readyTime} to {deadline}
-		                    <br />
-	                       Ready {readyFromNow}
-			                        <br />
-                           Due {deadlineFromNow}
-	      		  </Col>
-			      <Col>
-				  	<em>To:</em><br/>
-			          <Checkpoint checkpoint={run.job.drop_checkpoint} />
-                        <br />
-                          ${run.job.points} <br />
-                          #ID{run.id} <br />
-                          {run.status_as_string}
+    			<div className={`list-group-item ${styleClassName}`}>
+        			<Row>
+          				<Col>
+                            <em>From:</em><br/>
+    				          <Checkpoint checkpoint={run.job.pick_checkpoint} />
+    	                       <br />
+    	                     ({run.job.service_label.toUpperCase()}) {readyTime} to {deadline}
+    		                    <br />
+    	                       Ready {readyFromNow}
+    			                        <br />
+                               Due {deadlineFromNow}
+    	      		  </Col>
+    			      <Col>
+    				  	<em>To:</em><br/>
+    			          <Checkpoint checkpoint={run.job.drop_checkpoint} />
+                            <br />
+                              ${run.job.points} <br />
 
-			      </Col>
-                </Row>
-                <Row>
-                  <Col lg="2">
-                    <ButtonGroup size="sm">
-                        {assignable && <Button variant="light" onClick={this.startAssign}>Assign</Button>}
-                        {unassignable && <Button variant="secondary" onClick={this.startUnassign}>UnAssign</Button>}
-                    </ButtonGroup>
-                  </Col>
-		    	</Row>
+                              {run.status_as_string}
+                              <br />
+                              <em>{run.job.special_instructions}</em>
+    			      </Col>
+                    </Row>
+                    <Row>
+                      <Col lg="2">
+                        <ButtonGroup size="sm">
+                            {assignable && <Button variant="light" onClick={this.startAssign}>Assign</Button>}
+                            {unassignable && <Button variant="secondary" onClick={this.startUnassign}>UnAssign</Button>}
+                        </ButtonGroup>
+                      </Col>
+    		    	</Row>
 
-			</div>
-            {this.state.showAssign && <AssignDialog show={this.state.showAssign} handleClose={this.handleClose} {...this.props} />}
-            {this.state.showUnassign && <UnassignDialog show={this.state.showUnassign} handleClose={this.handleClose} handleUnassign={this.handleUnassign} />}
+    			</div>
+                {this.state.showAssign && <AssignDialog show={this.state.showAssign} handleClose={this.handleClose} {...this.props} />}
+                {this.state.showUnassign && <UnassignDialog show={this.state.showUnassign} handleClose={this.handleClose} handleUnassign={this.handleUnassign} />}
             </>
 		)
 	}

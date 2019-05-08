@@ -17,9 +17,11 @@ class Job(models.Model):
     race = models.ForeignKey(Race)
     pick_checkpoint = models.ForeignKey(Checkpoint, related_name="pick")
     drop_checkpoint = models.ForeignKey(Checkpoint, related_name="drop")
+    special_instructions = models.CharField(max_length=144, blank=True, null=True)
+    service_label = models.CharField(max_length=30, blank=True, null=True)
     points = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
     minutes_ready_after_start = models.IntegerField(default=0)
-    minutes_due_after_start = models.IntegerField(default=180)
+    minutes_due_after_start = models.IntegerField("Minutes due after ready time", default=180)
     manifest = models.ForeignKey(Manifest, blank=True, null=True)
 
     def __unicode__(self):
@@ -33,11 +35,11 @@ class Job(models.Model):
         if self.race.race_start_time:
             return self.race.race_start_time + datetime.timedelta(minutes=self.minutes_ready_after_start)
 
-    @property
-    def service(self):
-        if self.minutes_due_after_start <= self.SERVICE_DOUBLE_RUSH:
-            return "DOUBLE RUSH"
-        elif self.minutes_due_after_start <= self.SERVICE_RUSH:
-            return "RUSH"
-        else:
-            return "REGULAR"
+    #@property
+    #def service(self):
+    #    if self.minutes_due_after_start <= self.SERVICE_DOUBLE_RUSH:
+    #        return "DOUBLE RUSH"
+    #    elif self.minutes_due_after_start <= self.SERVICE_RUSH:
+    #        return "RUSH"
+    #    else:
+    #        return "REGULAR"
