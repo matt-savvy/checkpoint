@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
-from companies.models import Company
 
 class Racer(models.Model):
     GENDER_MALE   = 'M'
@@ -60,7 +59,7 @@ class Racer(models.Model):
 
 
     """(Racer description)"""
-    company = models.ForeignKey(Company)
+    company = models.ForeignKey('companies.Company')
     racer_number = models.CharField(max_length=3, unique=True, validators=[RegexValidator(r'^\d{1,10}$')])
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
