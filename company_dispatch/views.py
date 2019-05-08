@@ -1,10 +1,12 @@
-from django.views.generic import DetailView
+from django.views.generic import DetailView, FormView
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseForbidden
+from nacccusers.auth import AuthorizedRaceOfficalMixin
 from ajax.serializers import CompanyEntrySerializer, RaceEntrySerializer
 from companies.models import Company
 from company_entries.models import CompanyEntry
+from company_entries.forms import CompanyEntryForm
 from racecontrol.models import RaceControl
 from runs.models import RunChangeLog
 from races.models import Race
@@ -49,16 +51,15 @@ class CompanyDispatchView(DetailView):
     def dispatch(self, request, *args, **kwargs):
         try:
             self.company = Company.objects.get(dispatcher=request.user)
-
-            company_pk = request.GET.get('company')
-            if company_pk and request.user.is_superuser:
-                self.company = Company.objects.get(pk=company_pk)
-
         except:
             return HttpResponseForbidden()
         return super(CompanyDispatchView, self).dispatch(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
+        company_entry_pk = self.request.GET.get('company_entry')
+        if company_entry_pk and self.request.user.is_superuser:
+            print("company_entry_pk", company_entry_pk)
+            return CompanyEntry.objects.get(pk=company_entry_pk)
         rc = RaceControl.shared_instance()
         race = rc.current_race
         return CompanyEntry.objects.filter(company=self.company).filter(race=race).first()
@@ -79,3 +80,7 @@ class CompanyDispatchView(DetailView):
         #race_entry_serializer = RaceEntrySerializer(entries, many=True)
         #context['race_entries'] = dumps(race_entry_serializer.data)
         return context
+
+class CompanyEntrySelectView(AuthorizedRaceOfficalMixin, FormView):
+    form_class = CompanyEntryForm
+    template_name = "company_dispatch/select_form.html"

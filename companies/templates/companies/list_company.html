@@ -20,7 +20,7 @@
       {% for company in companies %}
           <tr>
               <td>{{company.name}}</td>
-              <td>{{company.dispatcher.get_full_name}}</td>
+              <td>{{ company.dispatcher}} {{company.dispatcher.get_full_name}}</td>
            </tr>
       {% empty %}
       <tr>

@@ -141,6 +141,7 @@ urlpatterns = patterns('',
 
     ##COMPANY DISPATCH VIEWS
     url(r'^dispatch/$', login_required(company_dispatch_views.CompanyDispatchView.as_view())),
+    url(r'^dispatch/select/$', login_required(company_dispatch_views.CompanyEntrySelectView.as_view())),
     url(r'^dispatch/scoreboard/$', login_required(company_dispatch_views.CompanyScoreboard.as_view())),
     url(r'^dispatch/scoreboard/refresh/$', login_required(ajax_views.DispatchScoreboardRefreshView.as_view())),
     url(r'^dispatch/finish/$', login_required(company_entries_views.CompanyEntryFinishView.as_view())),

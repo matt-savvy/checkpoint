@@ -9,6 +9,28 @@
   <h1>{{race.race_name}} Control <small></small></h1>
 </div>
 
+<p>
+  <a href="/dispatch/controls/"><h3>Racer Lookup</h3></a>
+  Use this view to look up all the runs, drop codes, etc for a single racer.
+</p>
+
+<p>
+  <a href="/dispatch/scoreboard/"><h3>Scoreboard</h3></a>
+  Live standings and final results.
+</p>
+
+<p>
+  <a href="/dispatch/finish/"><h3>Finish Company View</h3></a>
+  Use this view to finish a company, this needs to happen for behind-the-scenes scoring math.
+</p>
+
+<p>
+  <a href="/dispatch/select/"><h3>Dispatch Console</h3></a>
+  Use this view to get access to any dispatcher's board.
+</p>
+
+
+
 <ul class="nav nav-tabs">
   <li class="active"><a href="#racerinfo" data-toggle="tab" id="racerinfo-tab">Racer Info</a></li>
   {% if race.race_type == 1 %}
@@ -25,7 +47,7 @@
   <li><a id="deduct-tab" href="#deduct" data-toggle="tab">Deduct</a></li>
   <li><a id="current-tab" href="#current" data-toggle="tab">Current Racers</a></li>
   <li><a id="not-tab" href="#not" data-toggle="tab">Not Raced</a></li>
-  <li><a id="standings-tab" href="#standings" data-toggle="tab">Standings</a></li>
+<!--  <li><a id="standings-tab" href="#standings" data-toggle="tab">Standings</a></li>-->
 </ul>
 <div class="tab-content">
   <div class="tab-pane active" id="racerinfo">...</div>
@@ -39,7 +61,7 @@
   <div class="tab-pane" id="deduct">...</div>
   <div class="tab-pane" id="current">...</div>
   <div class="tab-pane" id="not">Not</div>
-  <div class="tab-pane" id="standings">...</div>
+  <!--<div class="tab-pane" id="standings">...</div>-->
   <div class="tab-pane" id="status">XXX</div>
   <div class="tab-pane" id="mass-start">Mass Start</div>
 </div>
