@@ -73,7 +73,7 @@ class CompanyDispatchView(DetailView):
             context['head'] = changelogs.last().pk
         else:
             context['head'] = 0
-            
+
         context['js_file'] = 'company_dispatch'
         #entries = self.object.get_race_entries()
         #race_entry_serializer = RaceEntrySerializer(entries, many=True)
