@@ -1,5 +1,5 @@
-$(document).ready(function() {
-
+$(document).ready(function () {
+    console.log('sanity');
     //**********************************************
     //* Constats
     //**********************************************
@@ -16,49 +16,37 @@ $(document).ready(function() {
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         console.log(e.target.id);
         if (e.target.id == 'racerinfo-tab') {
-            racerInfo();
+          racerInfo();
+        } else if (e.target.id == 'start-tab') {
+          startRacer();
+        } else if (e.target.id == 'finish-tab') {
+          finishRacer();
+        } else if (e.target.id == 'dq-tab') {
+          dqRacer();
+        } else if (e.target.id == 'dnf-tab') {
+          dnfRacer();
+        } else if (e.target.id == 'run-entry-tab') {
+          runEntry();
+        } else if (e.target.id == 'award-tab') {
+          awardRacer();
+        } else if (e.target.id == 'deduct-tab') {
+          deductRacer();
+        } else if (e.target.id == 'current-tab') {
+          currentlyRacing();
+        } else if (e.target.id == 'not-tab') {
+          notRaced();
+        } else if (e.target.id == 'standings-tab') {
+          standings();
+        } else if (e.target.id == 'status-tab') {
+          status();
+        } else if (e.target.id == 'mass-start-tab') {
+          massStart();
         }
-        else if (e.target.id == 'start-tab') {
-            startRacer();
-        }
-        else if (e.target.id == 'finish-tab') {
-            finishRacer();
-        }
-        else if (e.target.id == 'dq-tab') {
-            dqRacer();
-        }
-        else if (e.target.id == 'dnf-tab') {
-            dnfRacer();
-        }
-        else if (e.target.id == 'run-entry-tab') {
-            runEntry();
-        }
-        else if (e.target.id == 'award-tab') {
-            awardRacer();
-        }
-        else if (e.target.id == 'deduct-tab') {
-            deductRacer();
-        }
-        else if (e.target.id == 'current-tab') {
-            currentlyRacing();
-        }
-        else if (e.target.id == 'not-tab') {
-            notRaced();
-        }
-        else if (e.target.id == 'standings-tab') {
-            standings();
-        }
-        else if (e.target.id == 'status-tab') {
-            status();
-        }
-        else if (e.target.id == 'mass-start-tab') {
-            massStart();
-        }
-    });
+      });
 
-	$('#standings-tab').click(function() {
-		standings();
-	});
+    $('#standings-tab').click(function () {
+      standings();
+    });
 
     racerInfo();
 
@@ -67,66 +55,72 @@ $(document).ready(function() {
     //**********************************************
 
     function racerInfo() {
-        $.ajax({
-            url: '/racecontrol/ajax/racerinfo/' + raceId + '/  ',
-            type: 'GET',
-            beforeSend: function (request) {
-                request.setRequestHeader("X-CSRFToken", csrftoken);
+      $.ajax({
+          url: '/racecontrol/ajax/racerinfo/' + raceId + '/  ',
+          type: 'GET',
+          beforeSend: function (request) {
+              request.setRequestHeader('X-CSRFToken', csrftoken);
             },
-            success: function(data, textStatus, xhr) {
-                $('#racerinfo').html(data);
-                setupRacerInfo();
-            },
-            error: function(xhr, textStatus, errorThrown) {
 
-            }
+          success: function (data, textStatus, xhr) {
+              $('#racerinfo').html(data);
+              setupRacerInfo();
+            },
+
+          error: function (xhr, textStatus, errorThrown) {
+
+          },
         });
     }
 
     function setupRacerInfo() {
-		$('#racer-info-racer-number-form').submit(function(e) {
-			e.preventDefault();
-             selectedRacerNumber = $('#racer-info-racer-number').val();
+      $('#racer-info-racer-number-form').submit(function (e) {
+              e.preventDefault();
+              selectedRacerNumber = $('#racer-info-racer-number').val();
 
-	         $.ajax({
-	             url: '/racecontrol/ajax/racerdetail?race=' + raceId + '&racer=' + selectedRacerNumber,
-	             type: 'GET',
-	             beforeSend: function (request) {
-	                 request.setRequestHeader("X-CSRFToken", csrftoken);
-	             },
-	             success: function(data, textStatus, xhr) {
-	                 $('#racer-info-detail-view').html(data);
-	                 $('#racer-info-racer-number').val("");
-	                 $('#racer-info-racer-number').focus();
+              $.ajax({
+                  url: '/racecontrol/ajax/racerdetail?race=' + raceId + '&racer=' + selectedRacerNumber,
+                  type: 'GET',
+                  beforeSend: function (request) {
+                      request.setRequestHeader('X-CSRFToken', csrftoken);
+                    },
 
-	                 $('#update-racer-notes').click(function() {
-	                     var request = Object()
-	                     request.racer = $(event.currentTarget).attr('racer-number');
-	                     request.race = raceId;
-	                     request.notes = $('#racer_notes').val();
-	                     var json = JSON.stringify(request);
-	                     $.ajax({
-	                         url: '/ajax/racernotes/',
-	                         type: 'POST',
-	                         contentType: 'application/json',
-	                         data: json,
-	                         beforeSend: function (request) {
-	                             request.setRequestHeader("X-CSRFToken", csrftoken);
-	                         },
-	                         success: function(data, textStatus, xhr) {
+                  success: function (data, textStatus, xhr) {
+                      $('#racer-info-detail-view').html(data);
+                      $('#racer-info-racer-number').val('');
+                      $('#racer-info-racer-number').focus();
 
-	                         },
-	                         error: function(xhr, textStatus, errorThrown) {
-	                         }
-	                     });
-	                 });
+                      $('#update-racer-notes').click(function () {
+                          var request = Object();
+                          request.racer = $(event.currentTarget).attr('racer-number');
+                          request.race = raceId;
+                          request.notes = $('#racer_notes').val();
+                          var json = JSON.stringify(request);
+                          $.ajax({
+                              url: '/ajax/racernotes/',
+                              type: 'POST',
+                              contentType: 'application/json',
+                              data: json,
+                              beforeSend: function (request) {
+                                  request.setRequestHeader('X-CSRFToken', csrftoken);
+                                },
 
-	             },
-	             error: function(xhr, textStatus, errorThrown) {
+                              success: function (data, textStatus, xhr) {
 
-	             }
-	         });
-        });
+                              },
+
+                              error: function (xhr, textStatus, errorThrown) {
+                              },
+                            });
+                        });
+
+                    },
+
+                  error: function (xhr, textStatus, errorThrown) {
+
+                  },
+                });
+            });
 
     }
 
@@ -138,110 +132,109 @@ $(document).ready(function() {
     var startWristbandCheck = false;
 
     function startRacer() {
-        $.ajax({
-            url: '/racecontrol/ajax/start/' + raceId + '/  ',
-            type: 'GET',
-            beforeSend: function (request) {
-                request.setRequestHeader("X-CSRFToken", csrftoken);
+      $.ajax({
+          url: '/racecontrol/ajax/start/' + raceId + '/  ',
+          type: 'GET',
+          beforeSend: function (request) {
+              request.setRequestHeader('X-CSRFToken', csrftoken);
             },
-            success: function(data, textStatus, xhr) {
-                $('#start').html(data);
-                setupStartRacer();
-            },
-            error: function(xhr, textStatus, errorThrown) {
 
-            }
+          success: function (data, textStatus, xhr) {
+              $('#start').html(data);
+              setupStartRacer();
+            },
+
+          error: function (xhr, textStatus, errorThrown) {
+
+          },
         });
     }
 
     function setupStartRacer() {
-        startRacerInfoCheck = false;
-        startWristbandCheck = false;
+      startRacerInfoCheck = false;
+      startWristbandCheck = false;
 
-        $('#start-racer-progress').hide();
-        $('#start-buttons').hide();
-        $('#start-success').hide();
-        $('#start-racer-button').prop('disabled', true);
-        $('#start-racer-number').keyup(function() {
-            if ($('#start-racer-number').val().length == 3) {
-                selectedRacerNumber = $('#start-racer-number').val();
-                $('#start-racer-number').prop('disabled', true);
-                $('#start-racer-progress').show();
-                lookupRacerForStart(true);
-        }
-        });
-
-        $('#start-racer-info-check-button').click(function() {
-            startRacerInfoCheck = !startRacerInfoCheck;
-            checkStartButtonAvailability();
-            if (startRacerInfoCheck) {
-                $('#start-racer-info-check-button').removeClass('btn-default');
-                $('#start-racer-info-check-button').addClass('btn-success');
-            }
-            else {
-                $('#start-racer-info-check-button').addClass('btn-default');
-                $('#start-racer-info-check-button').removeClass('btn-success');
-            }
-        });
-
-        $('#start-wristband-check-button').click(function() {
-            startWristbandCheck = !startWristbandCheck;
-            checkStartButtonAvailability();
-            if (startWristbandCheck) {
-                $('#start-wristband-check-button').removeClass('btn-default');
-                $('#start-wristband-check-button').addClass('btn-success');
-            }
-            else {
-                $('#start-wristband-check-button').addClass('btn-default');
-                $('#start-wristband-check-button').removeClass('btn-success');
-            }
-        });
-
-        $('#start-racer-button').click(function() {
+      $('#start-racer-progress').hide();
+      $('#start-buttons').hide();
+      $('#start-success').hide();
+      $('#start-racer-button').prop('disabled', true);
+      $('#start-racer-number').keyup(function () {
+          if ($('#start-racer-number').val().length == 3) {
+            selectedRacerNumber = $('#start-racer-number').val();
             $('#start-racer-number').prop('disabled', true);
-            startRacerInRace();
+            $('#start-racer-progress').show();
+            lookupRacerForStart(true);
+          }
         });
+
+      $('#start-racer-info-check-button').click(function () {
+          startRacerInfoCheck = !startRacerInfoCheck;
+          checkStartButtonAvailability();
+          if (startRacerInfoCheck) {
+              $('#start-racer-info-check-button').removeClass('btn-default');
+              $('#start-racer-info-check-button').addClass('btn-success');
+          } else {
+              $('#start-racer-info-check-button').addClass('btn-default');
+              $('#start-racer-info-check-button').removeClass('btn-success');
+          }
+      });
+
+      $('#start-wristband-check-button').click(function () {
+          startWristbandCheck = !startWristbandCheck;
+          checkStartButtonAvailability();
+          if (startWristbandCheck) {
+              $('#start-wristband-check-button').removeClass('btn-default');
+              $('#start-wristband-check-button').addClass('btn-success');
+          } else {
+              $('#start-wristband-check-button').addClass('btn-default');
+              $('#start-wristband-check-button').removeClass('btn-success');
+          }
+      });
+
+      $('#start-racer-button').click(function () {
+          $('#start-racer-number').prop('disabled', true);
+          startRacerInRace();
+      });
     }
 
     function lookupRacerForStart(showButtons) {
-        lookupRacer(selectedRacerNumber,
-        function(raceEntry) {
-            $('#start-racer-progress').hide();
-            $('#start-racer-number').prop('disabled',false);
-            $('#start-racer-number').val('');
-            $('#start-racer-info').html(racerTemplate(raceEntry));
-            if (showButtons) {
-                if (raceEntry.entry_status == 0) {
-                    $('#start-buttons').show();
-                }
-            }
-            else {
-                $('#start-buttons').hide();
-            }
+      lookupRacer(selectedRacerNumber,
+      function (raceEntry) {
+          $('#start-racer-progress').hide();
+          $('#start-racer-number').prop('disabled', false);
+          $('#start-racer-number').val('');
+          $('#start-racer-info').html(racerTemplate(raceEntry));
+          if (showButtons) {
+              if (raceEntry.entry_status == 0) {
+                  $('#start-buttons').show();
+              }
+          } else {
+              $('#start-buttons').hide();
+          }
 
-        },
-        function() {
-            $('#start-racer-progress').hide();
-            $('#start-racer-number').prop('disabled', false);
-            $('#start-racer-info').html(racer404Template($('#start-racer-number').val()));
-            $('#start-racer-number').val('');
-            $('#start-racer-number').focus();
-            $('#start-buttons').hide();
-        }
-    );
+      },
+
+      function () {
+          $('#start-racer-progress').hide();
+          $('#start-racer-number').prop('disabled', false);
+          $('#start-racer-info').html(racer404Template($('#start-racer-number').val()));
+          $('#start-racer-number').val('');
+          $('#start-racer-number').focus();
+          $('#start-buttons').hide();
+      }
+  );
     }
 
     function checkStartButtonAvailability() {
-        if (startRacerInfoCheck && startWristbandCheck) {
-            $('#start-racer-button').removeClass('btn-danger');
-            $('#start-racer-button').addClass('btn-success');
-            $('#start-racer-button').prop('disabled', false);
-        }
-        else {
-            $('#start-racer-button').addClass('btn-danger');
-            $('#start-racer-button').removeClass('btn-success');
-            $('#start-racer-button').prop('disabled', true);
-        }
+      if (startRacerInfoCheck && startWristbandCheck) {
+          $('#start-racer-button').removeClass('btn-danger');
+          $('#start-racer-button').addClass('btn-success');
+          $('#start-racer-button').prop('disabled', false);
+      } else {
+          $('#start-racer-button').addClass('btn-danger');
+          $('#start-racer-button').removeClass('btn-success');
+          $('#start-racer-button').prop('disabled', true);
+      }
     }
 
     function startRacerInRace() {
