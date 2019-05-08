@@ -8,6 +8,7 @@ class Checkpoint(models.Model):
     address_line_1 = models.CharField(max_length=144, blank=True, null=True)
     address_line_2 = models.CharField(max_length=144, blank=True, null=True)
     notes = models.TextField(blank=True)
+    open_late = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['checkpoint_number']

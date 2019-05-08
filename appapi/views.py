@@ -76,6 +76,7 @@ class RacerCheckpointView(APIView):
         racer = Racer.objects.filter(racer_number=racer_number).first()
 
         checkpoint = request.DATA['checkpoint']
+        checkpoint_obj = Checkpoint.objects.get(pk=checkpoint)
 
         if racer:
             race_entry = RaceEntry.objects.filter(racer=racer).filter(race=current_race).first()
@@ -90,7 +91,7 @@ class RacerCheckpointView(APIView):
                     return Response({'error': True, 'error_title': "Racer has not started!", "error_description": "This racer has not started their race yet."}, status=status.HTTP_200_OK)
 
                 if race_entry.race_end_time:
-                    if right_now >= race_entry.race_end_time:
+                    if right_now >= race_entry.race_end_time and not checkpoint_obj.open_late:
                         return Response({'error': True, 'error_title': "Race is over!", "error_description": "The race has ended. No further actions will be allowed."}, status=status.HTTP_200_OK)
 
                 if race_entry.entry_status == RaceEntry.ENTRY_STATUS_RACING or race_entry.entry_status == RaceEntry.ENTRY_STATUS_CUT:
