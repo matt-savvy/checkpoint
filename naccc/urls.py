@@ -173,7 +173,7 @@ urlpatterns = patterns('',
     url(r'^ajax/postresultstream/$', login_required(ajax_views.PostResultsStreamAjaxView.as_view())),
     url(r'^ajax/setracestarttime/$', login_required(ajax_views.SetRaceStartTime.as_view())),
     url(r'^ajax/setcurrentrace/$', login_required(ajax_views.SetCurrentRace.as_view())),
-    url(r'^ajax/massstartracers/$', login_required(ajax_views.MassStartRacers.as_view())),
+    #url(r'^ajax/massstartracers/$', login_required(ajax_views.MassStartRacers.as_view())),
     url(r'^ajax/massstartcompanies/$', login_required(ajax_views.MassStartCompanies.as_view())),
 
     url(r'^ajax/racerpaid/$', login_required(ajax_views.MarkAsPaidRacerAjaxView.as_view())),
