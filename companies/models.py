@@ -2,7 +2,7 @@ from django.db import models
 from nacccusers.models import NACCCUser
 
 class Company(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField("Company Name", max_length=255)
     dispatcher = models.ForeignKey(NACCCUser)
 
     def __unicode__(self):

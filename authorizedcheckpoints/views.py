@@ -15,7 +15,7 @@ class UpdateAuthorizedCheckpoints(AuthorizedRaceOfficalMixin, UpdateView):
     fields = ['authorized_checkpoints']
     template_name = 'update_authorized_checkpoints.html'
     model = NACCCUser
-    
+
     def get_success_url(self):
         messages.success(self.request, 'Authorized Checkpoints were updated')
         return '/authorizedcheckpoints/'

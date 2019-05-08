@@ -20,6 +20,7 @@ import runs.views as run_views
 import racelogs.views as log_views
 import paypal.standard.ipn.signals
 import dispatch.views as dispatch_views
+import companies.views as company_views
 import company_dispatch.views as company_dispatch_views
 import company_entries.views as company_entries_views
 
@@ -147,6 +148,9 @@ urlpatterns = patterns('',
     url(r'^dispatch/assign/$', login_required(ajax_views.DispatchAssignView.as_view())),
     url(r'^dispatch/unassign/$', login_required(ajax_views.DispatchUnassignView.as_view())),
 
+    #COMPANY VIEWS
+    url(r'^companies/$', login_required(company_views.CompanyListView.as_view())),
+    url(r'^companies/create/$', login_required(company_views.CompanyCreateView.as_view())),
 
     #Ajax Views
     url(r'^ajax/racer/(?P<racer_number>[0-9]+)/$', login_required(ajax_views.RacerAjaxView.as_view())),

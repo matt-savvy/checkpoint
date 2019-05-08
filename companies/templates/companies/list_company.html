@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/"></a></li>
+  <li class="active">Companies</li>
+</ol>
+<div class="page-header">
+  <h1>Companies <small></small></h1>
+</div>
+
+<p><a href="/companies/create/" class="btn btn-success">Add New Company</a></p>
+
+<div class="table-responsive">
+<table class="table table-striped">
+  <tr>
+
+      <th>Company Name</th>
+	     <th>Dispatcher</th>
+  </tr>
+      {% for company in companies %}
+          <tr>
+              <td>{{company.name}}</td>
+              <td>{{company.dispatcher.get_full_name}}</td>
+           </tr>
+      {% empty %}
+      <tr>
+          <td colspan="7">No Companies yet. <a href = "/companies/create/">Make one!</a></td>
+       </tr>
+      {% endfor %}
+</table>
+</div>
+
+{% endblock %}
