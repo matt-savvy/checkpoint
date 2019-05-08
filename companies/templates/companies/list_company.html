@@ -15,12 +15,22 @@
   <tr>
 
       <th>Company Name</th>
-	     <th>Dispatcher</th>
+     <th>Dispatcher</th>
+       <th>Racer</th>
+       <th>Racer</th>
+
   </tr>
       {% for company in companies %}
           <tr>
-              <td>{{company.name}}</td>
+              <td><a href="/companies/details/{{company.pk}}/">{{company.name}}</a></td>
               <td>{{ company.dispatcher}} {{company.dispatcher.get_full_name}}</td>
+
+              {% for racer in company.get_racers %}
+                <td>{{ racer }}</td>
+              {% empty %}
+                <td></td><td></td>
+              {% endfor %}
+
            </tr>
       {% empty %}
       <tr>

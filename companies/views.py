@@ -1,5 +1,6 @@
 from django.views.generic import CreateView, UpdateView, ListView, DetailView
 from nacccusers.auth import AuthorizedRaceOfficalMixin
+from django.contrib import messages
 from .models import Company
 from .forms import CompanyForm
 from company_entries.models import CompanyEntry
@@ -9,6 +10,7 @@ from nacccusers.models import NACCCUser
 class CompanyCreateView(AuthorizedRaceOfficalMixin, CreateView):
     model = Company
     template_name = "companies/create_company.html"
+    success_url = "/companies/"
 
     def form_valid(self, form):
         self.object = form.save()
@@ -17,9 +19,14 @@ class CompanyCreateView(AuthorizedRaceOfficalMixin, CreateView):
         if not CompanyEntry.objects.filter(company=self.object).filter(race=race).exists():
             company_entry = CompanyEntry(company=self.object, race=race)
             company_entry.save()
-        return super(CreateCompanyView, self).form_valid(form)
+        messages.success(self.request, "{} added.".format(self.object.name))
+        return super(CompanyCreateView, self).form_valid(form)
 
-class UpdateCompanyView(AuthorizedRaceOfficalMixin, UpdateView):
+class CompanyDetailView(AuthorizedRaceOfficalMixin, DetailView):
+    model = Company
+    template_name = "companies/company_detail.html"
+
+class CompanyUpdateView(AuthorizedRaceOfficalMixin, UpdateView):
     model = Company
     template_name = "companies/create_company.html"
 
@@ -28,6 +35,3 @@ class CompanyListView(AuthorizedRaceOfficalMixin, ListView):
     queryset = Company.objects.all()
     context_object_name = "companies"
     template_name = "companies/list_company.html"
-
-class CreateCompanyView(AuthorizedRaceOfficalMixin, DetailView):
-    model = Company

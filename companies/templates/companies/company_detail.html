@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block container %}
+<ol class="breadcrumb">
+  <li><a href="/"></a></li>
+  <li><a href="/races/">Companies</a></li>
+  <li class="active">{{object}}</li>
+</ol>
+<div class="page-header">
+  <h1>{{object.name}} <small></small></h1>
+</div>
+
+<p><a href="/companies/update/{{object.id}}/" class="btn btn-default">Edit Company</a>
+
+</p>
+<div>
+
+
+    <dl>
+	  {% for racer in company.get_racers %}
+	  	<dt>Racer</dt>
+		<dd>{{ racer }}</dd>
+	  {% endfor %}
+
+	  <dt>Dispatcher</dt>
+	  <dd>{{ company.dispatcher}} {{company.dispatcher.get_full_name}}</dd>
+    </dl>
+</div>
+
+
+
+{% endblock %}

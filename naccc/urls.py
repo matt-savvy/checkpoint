@@ -152,6 +152,8 @@ urlpatterns = patterns('',
     #COMPANY VIEWS
     url(r'^companies/$', login_required(company_views.CompanyListView.as_view())),
     url(r'^companies/create/$', login_required(company_views.CompanyCreateView.as_view())),
+    url(r'^companies/details/(?P<pk>[0-9]+)/$', login_required(company_views.CompanyDetailView.as_view())),
+    url(r'^companies/update/(?P<pk>[0-9]+)/$', login_required(company_views.CompanyUpdateView.as_view())),
 
     #Ajax Views
     url(r'^ajax/racer/(?P<racer_number>[0-9]+)/$', login_required(ajax_views.RacerAjaxView.as_view())),
