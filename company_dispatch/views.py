@@ -38,6 +38,8 @@ class CompanyScoreboard(DetailView):
         changelogs = RunChangeLog.objects.order_by('pk')
         if changelogs:
             context['head'] = changelogs.last().pk
+        else:
+            context['head'] = 0
         context['js_file'] = 'company_scoreboard'
         return context
 
