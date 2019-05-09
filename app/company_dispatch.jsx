@@ -196,7 +196,6 @@ class Run extends React.Component {
         let assignable, unassignable;
         if ((run.status_as_string == "Assigned") || (run.status_as_string == "Unassigned")) {
             assignable = true;
-            //TODO picked as well? pass offs allowed?
         }
 
         if (run.status_as_string == "Assigned") {
@@ -244,6 +243,7 @@ class Run extends React.Component {
                         <ButtonGroup size="sm">
                             {assignable && <Button variant="light" onClick={this.startAssign}>Assign</Button>}
                             {unassignable && <Button variant="secondary" onClick={this.startUnassign}>UnAssign</Button>}
+                            {(run.status_as_string == "Picked") && <Button variant="light" onClick={this.startAssign}>Pass Off</Button>}
                         </ButtonGroup>
                       </Col>
     		    	</Row>

@@ -403,21 +403,21 @@ class DispatchAssignView(APIView):
 
 
         run = Run.objects.get(pk=request.DATA.get('run_pk'))
-        allowed_run_statuses = [Run.RUN_STATUS_PENDING, Run.RUN_STATUS_ASSIGNED]
+        allowed_run_statuses = [Run.RUN_STATUS_PENDING, Run.RUN_STATUS_ASSIGNED, Run.RUN_STATUS_PICKED]
         if not run.status in allowed_run_statuses:
             return Response({'error_description' : "Job status invalid: Job must be pending or assigned."}, status=status.HTTP_200_OK)
 
-
-        run.status = Run.RUN_STATUS_ASSIGNED
-        run.determination = Run.DETERMINATION_NOT_PICKED
+        if run.status != Run.RUN_STATUS_PICKED:
+            run.status = Run.RUN_STATUS_ASSIGNED
+            run.determination = Run.DETERMINATION_NOT_PICKED
         run.utc_time_assigned = time_now
         run.race_entry = race_entry
         run.save()
-        run = RunSerializer(run)
-        #TODO log
-        #RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer un-started in race.", current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
+        serialized_run = RunSerializer(run)
 
-        return Response(run.data, status=status.HTTP_200_OK)
+        RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="{} assigned to Racer.".format(run.job), current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
+
+        return Response(serialized_run.data, status=status.HTTP_200_OK)
 
 class DispatchUnassignView(APIView):
     def post(self, request, *args, **kwargs):
