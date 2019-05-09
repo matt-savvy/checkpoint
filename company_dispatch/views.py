@@ -59,7 +59,6 @@ class CompanyDispatchView(DetailView):
     def get_object(self, queryset=None):
         company_entry_pk = self.request.GET.get('company_entry')
         if company_entry_pk and self.request.user.is_superuser:
-            print("company_entry_pk", company_entry_pk)
             return CompanyEntry.objects.get(pk=company_entry_pk)
         rc = RaceControl.shared_instance()
         race = rc.current_race
@@ -75,14 +74,8 @@ class CompanyDispatchView(DetailView):
             context['head'] = changelogs.last().pk
         else:
             context['head'] = 0
-
-        ###DELETE!
-        context['head'] = 0
-        ###
         context['js_file'] = 'company_dispatch'
-        #entries = self.object.get_race_entries()
-        #race_entry_serializer = RaceEntrySerializer(entries, many=True)
-        #context['race_entries'] = dumps(race_entry_serializer.data)
+
         return context
 
 class CompanyEntrySelectView(AuthorizedRaceOfficalMixin, FormView):
