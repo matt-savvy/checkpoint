@@ -180,7 +180,7 @@ class PickView(APIView):
         run.pick()
 
         try:
-            RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer picked up run #{}".format(str(run.pk)), current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
+            RaceLog(racer=race_entry.racer, race=race_entry.race, user=request.user, log="Racer picked up Job #{}".format(str(run.job.pk)), current_grand_total=race_entry.grand_total, current_number_of_runs=race_entry.number_of_runs_completed).save()
         except:
             pass
 
