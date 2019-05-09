@@ -37,7 +37,7 @@ function NavBar(props){
 		  <NavDropdown.Item active={props.sortMode == SORT_POINTS} eventKey={SORT_POINTS}>Points</NavDropdown.Item>
 		  <NavDropdown.Item active={props.sortMode == SORT_FINAL_SCORE} eventKey={SORT_FINAL_SCORE}>Final Score</NavDropdown.Item>
 		</NavDropdown>
-        <Button onClick={props.refresh} variant="secondary">Refresh</Button>
+        <Button onClick={props.refresh} disabled={props.loading} variant="secondary">Refresh</Button>
 	</Nav>
     )
 }
@@ -168,8 +168,8 @@ class App extends React.Component {
 			companies: companyList,
 			raceEntries : raceEntriesList,
 		}
-		this.viewModes = [DISPLAY_RACERS, DISPLAY_COMPANIES]
-		this.sortModes = [SORT_COMPLETE_JOBS, SORT_ACTIVE_JOBS, SORT_POINTS]
+		this.viewModes = [DISPLAY_RACERS, DISPLAY_COMPANIES];
+		this.sortModes = [SORT_COMPLETE_JOBS, SORT_ACTIVE_JOBS, SORT_POINTS, SORT_FINAL_SCORE];
 	}
     componentDidMount() {
         this.refreshTimer = setInterval(() => this.refresh(), 30000);
@@ -182,7 +182,6 @@ class App extends React.Component {
 		this.setState({db: db, sortMode : mode});
 	}
 	changeViewMode = (mode) => {
-		console.log("change view mode", mode);
 		this.setState({viewMode : mode});
 	}
 	updateNavBar = (mode) => {
@@ -294,7 +293,7 @@ class App extends React.Component {
 		return (
 			<>
 			   <div className="mb-2 board-tabs">
-					<NavBar refresh={this.refresh} viewMode={this.state.viewMode} sortMode={this.state.sortMode} update={this.updateNavBar} />
+					<NavBar loading={this.state.loading} refresh={this.refresh} viewMode={this.state.viewMode} sortMode={this.state.sortMode} update={this.updateNavBar} />
 			   </div>
 
                 {(this.state.viewMode == DISPLAY_COMPANIES) &&
