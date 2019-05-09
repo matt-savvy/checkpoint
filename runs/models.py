@@ -69,7 +69,6 @@ class Run(models.Model):
 
     def save(self, *args, **kwargs):
         super(Run, self).save(*args, **kwargs)
-
         try:
             change_log = RunChangeLog()
             change_log.company_pk = self.company_entry.pk

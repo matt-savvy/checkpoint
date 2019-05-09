@@ -142,7 +142,7 @@ function NavBar(props){
 		  <NavDropdown.Item active={props.sortMode == SORT_DEADLINE} eventKey={SORT_DEADLINE}>Deadline</NavDropdown.Item>
 		  <NavDropdown.Item active={props.sortMode == SORT_CHECKPOINT} eventKey={SORT_CHECKPOINT}>Checkpoint</NavDropdown.Item>
 		</NavDropdown>
-        <Button onClick={props.refresh} variant="secondary">Refresh</Button>
+        <Button onClick={props.refresh} disabled={props.loading} variant="secondary">Refresh</Button>
         <Clock now={props.timeNow} />
 	</Nav>
     )
@@ -383,7 +383,7 @@ class App extends React.Component {
 
         axios.post(url, requestObj)
             .then(response => {
-                console.log(response);
+                //console.log(response);
                 if (response.data.error_description) {
                     alert(response.data.error_description);
                     return;
@@ -403,7 +403,7 @@ class App extends React.Component {
         let requestObj = {head: this.state.head}
         axios.post('/dispatch/refresh/', requestObj)
             .then(response => {
-                console.log(response.data.runs);
+                //console.log(response.data.runs);
                 let db = this.updateTable(response.data.runs);
 
                 this.setState({db: db, loading : false, head: response.data.head});
@@ -485,7 +485,7 @@ class App extends React.Component {
 		return (
 			<>
 			   <div className="mb-2 board-tabs">
-					<NavBar count={runsResults.count()} timeNow={timeNow} refresh={this.refresh} viewMode={this.state.viewMode} sortMode={this.state.sortMode} update={this.updateNavBar} />
+					<NavBar loading={this.state.loading} count={runsResults.count()} timeNow={timeNow} refresh={this.refresh} viewMode={this.state.viewMode} sortMode={this.state.sortMode} update={this.updateNavBar} />
 			   </div>
 
                 {(this.state.viewMode == DISPLAY_UNASSIGNED) &&

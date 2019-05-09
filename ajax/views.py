@@ -445,7 +445,7 @@ class DispatchUnassignView(APIView):
         if not run.status in allowed_run_statuses:
             return Response({'error_description' : "Job status invalid: This job cannot be unassigned."}, status=status.HTTP_200_OK)
 
-        ##don't move this lower or the run won't have a race entry to get this info from! 
+        ##don't move this lower or the run won't have a race entry to get this info from!
         RaceLog(racer=run.race_entry.racer, race=run.race_entry.race, user=request.user, log="Job #{} unassigned from Racer.".format(run.job.id), current_grand_total=run.race_entry.grand_total, current_number_of_runs=run.race_entry.number_of_runs_completed).save()
 
         run.status = Run.RUN_STATUS_PENDING
