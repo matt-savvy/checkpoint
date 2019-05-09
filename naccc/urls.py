@@ -33,7 +33,7 @@ urlpatterns = patterns('',
     url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='logout'),
 
     url(r'^nunya/', include(admin.site.urls)),
-    url(r'^$', home_views.HomeView.as_view(), name="home-view"),
+    url(r'^$', login_required(home_views.HomeView.as_view()), name="home-view"),
     #url(r'^$', home_views.EmailTemplate.as_view(), name="email-template"),
     #url(r'^contact/$', home_views.ContactView.as_view(), name="contact-view"),
     #url(r'^schedule/$', home_views.ScheduleView.as_view(), name="schedule"),

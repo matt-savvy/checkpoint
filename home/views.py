@@ -1,14 +1,23 @@
 from django.shortcuts import render
 from nacccusers.auth import AuthorizedRaceOfficalMixin
-
+from checkpoints.models import Checkpoint
+from companies.models import Company
+from company_entries.models import CompanyEntry
 from django.views.generic import TemplateView, RedirectView
 
-class HomeView(AuthorizedRaceOfficalMixin, RedirectView):
+class HomeView(RedirectView):
     permanent = False
     def get_redirect_url(self, *args, **kwargs):
         if self.request.user.is_superuser:
             return '/racers/'
-        return '/dispatch/'
+
+        company = Company.objects.filter(dispatcher=self.request.user).first()
+        if company:
+            company_entry = CompanyEntry.objects.filter(company=company)
+            if company_entry:
+                return '/dispatch/'
+
+        return '/mobilecheckpoint/'
 
 class WelcomeView(RedirectView):
     permanent = True
