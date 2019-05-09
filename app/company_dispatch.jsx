@@ -367,6 +367,7 @@ class App extends React.Component {
         let requestObj = {
             run_pk : run.id,
             race_entry_pk: raceEntry,
+            company_entry_pk: init.id,
         }
         this.action(url, requestObj);
     }
@@ -374,6 +375,7 @@ class App extends React.Component {
         let url = '/dispatch/unassign/';
         let requestObj = {
             run_pk : run.id,
+            company_entry_pk: init.id,
         }
 
         this.action(url, requestObj);
@@ -400,7 +402,10 @@ class App extends React.Component {
     refresh = () => {
         clearInterval(this.refreshTimer);
         this.setState({loading : true});
-        let requestObj = {head: this.state.head}
+        let requestObj = {
+            head: this.state.head,
+            company_entry_pk: init.id,
+        }
         axios.post('/dispatch/refresh/', requestObj)
             .then(response => {
                 //console.log(response.data.runs);

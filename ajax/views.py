@@ -354,7 +354,7 @@ class DispatchRefreshView(generics.ListAPIView):
 
     def post(self, request, *args, **kwargs):
         qs = self.queryset
-        company_entry = CompanyEntry.objects.filter(company__dispatcher=self.request.user).first()
+        company_entry = CompanyEntry.objects.get(pk=self.request.DATA.get('company_entry_pk'))
 
         if company_entry:
             qs = qs.filter(company_entry=company_entry)
@@ -382,7 +382,7 @@ class DispatchAssignView(APIView):
 
         time_now = datetime.datetime.now(tz=pytz.utc)
 
-        company_entry = CompanyEntry.objects.filter(company__dispatcher=request.user).filter(race=current_race).first()
+        company_entry = CompanyEntry.objects.get(pk=self.request.DATA.get('company_entry_pk'))
         if not company_entry:
             return HttpResponseForbidden
 
@@ -429,7 +429,7 @@ class DispatchUnassignView(APIView):
 
         time_now = datetime.datetime.now(tz=pytz.utc)
 
-        company_entry = CompanyEntry.objects.filter(company__dispatcher=request.user).filter(race=current_race).first()
+        company_entry = CompanyEntry.objects.get(pk=self.request.DATA.get('company_entry_pk'))
         if not company_entry:
             return HttpResponseForbidden
 

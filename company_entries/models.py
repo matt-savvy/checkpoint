@@ -49,6 +49,7 @@ class CompanyEntry(models.Model):
 
     class Meta:
         unique_together = (("company", "race"))
+        ordering = ['company', 'race']
 
     def __unicode__(self):
         return u'{} in {}'.format(self.company.name, self.race)
