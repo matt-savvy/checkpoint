@@ -53,8 +53,8 @@ function RacerRow(props) {
 			<td>{raceEntry.entry_status_as_string}</td>
 			<td>{raceEntry.activeRuns}</td>
 			<td>{raceEntry.completedRuns}</td>
-			<td>${raceEntry.points_earned}</td>
-			<td>{(raceEntry.grand_total != 0) && <>${raceEntry.grand_total}</>}</td>
+			<td>${Number(raceEntry.points_earned).toFixed(2)}</td>
+			<td>{(raceEntry.grand_total != 0) && <>${Number(raceEntry.grand_total).toFixed(2)}</>}</td>
 		</tr>
 	)
 }
@@ -109,8 +109,8 @@ function CompanyList(props) {
 								<td>{company.activeRuns}</td>
 								<td>{company.completedRuns}</td>
 								<td>{company.lateRuns}</td>
-								<td>${company.points_earned}</td>
-								<td>{(company.grand_total != 0) && <>${company.grand_total}</>}</td>
+								<td>${Number(company.points_earned).toFixed(2)}</td>
+								<td>{(company.grand_total != 0) && <>${Number(company.grand_total).toFixed(2)}</>}</td>
 
 							</tr>
 						</tbody>
@@ -258,14 +258,17 @@ class App extends React.Component {
         object.lateRuns = lateRuns.count();
 		return object;
 	}
-	sort = (objects) => {
+	sortObjects = (objects) => {
 		let sortMode = this.state.sortMode;
 
 		objects.sort((obj1, obj2) => {
-			if (obj1[sortMode] < obj2[sortMode]) {
+            let val1 = Number(obj1[sortMode]);
+            let val2 = Number(obj2[sortMode]);
+
+			if (val1 < val2) {
 				return 1
 			}
-			if (obj1[sortMode] > obj2[sortMode]) {
+			if (val1 > val2) {
 				return -1
 			}
 			return 0
@@ -286,8 +289,8 @@ class App extends React.Component {
 			return this.createTotals(raceEntry, totalRunsView);
 		})
 
-		let companies = this.sort(this.state.companies);
-		let raceEntries = this.sort(this.state.raceEntries);
+		let companies = this.sortObjects(this.state.companies);
+		let raceEntries = this.sortObjects(this.state.raceEntries);
 		let sortMode = this.state.sortMode;
 
 		return (
